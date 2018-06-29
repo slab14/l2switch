@@ -56,6 +56,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of
@@ -83,6 +86,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     private String dockerIP = "192.1.1.1";
     private String dockerPort = "4243";
     private int containerCounter = 0;
+    private Map macAddrMap = new HashMap();
     
     public FlowWriterServiceImpl(SalFlowService salFlowService) {
         Preconditions.checkNotNull(salFlowService, "salFlowService should not be null.");
@@ -145,6 +149,11 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         Flow flowBody = createMacToMacFlow(flowTableKey.getId(), flowPriority, sourceMac, destMac,
                 destNodeConnectorRef);
 
+	System.out.println("destNodeConnectorRef: "+destNodeConnectorRef.getValue());
+	System.out.println("Mac Addrs : "+sourceMac.getValue()+"\n"+destMac.getValue());
+	System.out.println("flowPath: "+flowPath.toString());
+	System.out.println("flowBody: "+flowBody.toString());
+	
         // commit the flow in config data
         writeFlowToConfigData(flowPath, flowBody);
     }
@@ -232,6 +241,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
         Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
 
+
         Action outputToControllerAction = new ActionBuilder() //
                 .setOrder(0)
                 .setAction(new OutputActionCaseBuilder() //
@@ -267,10 +277,21 @@ public class FlowWriterServiceImpl implements FlowWriterService {
                 .setFlags(new FlowModFlags(false, false, false, false, false));
 
 	//Start a docker container
-	String container_name = "demo"+containerCounter;
-	++containerCounter;
-	DockerCalls obj = new DockerCalls();
-	obj.remoteStartContainer(dockerIP, dockerPort, container_name, "busybox");
+	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue()))){
+	    macAddrMap.put(sourceMac.getValue(), destMac.getValue());
+	    String container_name = "demo"+containerCounter;
+	    String iface = "eth1";
+	    ++containerCounter;
+	    DockerCalls obj = new DockerCalls();
+	    obj.remoteStartContainer(dockerIP, dockerPort, container_name, "busybox");
+	    String ovsBridge = obj.findBridge();
+	    ovsBridge=ovsBridge.replaceAll("\n","");
+	    obj.addContainerPort(ovsBridge, container_name, iface, "10.0.6.1/16");
+	    String contOFPort=obj.findContOfPort(ovsBridge, container_name, iface, "13");
+	    Pattern pattern = Pattern.compile(":");
+	    String[] outPort = pattern.split(destPortUri.getValue());
+	    obj.addFlow2D(ovsBridge, outPort[2], contOFPort, "13");
+	}
 	
         return macToMacFlow.build();
     }
@@ -291,6 +312,28 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         builder.setFlowRef(new FlowRef(flowPath));
         builder.setFlowTable(new FlowTableRef(tableInstanceId));
         builder.setTransactionUri(new Uri(flow.getId().getValue()));
+	System.out.println("************************************");
+	NodeRef outputNodeRef = new NodeRef(nodeInstanceId);
+	System.out.println("nodeInstanceId: "+outputNodeRef.getValue()+"\n");
+	FlowRef outputFlowRef = new FlowRef(flowPath);
+	System.out.println("flowPath: "+outputFlowRef.toString()+"\n");
+	FlowTableRef outputFlowTableRef = new FlowTableRef(tableInstanceId);
+	System.out.println("tableInstanceId: "+outputFlowTableRef.toString()+"\n");
+	Uri outputUri = new Uri(flow.getId().getValue());
+	System.out.println("TransactionUri: "+outputUri.getValue()+"\n");
+	System.out.println("------------------------------------");
         return salFlowService.addFlow(builder.build());
+    }
+
+		
+    private boolean inMap(Map m1, String testKey, String testVal) {
+	if (m1.containsKey(testKey)){
+	    if(m1.get(testKey).equals(testVal))
+		return true;
+	    else
+		return false;
+	}
+	else
+	    return false;
     }
 }

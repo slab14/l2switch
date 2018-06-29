@@ -27,7 +27,7 @@ public class ExecShellCmd {
 	} catch(Exception e) {
 	    e.printStackTrace();
 	}
-	return output.toString();
+	return output.toString().trim();
     }
     
     public String exeCmd(String[] cmd) {
@@ -45,7 +45,7 @@ public class ExecShellCmd {
 	} catch(Exception e) {
 	    e.printStackTrace();
 	}
-	return output.toString();
+	return output.toString().trim();
     }
 }
 

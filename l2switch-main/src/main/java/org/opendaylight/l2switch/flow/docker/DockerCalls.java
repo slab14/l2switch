@@ -118,14 +118,17 @@ public class DockerCalls {
     }    
     
 
-    public String findContOfPort(String bridge, String name, String iface) {
+    public String findContOfPort(String bridge, String name, String iface, String OF_version) {
 	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-vsctl --data=bare --no-heading --columns=name find interface external_ids:container_id=%s external_ids:container_iface=%s", name, iface);
 	ExecShellCmd obj = new ExecShellCmd();
 	String ovsPort=obj.exeCmd(cmd);
 	ovsPort=ovsPort.replaceAll("\n","");
 	System.out.println("OVS Port: "+ovsPort);
 
-	cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl show %s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", bridge, ovsPort);
+	if(OF_version.equals("13"))
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 show %s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", bridge, ovsPort);
+	else
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl show %s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", bridge, ovsPort);
 	String[] pipeCmd={"/bin/sh", "-c", cmd};
 	String ofPort=obj.exeCmd(pipeCmd);
 	ofPort=ofPort.replaceAll("\n","");
@@ -183,12 +186,21 @@ public class DockerCalls {
     }
     
 
-    public void addFlow2D(String bridge, String port1, String port2) {
-	String cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl add-flow %s 'priority=100 in_port=%s actions=output:%s'", bridge, port1, port2);
+    public void addFlow2D(String bridge, String port1, String port2, String OF_version) {
+	String cmd = "";
+	if(OF_version.equals("13"))
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 add-flow %s 'priority=100 in_port=%s actions=output:%s'", bridge, port1, port2);
+	else
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl add-flow %s 'priority=100 in_port=%s actions=output:%s'", bridge, port1, port2);
 	ExecShellCmd obj = new ExecShellCmd();
-	String output = obj.exeCmd(cmd);
-	cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl add-flow %s 'priority=100 in_port=%s actions=output:%s'", bridge, port2, port1);
-	output = obj.exeCmd(cmd);
+	String[] pipeCmd={"/bin/sh", "-c", cmd};
+	String output = obj.exeCmd(pipeCmd);
+	if(OF_version.equals("13"))
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 add-flow %s 'priority=100 in_port=%s actions=output:%s'", bridge, port2, port1);
+	else
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl add-flow %s 'priority=100 in_port=%s actions=output:%s'", bridge, port2, port1);
+	String[] pipeCmd2={"/bin/sh", "-c", cmd};	
+	output = obj.exeCmd(pipeCmd2);
 	System.out.println("Added flow "+port1+" <==> "+port2);
     }
 
@@ -258,6 +270,22 @@ public class DockerCalls {
 	String output=obj.exeCmd(cmd);
 	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-vsctl --db=tcp:%s:%s --if-exists del-br %s", ip, ovs_port, bridge);
 	output=obj.exeCmd(cmd);
-    }    
-    
+    }
+
+    public String findBridge() {
+	String cmd = "/usr/bin/sudo /usr/bin/ovs-vsctl show | grep Bridge | awk -F '\"' '{ print $2 }'";
+	ExecShellCmd obj = new ExecShellCmd();	
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	String output=obj.exeCmd(newCmd);	
+	return output;
+    }
+
+    public String remoteFindBridge(String ip, String ovs_port) {
+	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-vsctl --db=tcp:%s:%s show | grep Bridge | awk -F '\"' '{ print $2 }'", ip, ovs_port);
+	ExecShellCmd obj = new ExecShellCmd();	
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	String output=obj.exeCmd(newCmd);	
+	return output;
+    }
+
 }
