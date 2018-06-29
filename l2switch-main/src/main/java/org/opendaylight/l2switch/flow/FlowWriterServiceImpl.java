@@ -55,6 +55,8 @@ import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.opendaylight.l2switch.flow.docker.DockerCalls;
+
 /**
  * Implementation of
  * FlowWriterService{@link org.opendaylight.l2switch.flow.FlowWriterService},
@@ -252,6 +254,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
                 .setCookie(new FlowCookie(BigInteger.valueOf(flowCookieInc.getAndIncrement())))
                 .setFlags(new FlowModFlags(false, false, false, false, false));
 
+	//Start a docker container
+	DockerCalls obj = new DockerCalls();
+	obj.remoteStartContainer("192.1.1.1", "4243", "demo", "busybox");
+	
         return macToMacFlow.build();
     }
 
