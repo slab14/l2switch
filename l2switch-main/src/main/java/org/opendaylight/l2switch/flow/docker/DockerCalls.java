@@ -14,6 +14,21 @@ import org.opendaylight.l2switch.flow.docker.utils.ExecShellCmd;
 
 public class DockerCalls {
 
+    public String findExistingContainers() {
+	String cmd = "/usr/bin/sudo /usr/bin/docker ps --format '{{.Names}}'";
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(cmd);
+	return output;
+    }
+
+    public String remoteFindExistingContainers(String ip, String docker_port) {
+	String cmd = String.format("curl -s -X GET http://%s:%s/containers/json | jq '.' | grep -A 1 --no-group-separator 'Names' | awk -F '\"' '{ print $2 }' | awk -F '/' '{ print $2 }'", ip, docker_port);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(newCmd);
+	return output;
+    }    
+    
     public void startContainer(String name, String image) {
 	String cmd = String.format("/usr/bin/sudo /usr/bin/docker run -itd --name %s %s", name, image);
 	ExecShellCmd obj = new ExecShellCmd();
@@ -203,9 +218,10 @@ public class DockerCalls {
 	output=obj.exeCmd(cmd);
     }
 
+    /*    
     public void remoteShutdownContainer(String ip, String docker_port, String name, String bridge, String ovs_port) {
 	ExecShellCmd obj = new ExecShellCmd();
-	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port,  name);
+	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port, name);
 	String[] newCmd = {"/bin/bash", "-c", cmd};
 	String output=obj.exeCmd(newCmd);
 	try {
@@ -217,8 +233,17 @@ public class DockerCalls {
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
+    } 
+    */
+
+    public void remoteShutdownContainer(String ip, String docker_port, String name) {
+	ExecShellCmd obj = new ExecShellCmd();
+	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port, name);
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	String output=obj.exeCmd(newCmd);
     }    
 
+    
     public void removeBridges(String bridge_name) {
 	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows %s", bridge_name);
 	ExecShellCmd obj = new ExecShellCmd();

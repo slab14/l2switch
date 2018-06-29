@@ -80,6 +80,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     private final Integer DEFAULT_HARD_TIMEOUT = 3600;
     private final Integer DEFAULT_IDLE_TIMEOUT = 1800;
 
+    private String dockerIP = "192.1.1.1";
+    private String dockerPort = "4243";
+    private int containerCounter = 0;
+    
     public FlowWriterServiceImpl(SalFlowService salFlowService) {
         Preconditions.checkNotNull(salFlowService, "salFlowService should not be null.");
         this.salFlowService = salFlowService;
@@ -99,6 +103,14 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
     public void setFlowHardTimeout(int flowHardTimeout) {
         this.flowHardTimeout = flowHardTimeout;
+    }
+
+    public void setDockerIPAddr(String ip) {
+	this.dockerIP = ip;
+    }
+
+    public void setDockerPort(String port) {
+	this.dockerPort = port;
     }
 
     /**
@@ -255,8 +267,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
                 .setFlags(new FlowModFlags(false, false, false, false, false));
 
 	//Start a docker container
+	String container_name = "demo"+containerCounter;
+	++containerCounter;
 	DockerCalls obj = new DockerCalls();
-	obj.remoteStartContainer("192.1.1.1", "4243", "demo", "busybox");
+	obj.remoteStartContainer(dockerIP, dockerPort, container_name, "busybox");
 	
         return macToMacFlow.build();
     }

@@ -19,6 +19,9 @@ import org.opendaylight.yangtools.concepts.Registration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.opendaylight.l2switch.flow.docker.DockerCalls;
+import java.util.Scanner;
+
 public class L2SwitchMainProvider {
 
     private final static Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
@@ -28,6 +31,8 @@ public class L2SwitchMainProvider {
     private final NotificationProviderService notificationService;
     private final SalFlowService salFlowService;
     private final L2switchConfig mainConfig;
+    private String dockerIP="192.1.1.1";
+    private String dockerPort="4243";
 
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationProviderService notificationService,
@@ -83,6 +88,15 @@ public class L2SwitchMainProvider {
         if(topoNodeListherReg != null) {
             topoNodeListherReg.close();
         }
+	DockerCalls obj = new DockerCalls();
+	String output = obj.remoteFindExistingContainers(dockerIP, dockerPort);
+	Iterable<String> sc = () -> new Scanner(output).useDelimiter("\n");
+	for(String line : sc) {
+	    String name = line.replace("\'","");
+	    if (!name.equals("")){
+		obj.remoteShutdownContainer(dockerIP, dockerPort, name);
+	    }
+	}
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
     }
 
