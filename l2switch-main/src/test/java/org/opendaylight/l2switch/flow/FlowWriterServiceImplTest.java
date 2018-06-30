@@ -34,7 +34,9 @@ public class FlowWriterServiceImplTest {
     private SalFlowService salFlowService;
     private FlowWriterServiceImpl flowWriterService;
     private InstanceIdentifier<NodeConnector> nodeConnectorInstanceIdentifier;
+    private InstanceIdentifier<NodeConnector> nodeConnectorInstanceIdentifier2;    
     private NodeConnectorRef nodeConnectorRef;
+    private NodeConnectorRef nodeConnectorRef2;    
 
     @Before
     public void initMocks() {
@@ -48,12 +50,16 @@ public class FlowWriterServiceImplTest {
         nodeConnectorInstanceIdentifier = InstanceIdentifier.builder(Nodes.class)
                 .child(Node.class, new NodeKey(new NodeId("node-id")))
                 .child(NodeConnector.class, new NodeConnectorKey(new NodeConnectorId("nodeconnector-id"))).build();
+        nodeConnectorInstanceIdentifier2 = InstanceIdentifier.builder(Nodes.class)
+                .child(Node.class, new NodeKey(new NodeId("node-id")))
+                .child(NodeConnector.class, new NodeConnectorKey(new NodeConnectorId("nodeconnector-id"))).build();	
         nodeConnectorRef = new NodeConnectorRef(nodeConnectorInstanceIdentifier);
+        nodeConnectorRef2 = new NodeConnectorRef(nodeConnectorInstanceIdentifier2);	
 
         MacAddress sourceMac = new MacAddress("00:00:ac:f0:01:01");
         MacAddress destMac = new MacAddress("00:00:ac:f0:02:02");
 
-        flowWriterService.addMacToMacFlow(sourceMac, destMac, nodeConnectorRef);
+        flowWriterService.addMacToMacFlow(sourceMac, destMac, nodeConnectorRef, nodeConnectorRef2);
         verify(salFlowService, times(1)).addFlow(any(AddFlowInput.class));
     }
 

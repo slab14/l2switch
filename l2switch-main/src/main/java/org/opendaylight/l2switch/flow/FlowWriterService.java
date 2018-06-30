@@ -25,7 +25,8 @@ public interface FlowWriterService {
      * @param destMac
      * @param destNodeConnectorRef
      */
-    public void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac, NodeConnectorRef destNodeConnectorRef);
+    public void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac, NodeConnectorRef destNodeConnectorRef,
+				NodeConnectorRef sourceNodeConnectorRef);
 
     /**
      * Writes mac-to-mac flow on all ports that are in the path between given

@@ -59,6 +59,7 @@ import org.opendaylight.l2switch.flow.docker.DockerCalls;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.regex.Pattern;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 
 /**
  * Implementation of
@@ -128,7 +129,8 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      * @param destNodeConnectorRef
      */
     @Override
-    public void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac, NodeConnectorRef destNodeConnectorRef) {
+    public void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac, NodeConnectorRef destNodeConnectorRef,
+				NodeConnectorRef sourceNodeConnectorRef) {
 
         Preconditions.checkNotNull(destMac, "Destination mac address should not be null.");
         Preconditions.checkNotNull(destNodeConnectorRef, "Destination port should not be null.");
@@ -147,7 +149,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
         // build a flow that target given mac id
         Flow flowBody = createMacToMacFlow(flowTableKey.getId(), flowPriority, sourceMac, destMac,
-                destNodeConnectorRef);
+					   destNodeConnectorRef, sourceNodeConnectorRef);
 
 	System.out.println("destNodeConnectorRef: "+destNodeConnectorRef.getValue());
 	System.out.println("Mac Addrs : "+sourceMac.getValue()+"\n"+destMac.getValue());
@@ -188,10 +190,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         }
 
         // add destMac-To-sourceMac flow on source port
-        addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef);
+        addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, destNodeConnectorRef);
 
         // add sourceMac-To-destMac flow on destination port
-        addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef);
+        addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef, sourceNodeConnectorRef);
     }
 
     /**
@@ -217,7 +219,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      *         builds flow that forwards all packets with destMac to given port
      */
     private Flow createMacToMacFlow(Short tableId, int priority, MacAddress sourceMac, MacAddress destMac,
-            NodeConnectorRef destPort) {
+				    NodeConnectorRef destPort, NodeConnectorRef sourcePort) {
 
         // start building flow
         FlowBuilder macToMacFlow = new FlowBuilder() //
@@ -237,8 +239,13 @@ public class FlowWriterServiceImpl implements FlowWriterService {
             ethernetMatchBuilder.setEthernetSource(new EthernetSourceBuilder().setAddress(sourceMac).build());
         }
         EthernetMatch ethernetMatch = ethernetMatchBuilder.build();
-        Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
-
+	
+        //Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
+	MatchBuilder matchBuilder = new MatchBuilder().setEthernetMatch(ethernetMatch);
+	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	matchBuilder.setInPort(srcPort);
+	Match match = matchBuilder.build();
+	
         Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
 
 
