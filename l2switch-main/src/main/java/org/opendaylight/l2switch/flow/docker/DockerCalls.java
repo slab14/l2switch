@@ -27,7 +27,45 @@ public class DockerCalls {
 	ExecShellCmd obj = new ExecShellCmd();
 	String output=obj.exeCmd(newCmd);
 	return output;
+    }
+
+    public String findContainerMAC(String name) {
+	String cmd = String.format("/usr/bin/sudo /usr/bin/docker inspect %s --format={{.NetworkSettings.MacAddress}}", name);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(newCmd);
+	return output;
+    }
+
+    public String findContainerMACNewIface(String name, String iface) {
+	String cmd = String.format("/usr/bin/sudo /usr/bin/docker inspect %s --format={{.State.Pid}}", name);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String pid=obj.exeCmd(newCmd);
+	cmd = String.format("/usr/bin/sudo /usr/bin/nsenter -t %s -n ip addr | grep -A 2 %s | grep ether | awk -F ' ' '{ print $2 }'", pid, iface);
+	String[] secondCmd = {"/bin/sh", "-c", cmd};
+	String output = obj.exeCmd(secondCmd);
+	return output;
     }    
+
+    public void updateDefaultRoute(String bridge, String inPort, String newOutPort, String OF_version){
+	String cmd = "";
+	if(OF_version.equals("13")){
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 dump-flows %s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", bridge, inPort, newOutPort);
+	} else {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl dump-flows %s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", bridge, inPort, newOutPort);
+	}
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String newAction = obj.exeCmd(newCmd);
+	if(OF_version.equals("13")) {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 mod-flows --strict %s 'in_port=%s, priority=2, %s'", bridge, inPort, newAction);
+	} else {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 mod-flows --strict %s 'in_port=%s, priority=2, %s'", bridge, inPort, newAction);
+	}
+	String[] secondCmd = {"/bin/sh", "-c", cmd};
+	String output = obj.exeCmd(secondCmd);
+    }
     
     public void startContainer(String name, String image) {
 	String cmd = String.format("/usr/bin/sudo /usr/bin/docker run -itd --name %s %s", name, image);

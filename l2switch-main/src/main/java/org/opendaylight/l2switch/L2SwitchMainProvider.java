@@ -88,13 +88,13 @@ public class L2SwitchMainProvider {
         if(topoNodeListherReg != null) {
             topoNodeListherReg.close();
         }
-	DockerCalls obj = new DockerCalls();
-	String output = obj.remoteFindExistingContainers(dockerIP, dockerPort);
+	DockerCalls docker = new DockerCalls();
+	String output = docker.remoteFindExistingContainers(dockerIP, dockerPort);
 	Iterable<String> sc = () -> new Scanner(output).useDelimiter("\n");
 	for(String line : sc) {
 	    String name = line.replace("\'","");
 	    if (!name.equals("")){
-		obj.remoteShutdownContainer(dockerIP, dockerPort, name);
+		docker.remoteShutdownContainer(dockerIP, dockerPort, name);
 	    }
 	}
         LOG.info("L2SwitchMain (instance {}) torn down.", this);

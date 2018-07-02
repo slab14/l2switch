@@ -60,6 +60,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeKey;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.Nodes;
 
 /**
  * Implementation of
@@ -88,6 +91,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     private String dockerPort = "4243";
     private int containerCounter = 0;
     private Map macAddrMap = new HashMap();
+    public static final InstanceIdentifier<Nodes> NODES_IID = InstanceIdentifier.builder(Nodes.class).build();
     
     public FlowWriterServiceImpl(SalFlowService salFlowService) {
         Preconditions.checkNotNull(salFlowService, "salFlowService should not be null.");
@@ -151,10 +155,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         Flow flowBody = createMacToMacFlow(flowTableKey.getId(), flowPriority, sourceMac, destMac,
 					   destNodeConnectorRef, sourceNodeConnectorRef);
 
-	System.out.println("destNodeConnectorRef: "+destNodeConnectorRef.getValue());
-	System.out.println("Mac Addrs : "+sourceMac.getValue()+"\n"+destMac.getValue());
-	System.out.println("flowPath: "+flowPath.toString());
-	System.out.println("flowBody: "+flowBody.toString());
 	
         // commit the flow in config data
         writeFlowToConfigData(flowPath, flowBody);
@@ -186,7 +186,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
             LOG.info(
                     "In addMacToMacFlowsUsingShortestPath: No flows added. Source and Destination ports are same.");
             return;
-
         }
 
         // add destMac-To-sourceMac flow on source port
@@ -194,6 +193,36 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
         // add sourceMac-To-destMac flow on destination port
         addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef, sourceNodeConnectorRef);
+
+	//Add Docker Container
+	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue()))){
+	    macAddrMap.put(sourceMac.getValue(), destMac.getValue());
+	    String container_name = "demo"+containerCounter;
+	    String iface = "eth1";
+	    ++containerCounter;
+	    DockerCalls docker = new DockerCalls();
+	    docker.remoteStartContainer(dockerIP, dockerPort, container_name, "busybox");
+	    String ovsBridge = docker.findBridge();
+	    ovsBridge=ovsBridge.replaceAll("\n","");
+	    docker.addContainerPort(ovsBridge, container_name, iface, "10.0.6.1/16");
+	    String contMAC = docker.findContainerMACNewIface(container_name, iface);
+	    MacAddress contMac = new MacAddress(contMAC);	    
+	    System.out.println("Container MAC Addr : "+contMac.getValue());
+	    String contOFPort=docker.findContOfPort(ovsBridge, container_name, iface, "13");
+	    Pattern pattern = Pattern.compile(":");
+	    Uri destPortUri = destNodeConnectorRef.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	    String[] outPort = pattern.split(destPortUri.getValue());
+	    //docker.addFlow2D(ovsBridge, outPort[2], contOFPort, "13");
+	    macAddrMap.put(sourceMac.getValue(), contMAC);
+	    NodeId contNodeId = new NodeId(String.format("%s:%s", outPort[0], outPort[1]));
+	    NodeConnectorId contNodeConnId = new NodeConnectorId(String.format("%s:%s:%s", outPort[0], outPort[1], contOFPort));
+	    InstanceIdentifier<NodeConnector> contNodeConIId = NODES_IID.child(Node.class, new NodeKey(contNodeId)).child(NodeConnector.class, new NodeConnectorKey(contNodeConnId));
+	    NodeConnectorRef contNodeConnectorRef = new NodeConnectorRef(contNodeConIId);
+	    addMacToMacFlow(destMac, contMac, contNodeConnectorRef, destNodeConnectorRef);
+	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
+	    docker.updateDefaultRoute(ovsBridge, outPort[2], contOFPort, "13");
+	}
+	
     }
 
     /**
@@ -283,23 +312,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
                 .setCookie(new FlowCookie(BigInteger.valueOf(flowCookieInc.getAndIncrement())))
                 .setFlags(new FlowModFlags(false, false, false, false, false));
 
-	//Start a docker container
-	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue()))){
-	    macAddrMap.put(sourceMac.getValue(), destMac.getValue());
-	    String container_name = "demo"+containerCounter;
-	    String iface = "eth1";
-	    ++containerCounter;
-	    DockerCalls obj = new DockerCalls();
-	    obj.remoteStartContainer(dockerIP, dockerPort, container_name, "busybox");
-	    String ovsBridge = obj.findBridge();
-	    ovsBridge=ovsBridge.replaceAll("\n","");
-	    obj.addContainerPort(ovsBridge, container_name, iface, "10.0.6.1/16");
-	    String contOFPort=obj.findContOfPort(ovsBridge, container_name, iface, "13");
-	    Pattern pattern = Pattern.compile(":");
-	    String[] outPort = pattern.split(destPortUri.getValue());
-	    obj.addFlow2D(ovsBridge, outPort[2], contOFPort, "13");
-	}
-	
+
         return macToMacFlow.build();
     }
 
@@ -319,16 +332,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         builder.setFlowRef(new FlowRef(flowPath));
         builder.setFlowTable(new FlowTableRef(tableInstanceId));
         builder.setTransactionUri(new Uri(flow.getId().getValue()));
-	System.out.println("************************************");
-	NodeRef outputNodeRef = new NodeRef(nodeInstanceId);
-	System.out.println("nodeInstanceId: "+outputNodeRef.getValue()+"\n");
-	FlowRef outputFlowRef = new FlowRef(flowPath);
-	System.out.println("flowPath: "+outputFlowRef.toString()+"\n");
-	FlowTableRef outputFlowTableRef = new FlowTableRef(tableInstanceId);
-	System.out.println("tableInstanceId: "+outputFlowTableRef.toString()+"\n");
-	Uri outputUri = new Uri(flow.getId().getValue());
-	System.out.println("TransactionUri: "+outputUri.getValue()+"\n");
-	System.out.println("------------------------------------");
         return salFlowService.addFlow(builder.build());
     }
 
