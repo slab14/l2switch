@@ -31,8 +31,9 @@ public class L2SwitchMainProvider {
     private final NotificationProviderService notificationService;
     private final SalFlowService salFlowService;
     private final L2switchConfig mainConfig;
-    private String dockerIP="192.1.1.1";
+    private String dataplaneIP="192.1.1.1";
     private String dockerPort="4243";
+    private String ovsPort="6677";
 
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationProviderService notificationService,
@@ -89,12 +90,13 @@ public class L2SwitchMainProvider {
             topoNodeListherReg.close();
         }
 	DockerCalls docker = new DockerCalls();
-	String output = docker.remoteFindExistingContainers(dockerIP, dockerPort);
+	String output = docker.remoteFindExistingContainers(dataplaneIP, dockerPort);
 	Iterable<String> sc = () -> new Scanner(output).useDelimiter("\n");
 	for(String line : sc) {
 	    String name = line.replace("\'","");
 	    if (!name.equals("")){
-		docker.remoteShutdownContainer(dockerIP, dockerPort, name);
+		String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
+		docker.remoteShutdownContainer(dataplaneIP, dockerPort, name, ovsBridge, ovsPort);
 	    }
 	}
         LOG.info("L2SwitchMain (instance {}) torn down.", this);

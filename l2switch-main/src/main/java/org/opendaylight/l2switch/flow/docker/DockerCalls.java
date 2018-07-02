@@ -322,7 +322,7 @@ public class DockerCalls {
 	output=obj.exeCmd(cmd);
     }
 
-    /*    
+
     public void remoteShutdownContainer(String ip, String docker_port, String name, String bridge, String ovs_port) {
 	ExecShellCmd obj = new ExecShellCmd();
 	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port, name);
@@ -338,7 +338,6 @@ public class DockerCalls {
 	    e.printStackTrace();
 	}
     } 
-    */
 
     public void remoteShutdownContainer(String ip, String docker_port, String name) {
 	ExecShellCmd obj = new ExecShellCmd();
