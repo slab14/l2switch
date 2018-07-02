@@ -82,6 +82,25 @@ public class DockerCalls {
 	String[] secondCmd = {"/bin/sh", "-c", cmd};
 	String output = obj.exeCmd(secondCmd);
     }
+
+    public void remoteUpdateDefaultRoute(String ip, String ovsBridge_remotePort, String inPort, String newOutPort, String OF_version){
+	String cmd = "";
+	if(OF_version.equals("13")){
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 dump-flows tcp:%s:%s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", ip, ovsBridge_remotePort,  inPort, newOutPort);
+	} else {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl dump-flows tcp:%s:%s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", ip, ovsBridge_remotePort,  inPort, newOutPort);
+	}
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String newAction = obj.exeCmd(newCmd);
+	if(OF_version.equals("13")) {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 mod-flows --strict tcp:%s:%s 'in_port=%s, priority=2, %s'", ip, ovsBridge_remotePort, inPort, newAction);
+	} else {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl mod-flows --strict tcp:%s:%s 'in_port=%s, priority=2, %s'", ip, ovsBridge_remotePort, inPort, newAction);
+	}
+	String[] secondCmd = {"/bin/sh", "-c", cmd};
+	String output = obj.exeCmd(secondCmd);
+    }    
     
     public void startContainer(String name, String image) {
 	String cmd = String.format("/usr/bin/sudo /usr/bin/docker run -itd --name %s %s", name, image);
