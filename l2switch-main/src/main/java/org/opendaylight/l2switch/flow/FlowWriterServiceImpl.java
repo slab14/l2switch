@@ -87,8 +87,9 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     private final Integer DEFAULT_HARD_TIMEOUT = 3600;
     private final Integer DEFAULT_IDLE_TIMEOUT = 1800;
 
-    private String dockerIP = "192.1.1.1";
+    private String dataplaneIP = "192.1.1.1";
     private String dockerPort = "4243";
+    private String ovsPort = "6677";
     private int containerCounter = 0;
     private Map macAddrMap = new HashMap();
     public static final InstanceIdentifier<Nodes> NODES_IID = InstanceIdentifier.builder(Nodes.class).build();
@@ -114,8 +115,8 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         this.flowHardTimeout = flowHardTimeout;
     }
 
-    public void setDockerIPAddr(String ip) {
-	this.dockerIP = ip;
+    public void setDataplaneIPAddr(String ip) {
+	this.dataplaneIP = ip;
     }
 
     public void setDockerPort(String port) {
@@ -201,14 +202,20 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String iface = "eth1";
 	    ++containerCounter;
 	    DockerCalls docker = new DockerCalls();
-	    docker.remoteStartContainer(dockerIP, dockerPort, container_name, "busybox");
+	    docker.remoteStartContainer(dataplaneIP, dockerPort, container_name, "busybox");
 	    String ovsBridge = docker.findBridge();
 	    ovsBridge=ovsBridge.replaceAll("\n","");
-	    docker.addContainerPort(ovsBridge, container_name, iface, "10.0.6.1/16");
-	    String contMAC = docker.findContainerMACNewIface(container_name, iface);
+	    //docker.addContainerPort(ovsBridge, container_name, iface, "10.0.6.1/16");
+	    docker.remoteAddContainerPort(ovsBridge, container_name, iface, dataplaneIP, ovsPort, dockerPort,  "10.0.6.1/16");
+	    //String contMAC = docker.findContainerMACNewIface(container_name, iface);
+	    String ovsBridge_remotePort = "6634";
+	    String contOFPort=docker.remoteFindContOfPort(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13");
+	    System.out.println("Container OF Port = "+contOFPort);
+	    String contMAC = docker.remoteFindContainerMACNewIface(container_name, dataplaneIP, dockerPort, ovsBridge_remotePort, contOFPort, "13");
+	    System.out.println("got MAC = "+contMAC);
 	    MacAddress contMac = new MacAddress(contMAC);	    
 	    System.out.println("Container MAC Addr : "+contMac.getValue());
-	    String contOFPort=docker.findContOfPort(ovsBridge, container_name, iface, "13");
+
 	    Pattern pattern = Pattern.compile(":");
 	    Uri destPortUri = destNodeConnectorRef.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
 	    String[] outPort = pattern.split(destPortUri.getValue());

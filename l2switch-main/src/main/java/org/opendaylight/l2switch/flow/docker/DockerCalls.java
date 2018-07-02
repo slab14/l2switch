@@ -46,7 +46,23 @@ public class DockerCalls {
 	String[] secondCmd = {"/bin/sh", "-c", cmd};
 	String output = obj.exeCmd(secondCmd);
 	return output;
-    }    
+    }
+
+    public String remoteFindContainerMACNewIface(String name, String ip, String dockerPort, String ovsBridge_remotePort, String ofPort, String OF_version) {
+	String cmd = "";
+	if(OF_version.equals("13")){
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 show tcp:%s:%s | grep '%s(' | awk -F ':' '{ print $1 }' | awk -F '-' '{ print $2 }' | sed 's/)//g'", ip, ovsBridge_remotePort, ofPort);
+	} else {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl show tcp:%s:%s | grep '%s(' | awk -F ':' '{ print $1 }' | awk -F '-' '{ print $2 }' | sed 's/)//g'", ip, ovsBridge_remotePort, ofPort);
+	}
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String netName = obj.exeCmd(newCmd);
+	cmd = String.format("/usr/bin/curl -s -X GET http://%s:%s/containers/%s/json | jq '.NetworkSettings.Networks' | grep %s -A 8 | grep MacAddress | awk -F '\"' '{ print $4 }'", ip, dockerPort, name, netName);
+	String[] secondCmd = {"/bin/sh", "-c", cmd};
+	String output = obj.exeCmd(secondCmd);
+	return output;
+    }
 
     public void updateDefaultRoute(String bridge, String inPort, String newOutPort, String OF_version){
 	String cmd = "";
@@ -188,6 +204,25 @@ public class DockerCalls {
 	System.out.println("OF Port: "+ofPort);
 	return ofPort;
     }
+
+    public String remoteFindContOfPort(String ip, String ovs_port, String bridge_remote_port, String name, String iface, String OF_version) {
+	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-vsctl --db=tcp:%s:%s --data=bare --no-heading --columns=name find interface external_ids:container_id=%s external_ids:container_iface=%s", ip, ovs_port, name, iface);
+	ExecShellCmd obj = new ExecShellCmd();
+	String ovsPort=obj.exeCmd(cmd);
+	ovsPort=ovsPort.replaceAll("\n","");
+	System.out.println("OVS Port: "+ovsPort);
+
+	if(OF_version.equals("13")){
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 show tcp:%s:%s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", ip, bridge_remote_port, ovsPort);
+	} else {
+	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl show tcp:%s:%s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", ip, bridge_remote_port, ovsPort);
+	}
+	String[] pipeCmd={"/bin/sh", "-c", cmd};
+	String ofPort=obj.exeCmd(pipeCmd);
+	ofPort=ofPort.replaceAll("\n","");
+	System.out.println("OF Port: "+ofPort);
+	return ofPort;
+    }    
     
     public String findExternalOfPort(String bridge, String iface) {
 	String cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl show %s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", bridge, iface);
