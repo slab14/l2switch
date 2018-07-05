@@ -157,6 +157,7 @@ public class DockerCalls {
 
     public void remoteAddContainerPort(String bridge, String name, String iface, String ip, String ovs_port, String docker_port, String cont_ip) {
 	String ip_arg=String.format("--ipaddress=%s", cont_ip);
+	/*
 	try {
 	    ProcessBuilder pb = new ProcessBuilder("/users/slab/IoT_Sec_Gateway/ovs_remote/ovs-docker-remote", "add-port", bridge, iface, name, ip, ovs_port, docker_port, ip_arg);
 	    Process p = pb.start();
@@ -166,6 +167,10 @@ public class DockerCalls {
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
+	*/
+	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote add-port %s %s %s %s %s %s %s", bridge, iface, name, ip, ovs_port, docker_port, ip_arg);
+	ExecShellCmd obj = new ExecShellCmd();
+	String output = obj.exeCmd(cmd);
 	System.out.println("Added interface "+iface+" to container "+name+" with IP address "+cont_ip);
     }
 
@@ -178,6 +183,7 @@ public class DockerCalls {
     }    
 
     public void remoteAddContainerPort(String bridge, String name, String iface, String ip, String ovs_port, String docker_port) {
+	/*
 	try {
 	    ProcessBuilder pb = new ProcessBuilder("/users/slab/IoT_Sec_Gateway/ovs_remote/ovs-docker-remote", "add-port", bridge, iface, name, ip, ovs_port, docker_port);
 	    Process p = pb.start();
@@ -186,7 +192,11 @@ public class DockerCalls {
 	    e.printStackTrace();
 	} catch (IOException e) {
 	    e.printStackTrace();
-	}	
+	}
+	*/
+	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote add-port %s %s %s %s %s %s", bridge, iface, name, ip, ovs_port, docker_port);
+	ExecShellCmd obj = new ExecShellCmd();
+	String output = obj.exeCmd(cmd);
 	System.out.println("Added interface "+iface+" to container "+name);
     }    
     
@@ -328,6 +338,7 @@ public class DockerCalls {
 	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port, name);
 	String[] newCmd = {"/bin/bash", "-c", cmd};
 	String output=obj.exeCmd(newCmd);
+	/*
 	try {
 	    ProcessBuilder pb = new ProcessBuilder("/users/slab/IoT_Sec_Gateway/ovs_remote/ovs-docker-remote", "del-ports", bridge, name, ip, ovs_port, docker_port);
 	    Process p = pb.start();
@@ -337,6 +348,9 @@ public class DockerCalls {
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
+	*/
+	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote del-ports %s %s %s %s %s", bridge, name, ip, ovs_port, docker_port);
+	output=obj.exeCmd(cmd);	
     } 
 
     public void remoteShutdownContainer(String ip, String docker_port, String name) {
