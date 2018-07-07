@@ -20,7 +20,7 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.Nodes;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeKey;
-
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
 
 public class Containers {
 
@@ -40,7 +40,7 @@ public class Containers {
 
     public void addPortOnContainer(String dataplaneIP, String dockerPort, String ovsPort, String ovsBridge, String container_name, String cont_iface) {
 	DockerCalls docker = new DockerCalls();	
-	docker.remoteAddContainerPort(ovsBridge, container_name, iface, dataplaneIP, ovsPort, dockerPort);
+	docker.remoteAddContainerPort(ovsBridge, container_name, cont_iface, dataplaneIP, ovsPort, dockerPort);
     }
 
     public void addPortOnContainer(String dataplaneIP, String dockerPort, String ovsPort, String ovsBridge, String container_name, String cont_iface, String contPortIP) {
@@ -103,14 +103,14 @@ public class Containers {
     }
 
     public void addDirectContainer(String dataplaneIP, String dockerPort, String ovsPort, String containerName, String containerImage, String cont_iface, String contIP) {
-	startContainer(String dataplaneIP, String dockerPort, String containerName, String containerImage);
-	String ovsBridge = getOVSBridge(String dataplaneIP, String ovsPort);
-	addPortOnContainer(String dataplaneIP, String dockerPort, String ovsPort, String ovsBridge, String container_name, String cont_iface, String contIP);
+	startContainer(dataplaneIP, dockerPort, containerName, containerImage);
+	String ovsBridge = getOVSBridge(dataplaneIP, ovsPort);
+	addPortOnContainer(dataplaneIP, dockerPort, ovsPort, ovsBridge, containerName, cont_iface, contIP);
     }
 
     public void addDirectContainerRouting(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion, String in_port){
-	String newOutPort = getContOFPortNum(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion);
-	updateDefaultRoutes(String dataplaneIP, String ovsBridge_remotePort, String in_port, String newOutPort, String OFversion);
+	String newOutPort = getContOFPortNum(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, cont_iface, OFversion);
+	updateDefaultRoutes(dataplaneIP, ovsBridge_remotePort, in_port, newOutPort, OFversion);
     }
 
 }

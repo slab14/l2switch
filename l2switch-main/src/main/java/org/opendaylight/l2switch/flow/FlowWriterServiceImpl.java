@@ -63,6 +63,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeCon
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.Nodes;
+import org.opendaylight.l2switch.flow.containers.Containers;
 
 /**
  * Implementation of
@@ -202,6 +203,23 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String container_name = "demo"+containerCounter;
 	    String iface = "eth1";
 	    ++containerCounter;
+	    Containers containerCalls = new Containers();
+	    containerCalls.startContainer(dataplaneIP, dockerPort, container_name, "busybox");
+	    String ovsBridge = containerCalls.getOVSBridge(dataplaneIP, ovsPort);
+	    containerCalls.addPortOnContainer(dataplaneIP, dockerPort, ovsPort, ovsBridge, container_name, iface, "10.0.6.1/16");
+	    String ovsBridge_remotePort = "6634";
+	    String contOFPortNum = containerCalls.getContOFPortNum(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13");
+	    String contMAC = containerCalls.getContMAC(dataplaneIP, dockerPort, ovsBridge_remotePort, container_name, contOFPortNum, "13");
+	    MacAddress contMac = containerCalls.str2Mac(contMAC);
+	    macAddrMap.put(sourceMac.getValue(), contMAC);
+	    Pattern pattern = Pattern.compile(":");
+	    Uri destPortUri = destNodeConnectorRef.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	    String[] outPort = pattern.split(destPortUri.getValue());
+	    NodeConnectorRef contNodeConnectorRef = containerCalls.getContainerNodeConnectorRef(String.format("%s:%s", outPort[0], outPort[1]), contOFPortNum);
+	    addMacToMacFlow(destMac, contMac, contNodeConnectorRef, destNodeConnectorRef);
+	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
+	    containerCalls.addDirectContainerRouting(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13", outPort[2]);
+	    /*
 	    DockerCalls docker = new DockerCalls();
 	    docker.remoteStartContainer(dataplaneIP, dockerPort, container_name, "busybox");
 	    String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
@@ -209,13 +227,11 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    //docker.addContainerPort(ovsBridge, container_name, iface, "10.0.6.1/16");
 	    docker.remoteAddContainerPort(ovsBridge, container_name, iface, dataplaneIP, ovsPort, dockerPort,  "10.0.6.1/16");
 	    //String contMAC = docker.findContainerMACNewIface(container_name, iface);
-	    String ovsBridge_remotePort = "6634";
+
 	    String contOFPort=docker.remoteFindContOfPort(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13");
 	    String contMAC = docker.remoteFindContainerMACNewIface(container_name, dataplaneIP, dockerPort, ovsBridge_remotePort, contOFPort, "13");
 	    MacAddress contMac = new MacAddress(contMAC);	    
-	    Pattern pattern = Pattern.compile(":");
-	    Uri destPortUri = destNodeConnectorRef.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
-	    String[] outPort = pattern.split(destPortUri.getValue());
+
 	    //docker.addFlow2D(ovsBridge, outPort[2], contOFPort, "13");
 	    macAddrMap.put(sourceMac.getValue(), contMAC);
 	    NodeId contNodeId = new NodeId(String.format("%s:%s", outPort[0], outPort[1]));
@@ -225,6 +241,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    addMacToMacFlow(destMac, contMac, contNodeConnectorRef, destNodeConnectorRef);
 	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
 	    docker.remoteUpdateDefaultRoute(dataplaneIP, ovsBridge_remotePort, outPort[2], contOFPort, "13");
+	    */
 	}
 	
     }
