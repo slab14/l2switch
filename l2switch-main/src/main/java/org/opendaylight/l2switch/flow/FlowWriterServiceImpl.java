@@ -209,7 +209,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    containerCalls.addPortOnContainer(dataplaneIP, dockerPort, ovsPort, ovsBridge, container_name, iface, "10.0.6.1/16");
 	    String ovsBridge_remotePort = "6634";
 	    String contOFPortNum = containerCalls.getContOFPortNum(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13");
-	    String contMAC = containerCalls.getContMAC(dataplaneIP, dockerPort, ovsBridge_remotePort, container_name, contOFPortNum, "13");
+	    String contMAC = containerCalls.getContMAC_fromPort(dataplaneIP, dockerPort, ovsBridge_remotePort, container_name, contOFPortNum, "13");
 	    MacAddress contMac = containerCalls.str2Mac(contMAC);
 	    macAddrMap.put(sourceMac.getValue(), contMAC);
 	    Pattern pattern = Pattern.compile(":");
@@ -219,29 +219,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    addMacToMacFlow(destMac, contMac, contNodeConnectorRef, destNodeConnectorRef);
 	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
 	    containerCalls.addDirectContainerRouting(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13", outPort[2]);
-	    /*
-	    DockerCalls docker = new DockerCalls();
-	    docker.remoteStartContainer(dataplaneIP, dockerPort, container_name, "busybox");
-	    String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
-	    ovsBridge=ovsBridge.replaceAll("\n","");
-	    //docker.addContainerPort(ovsBridge, container_name, iface, "10.0.6.1/16");
-	    docker.remoteAddContainerPort(ovsBridge, container_name, iface, dataplaneIP, ovsPort, dockerPort,  "10.0.6.1/16");
-	    //String contMAC = docker.findContainerMACNewIface(container_name, iface);
-
-	    String contOFPort=docker.remoteFindContOfPort(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13");
-	    String contMAC = docker.remoteFindContainerMACNewIface(container_name, dataplaneIP, dockerPort, ovsBridge_remotePort, contOFPort, "13");
-	    MacAddress contMac = new MacAddress(contMAC);	    
-
-	    //docker.addFlow2D(ovsBridge, outPort[2], contOFPort, "13");
-	    macAddrMap.put(sourceMac.getValue(), contMAC);
-	    NodeId contNodeId = new NodeId(String.format("%s:%s", outPort[0], outPort[1]));
-	    NodeConnectorId contNodeConnId = new NodeConnectorId(String.format("%s:%s:%s", outPort[0], outPort[1], contOFPort));
-	    InstanceIdentifier<NodeConnector> contNodeConIId = NODES_IID.child(Node.class, new NodeKey(contNodeId)).child(NodeConnector.class, new NodeConnectorKey(contNodeConnId));
-	    NodeConnectorRef contNodeConnectorRef = new NodeConnectorRef(contNodeConIId);
-	    addMacToMacFlow(destMac, contMac, contNodeConnectorRef, destNodeConnectorRef);
-	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
-	    docker.remoteUpdateDefaultRoute(dataplaneIP, ovsBridge_remotePort, outPort[2], contOFPort, "13");
-	    */
 	}
 	
     }
