@@ -203,13 +203,13 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String container_name = "demo"+containerCounter;
 	    String iface = "eth1";
 	    ++containerCounter;
-	    Containers containerCalls = new Containers();
-	    containerCalls.startContainer(dataplaneIP, dockerPort, container_name, "busybox");
-	    String ovsBridge = containerCalls.getOVSBridge(dataplaneIP, ovsPort);
-	    containerCalls.addPortOnContainer(dataplaneIP, dockerPort, ovsPort, ovsBridge, container_name, iface, "10.0.6.1/16");
+	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
+	    containerCalls.startContainer(container_name, "busybox");	    
+	    String ovsBridge = containerCalls.getOVSBridge();	    
+	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface, "10.0.6.1/16");	    
 	    String ovsBridge_remotePort = "6634";
-	    String contOFPortNum = containerCalls.getContOFPortNum(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13");
-	    String contMAC = containerCalls.getContMAC_fromPort(dataplaneIP, dockerPort, ovsBridge_remotePort, container_name, contOFPortNum, "13");
+	    String contOFPortNum = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface); 
+	    String contMAC = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum);
 	    MacAddress contMac = containerCalls.str2Mac(contMAC);
 	    macAddrMap.put(sourceMac.getValue(), contMAC);
 	    Pattern pattern = Pattern.compile(":");
@@ -218,7 +218,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    NodeConnectorRef contNodeConnectorRef = containerCalls.getContainerNodeConnectorRef(String.format("%s:%s", outPort[0], outPort[1]), contOFPortNum);
 	    addMacToMacFlow(destMac, contMac, contNodeConnectorRef, destNodeConnectorRef);
 	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
-	    containerCalls.addDirectContainerRouting(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, iface, "13", outPort[2]);
+	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface, outPort[2]);	    
 	}
 	
     }
