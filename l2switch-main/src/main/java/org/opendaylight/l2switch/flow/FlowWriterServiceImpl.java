@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
@@ -92,7 +93,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     private String dockerPort = "4243";
     private String ovsPort = "6677";
     private int containerCounter = 0;
-    private Map macAddrMap = new HashMap();
+    private HashMap<String, ArrayList<String>> macAddrMap = new HashMap<String, ArrayList<String>>();
     public static final InstanceIdentifier<Nodes> NODES_IID = InstanceIdentifier.builder(Nodes.class).build();
     
     public FlowWriterServiceImpl(SalFlowService salFlowService) {
@@ -191,6 +192,53 @@ public class FlowWriterServiceImpl implements FlowWriterService {
             return;
         }
 
+	// This is for routing host to host flows through a middlebox
+	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
+	    if (macAddrMap.get(sourceMac.getValue())==null) {
+		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
+	    }
+	    if (macAddrMap.get(sourceMac.getValue())==null) {
+		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
+	    }
+	    macAddrMap.get(sourceMac.getValue()).add(destMac.getValue());
+	    macAddrMap.get(destMac.getValue()).add(sourceMac.getValue());	    
+	    String container_name = "demo"+containerCounter;
+	    String iface1 = "eth1";
+	    String iface2 = "eth2";	    
+	    ++containerCounter;
+	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
+	    containerCalls.startContainer(container_name, "snort_ping_alert");	    
+	    String ovsBridge = containerCalls.getOVSBridge();	    //TODO make this a part of contstructor
+	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface1);
+	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);	    	    
+	    String ovsBridge_remotePort = "6634";
+	    String contOFPortNum1 = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface1);
+	    String contOFPortNum2 = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface2);
+	    String contMAC1 = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum1);
+	    MacAddress contMac1 = containerCalls.str2Mac(contMAC1);
+	    String contMAC2 = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum2);
+	    MacAddress contMac2 = containerCalls.str2Mac(contMAC2);	    
+	    macAddrMap.get(sourceMac.getValue()).add(contMAC1);
+	    macAddrMap.get(contMAC1).add(sourceMac.getValue());
+	    macAddrMap.get(destMac.getValue()).add(contMAC2);
+	    macAddrMap.get(contMAC2).add(destMac.getValue());	    
+	    //macAddrMap.put(contMAC2, destMac.getValue());
+	    String nodeStr = containerCalls.getNodeString(destNodeConnectorRef);
+	    NodeConnectorRef contNodeConnectorRef1 = containerCalls.getContainerNodeConnectorRef(nodeStr, contOFPortNum1);
+	    NodeConnectorRef contNodeConnectorRef2 = containerCalls.getContainerNodeConnectorRef(nodeStr, contOFPortNum2);
+	    addMacToMacFlow(sourceMac,contMac1, contNodeConnectorRef1, sourceNodeConnectorRef);
+	    addMacToMacFlow(contMac2, destMac, destNodeConnectorRef, contNodeConnectorRef2);
+	    addMacToMacFlow(destMac, contMac2, contNodeConnectorRef2, destNodeConnectorRef);
+	    addMacToMacFlow(contMac1, sourceMac, sourceNodeConnectorRef, contNodeConnectorRef1);
+	    //String srcPort = getPortFromNodeConnectorRef(sourceNodeConnectorRef);
+	    //String dstPort = getPortFromNodeConnectorRef(destNodeConnectorRef);	    
+	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface1, srcPort);
+	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface2, dstPort);
+	}
+	    
+	
+	// This is for host to host routing, with adding a container accessible by each of the hosts
+	/*
         // add destMac-To-sourceMac flow on source port
         addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, destNodeConnectorRef);
 
@@ -220,6 +268,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface, outPort[2]);	    
 	}
+	*/
 	
     }
 
@@ -334,9 +383,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     }
 
 		
-    private boolean inMap(Map m1, String testKey, String testVal) {
+    private boolean inMap(HashMap<String, ArrayList<String>> m1, String testKey, String testVal) {
 	if (m1.containsKey(testKey)){
-	    if(m1.get(testKey).equals(testVal))
+	    ArrayList<String> listVals = m1.get(testKey);
+	    if(listVals.contains(testVal))
 		return true;
 	    else
 		return false;
