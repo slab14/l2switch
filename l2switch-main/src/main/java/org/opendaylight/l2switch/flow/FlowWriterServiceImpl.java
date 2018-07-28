@@ -207,7 +207,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String iface2 = "eth2";	    
 	    ++containerCounter;
 	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
-	    containerCalls.startContainer(container_name, "snort_ping_alert");	    
+	    containerCalls.startContainer(container_name, "snort_ping_alert");  
 	    String ovsBridge = containerCalls.getOVSBridge();	    //TODO make this a part of contstructor
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface1);
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);	    	    
@@ -217,19 +217,20 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String contMAC1 = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum1);
 	    MacAddress contMac1 = containerCalls.str2Mac(contMAC1);
 	    String contMAC2 = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum2);
-	    MacAddress contMac2 = containerCalls.str2Mac(contMAC2);	    
+	    MacAddress contMac2 = containerCalls.str2Mac(contMAC2);
 	    macAddrMap.get(sourceMac.getValue()).add(contMAC1);
+	    macAddrMap.put(contMAC1, new ArrayList<String>());
 	    macAddrMap.get(contMAC1).add(sourceMac.getValue());
 	    macAddrMap.get(destMac.getValue()).add(contMAC2);
-	    macAddrMap.get(contMAC2).add(destMac.getValue());	    
-	    //macAddrMap.put(contMAC2, destMac.getValue());
+	    macAddrMap.put(contMAC2, new ArrayList<String>());
+	    macAddrMap.get(contMAC2).add(destMac.getValue());
 	    String nodeStr = containerCalls.getNodeString(destNodeConnectorRef);
 	    NodeConnectorRef contNodeConnectorRef1 = containerCalls.getContainerNodeConnectorRef(nodeStr, contOFPortNum1);
 	    NodeConnectorRef contNodeConnectorRef2 = containerCalls.getContainerNodeConnectorRef(nodeStr, contOFPortNum2);
-	    addMacToMacFlow(sourceMac,contMac1, contNodeConnectorRef1, sourceNodeConnectorRef);
-	    addMacToMacFlow(contMac2, destMac, destNodeConnectorRef, contNodeConnectorRef2);
-	    addMacToMacFlow(destMac, contMac2, contNodeConnectorRef2, destNodeConnectorRef);
-	    addMacToMacFlow(contMac1, sourceMac, sourceNodeConnectorRef, contNodeConnectorRef1);
+	    addMacToMacFlow(sourceMac, destMac, contNodeConnectorRef1, sourceNodeConnectorRef);
+	    addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef, contNodeConnectorRef2);
+	    addMacToMacFlow(destMac, sourceMac, contNodeConnectorRef2, destNodeConnectorRef);
+	    addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, contNodeConnectorRef1);
 	    //String srcPort = getPortFromNodeConnectorRef(sourceNodeConnectorRef);
 	    //String dstPort = getPortFromNodeConnectorRef(destNodeConnectorRef);	    
 	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface1, srcPort);
@@ -252,7 +253,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String iface = "eth1";
 	    ++containerCounter;
 	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
-	    containerCalls.startContainer(container_name, "busybox");	    
+	    containerCalls.startContainer(container_name, "busybox", "/bin/sh");	    
 	    String ovsBridge = containerCalls.getOVSBridge();	    
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface, "10.0.6.1/16");	    
 	    String ovsBridge_remotePort = "6634";
@@ -375,6 +376,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         final InstanceIdentifier<Table> tableInstanceId = flowPath.<Table>firstIdentifierOf(Table.class);
         final InstanceIdentifier<Node> nodeInstanceId = flowPath.<Node>firstIdentifierOf(Node.class);
         final AddFlowInputBuilder builder = new AddFlowInputBuilder(flow);
+	
         builder.setNode(new NodeRef(nodeInstanceId));
         builder.setFlowRef(new FlowRef(flowPath));
         builder.setFlowTable(new FlowTableRef(tableInstanceId));

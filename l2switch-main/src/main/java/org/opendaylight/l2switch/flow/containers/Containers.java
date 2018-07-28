@@ -48,7 +48,12 @@ public class Containers {
     public void startContainer(String container_name, String containerImage) {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
-    }    
+    }
+
+    public void startContainer(String container_name, String containerImage, String containerCmd) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd);
+    }        
 
     public String getOVSBridge(String dataplaneIP, String ovsPort){
 	DockerCalls docker = new DockerCalls();	
