@@ -193,12 +193,13 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         }
 
 	// This is for routing host to host flows through a middlebox
+	/*
 	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
 	    if (macAddrMap.get(sourceMac.getValue())==null) {
 		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
 	    }
-	    if (macAddrMap.get(sourceMac.getValue())==null) {
-		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
+	    if (macAddrMap.get(destMac.getValue())==null) {
+		macAddrMap.put(destMac.getValue(), new ArrayList<String>());
 	    }
 	    macAddrMap.get(sourceMac.getValue()).add(destMac.getValue());
 	    macAddrMap.get(destMac.getValue()).add(sourceMac.getValue());	    
@@ -207,7 +208,8 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String iface2 = "eth2";	    
 	    ++containerCounter;
 	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
-	    containerCalls.startContainer(container_name, "snort_ping_alert");  
+	    //containerCalls.startContainer(container_name, "snort_ping_alert");
+	    containerCalls.startContainer_bind(container_name, "snort_ping_alert", "/mnt/slab/squid/log/", "/var/log/squid/");  
 	    String ovsBridge = containerCalls.getOVSBridge();	    //TODO make this a part of contstructor
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface1);
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);	    	    
@@ -236,10 +238,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface1, srcPort);
 	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface2, dstPort);
 	}
-	    
+	*/
 	
 	// This is for host to host routing, with adding a container accessible by each of the hosts
-	/*
+	
         // add destMac-To-sourceMac flow on source port
         addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, destNodeConnectorRef);
 
@@ -248,19 +250,26 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
 	//Add Docker Container -- directly contactable 
 	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue()))){
-	    macAddrMap.put(sourceMac.getValue(), destMac.getValue());
+	    if (macAddrMap.get(sourceMac.getValue())==null) {
+		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
+	    }
+	    if (macAddrMap.get(destMac.getValue())==null) {
+		macAddrMap.put(destMac.getValue(), new ArrayList<String>());
+	    }
+	    macAddrMap.get(sourceMac.getValue()).add(destMac.getValue());	    
 	    String container_name = "demo"+containerCounter;
 	    String iface = "eth1";
 	    ++containerCounter;
 	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
-	    containerCalls.startContainer(container_name, "busybox", "/bin/sh");	    
+	    //containerCalls.startContainer(container_name, "busybox", "/bin/sh");
+	    containerCalls.startContainer_bind(container_name, "squid", "/bin/sh", "/mnt/slab/squid/log/", "/var/log/squid/");
 	    String ovsBridge = containerCalls.getOVSBridge();	    
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface, "10.0.6.1/16");	    
 	    String ovsBridge_remotePort = "6634";
 	    String contOFPortNum = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface); 
 	    String contMAC = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum);
 	    MacAddress contMac = containerCalls.str2Mac(contMAC);
-	    macAddrMap.put(sourceMac.getValue(), contMAC);
+	    macAddrMap.get(sourceMac.getValue()).add(contMAC);
 	    Pattern pattern = Pattern.compile(":");
 	    Uri destPortUri = destNodeConnectorRef.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
 	    String[] outPort = pattern.split(destPortUri.getValue());
@@ -269,7 +278,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface, outPort[2]);	    
 	}
-	*/
+	
 	
     }
 
