@@ -67,9 +67,9 @@ public class DockerCalls {
     public void updateDefaultRoute(String bridge, String inPort, String newOutPort, String OF_version){
 	String cmd = "";
 	if(OF_version.equals("13")){
-	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 dump-flows %s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", bridge, inPort, newOutPort);
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 dump-flows %s 'in_port=%s' --no-name | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", bridge, inPort, newOutPort);
 	} else {
-	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl dump-flows %s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", bridge, inPort, newOutPort);
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl dump-flows %s 'in_port=%s' --no-name | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", bridge, inPort, newOutPort);
 	}
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	ExecShellCmd obj = new ExecShellCmd();
@@ -86,9 +86,9 @@ public class DockerCalls {
     public void remoteUpdateDefaultRoute(String ip, String ovsBridge_remotePort, String inPort, String newOutPort, String OF_version){
 	String cmd = "";
 	if(OF_version.equals("13")){
-	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 dump-flows tcp:%s:%s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", ip, ovsBridge_remotePort,  inPort, newOutPort);
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 dump-flows tcp:%s:%s 'in_port=%s' --no-name | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", ip, ovsBridge_remotePort,  inPort, newOutPort);
 	} else {
-	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl dump-flows tcp:%s:%s 'in_port=%s' | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", ip, ovsBridge_remotePort,  inPort, newOutPort);
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl dump-flows tcp:%s:%s 'in_port=%s' --no-name | grep CONTROLLER | awk -F ' ' '{ print $7 }' | sed 's/CONTROLLER/output:%s,CONTROLLER/'", ip, ovsBridge_remotePort,  inPort, newOutPort);
 	}
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	ExecShellCmd obj = new ExecShellCmd();
