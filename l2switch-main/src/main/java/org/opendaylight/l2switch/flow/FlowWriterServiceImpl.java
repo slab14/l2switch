@@ -193,7 +193,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         }
 
 	// This is for routing host to host flows through a middlebox
-	/*
 	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
 	    if (macAddrMap.get(sourceMac.getValue())==null) {
 		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
@@ -209,7 +208,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    ++containerCounter;
 	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
 	    //containerCalls.startContainer(container_name, "snort_ping_alert");
-	    containerCalls.startContainer_bind(container_name, "snort_ping_alert", "/mnt/slab/squid/log/", "/var/log/squid/");  
+	    containerCalls.startContainer_bind(container_name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");  
 	    String ovsBridge = containerCalls.getOVSBridge();	    //TODO make this a part of contstructor
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface1);
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);	    	    
@@ -238,10 +237,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface1, srcPort);
 	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface2, dstPort);
 	}
-	*/
+
 	
 	// This is for host to host routing, with adding a container accessible by each of the hosts
-	
+	/*
         // add destMac-To-sourceMac flow on source port
         addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, destNodeConnectorRef);
 
@@ -278,7 +277,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    addMacToMacFlow(contMac, destMac, destNodeConnectorRef, contNodeConnectorRef);
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface, outPort[2]);	    
 	}
-	
+	*/
 	
     }
 

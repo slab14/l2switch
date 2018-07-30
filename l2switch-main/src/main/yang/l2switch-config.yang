@@ -46,11 +46,11 @@ module l2switch-config {
         }
         leaf reactive-flow-hard-timeout {
             type uint16;
-            default 300;
+            default 0;
         }
         leaf reactive-flow-idle-timeout {
             type uint16;
-            default 600;
+            default 0;
         }
     }
 }

@@ -57,7 +57,7 @@ public class Containers {
 
     public void startContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
 	DockerCalls docker = new DockerCalls();
-	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
+	docker.remoteStartContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, hostPath, contPath);
     }
     
     public void startContainer_bind(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
