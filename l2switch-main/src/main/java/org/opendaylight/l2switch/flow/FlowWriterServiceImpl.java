@@ -89,7 +89,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     private final Integer DEFAULT_HARD_TIMEOUT = 0;
     private final Integer DEFAULT_IDLE_TIMEOUT = 0;
 
-    private String dataplaneIP = "192.1.1.1";
+    private String dataplaneIP = "127.0.0.1";
     private String dockerPort = "4243";
     private String ovsPort = "6677";
     private int containerCounter = 0;
@@ -232,7 +232,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    String IPSMAC2 = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, IPS_Name, IPScontOFPortNum2);
 	    MacAddress IPSMac2 = containerCalls.str2Mac(IPSMAC2);
 	    String ProxyMAC = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, Proxy_Name, ProxycontOFPortNum);
-	    MacAddress ProxyMac = containerCalls.str2Mac(ProxyMAC1);	    
+	    MacAddress ProxyMac = containerCalls.str2Mac(ProxyMAC);
 	    macAddrMap.get(sourceMac.getValue()).add(IPSMAC1);
 	    macAddrMap.put(IPSMAC1, new ArrayList<String>());
 	    macAddrMap.get(IPSMAC1).add(sourceMac.getValue());
@@ -245,8 +245,8 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    macAddrMap.get(ProxyMAC).add(destMac.getValue());
 	    macAddrMap.get(destMac.getValue()).add(ProxyMAC);
 	    String nodeStr = containerCalls.getNodeString(destNodeConnectorRef);
-	    NodeConnectorRef IDScontNodeConnectorRef1 = containerCalls.getContainerNodeConnectorRef(nodeStr, IDScontOFPortNum1);
-	    NodeConnectorRef IDScontNodeConnectorRef2 = containerCalls.getContainerNodeConnectorRef(nodeStr, IDScontOFPortNum2);
+	    NodeConnectorRef IPScontNodeConnectorRef1 = containerCalls.getContainerNodeConnectorRef(nodeStr, IPScontOFPortNum1);
+	    NodeConnectorRef IPScontNodeConnectorRef2 = containerCalls.getContainerNodeConnectorRef(nodeStr, IPScontOFPortNum2);
 	    NodeConnectorRef ProxycontNodeConnectorRef = containerCalls.getContainerNodeConnectorRef(nodeStr, ProxycontOFPortNum);
 	    // Add Routing (SRC <-IPS-> Proxy; Proxy <-> DST)
 	    addMacToMacFlow(sourceMac, ProxyMac, IPScontNodeConnectorRef1, sourceNodeConnectorRef);
@@ -254,9 +254,15 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    addMacToMacFlow(ProxyMac, destMac, destNodeConnectorRef, ProxycontNodeConnectorRef);
 	    addMacToMacFlow(destMac, ProxyMac, ProxycontNodeConnectorRef, destNodeConnectorRef);
 	    addMacToMacFlow(ProxyMac, sourceMac, IPScontNodeConnectorRef2, ProxycontNodeConnectorRef);
-	    addMacToMacFlow(ProxyMac, sourceMac, sourceNodeConnectorRef, IPScontNodeConnectorRef1);	    
-	    String srcPort = getPortFromNodeConnectorRef(sourceNodeConnectorRef);
-	    String dstPort = getPortFromNodeConnectorRef(destNodeConnectorRef);	    
+	    addMacToMacFlow(ProxyMac, sourceMac, sourceNodeConnectorRef, IPScontNodeConnectorRef1);
+	    // Add direct route (SRC <-IPS-> DST)
+	    addMacToMacFlow(sourceMac, destMac, IPScontNodeConnectorRef1, sourceNodeConnectorRef);
+	    addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef, IPScontNodeConnectorRef2);
+	    addMacToMacFlow(destMac, sourceMac, IPScontNodeConnectorRef2, destNodeConnectorRef);
+	    addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, IPScontNodeConnectorRef1);
+	    // Add routing for arps and others to include Proxy container
+	    String srcPort = containerCalls.getPortFromNodeConnectorRef(sourceNodeConnectorRef);
+	    String dstPort = containerCalls.getPortFromNodeConnectorRef(destNodeConnectorRef);	    
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, srcPort);
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, dstPort);
 	}
