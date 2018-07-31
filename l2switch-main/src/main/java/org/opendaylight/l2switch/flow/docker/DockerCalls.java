@@ -426,4 +426,39 @@ public class DockerCalls {
 	return output;
     }
 
+    public void remoteDeleteFlows(String ip, String remote_bridge_port, String OF_version) {
+	String cmd;
+	if(OF_version.equals("13")){
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13", ip, remote_bridge_port);
+	} else {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s", ip, remote_bridge_port);
+	}
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(cmd);
+    }
+
+    public void remoteAddRoute(String ip, String dockerPort, String contName, String route, String device) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ip\", \"route\", \"add\", \"%s\", \"dev\", \"%s\"]}\' | jq -r '.Id'", ip, dockerPort, contName, route, device);
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();	
+	String execID=obj.exeCmd(newCmd);
+
+	String secondCmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/exec/%s/start -d \'{\"Detach\": false, \"Tty\": true }\'", ip, dockerPort, execID);
+	String[] newCmd2 = {"/bin/bash", "-c", secondCmd};
+	String output=obj.exeCmd(newCmd2);
+
+    }
+
+    public void remoteDisableGRO(String ip, String dockerPort, String contName, String iface) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ethtool\", \"--offload\", \"%s\", \"tx\", \"off\", \"rx\", \"off\"]}\' | jq -r '.Id'", ip, dockerPort, contName, iface);
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();	
+	String execID=obj.exeCmd(newCmd);
+
+	String secondCmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/exec/%s/start -d \'{\"Detach\": false, \"Tty\": true }\'", ip, dockerPort, execID);
+	String[] newCmd2 = {"/bin/bash", "-c", secondCmd};
+	String output=obj.exeCmd(newCmd2);
+    }
+	
+
 }

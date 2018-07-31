@@ -212,8 +212,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    containerCalls.startContainer_bind(IPS_Name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");
 	    // Proxy: Squid Container
 	    String Proxy_Name=container_name+"_squid";
-	    //TODO: find proxy container to use configured with authentication
-	    containerCalls.startContainer_bind(Proxy_Name, "squid", "/mnt/slab/squid/log/", "/var/log/squid/"); 
+	    containerCalls.startContainer_bind(Proxy_Name, "squid_proxy", "/mnt/slab/squid/log/", "/var/log/squid/"); 
 	    String ovsBridge = containerCalls.getOVSBridge();
 	    // Add 2 ports to Snort container
 	    containerCalls.addPortOnContainer(ovsBridge, IPS_Name, iface1);
@@ -221,6 +220,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    // Add 1 port to Squid container
 	    String ProxyIP="10.1.2.1/16";
 	    containerCalls.addPortOnContainer(ovsBridge, Proxy_Name, iface1, ProxyIP);
+	    // Add routes to proxy
+	    String otherRoute="192.1.0.0/16";
+	    containerCalls.addRouteinCont(Proxy_Name, iface1, otherRoute);
+	    containerCalls.disableContGRO(Proxy_Name, iface1);
 	    String ovsBridge_remotePort = "6634";
 	    // Get OpenFlow Port #s
 	    String IPScontOFPortNum1 = containerCalls.getContOFPortNum(ovsBridge_remotePort, IPS_Name, iface1);

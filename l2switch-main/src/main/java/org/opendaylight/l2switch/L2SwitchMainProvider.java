@@ -34,6 +34,7 @@ public class L2SwitchMainProvider {
     private String dataplaneIP="192.1.1.1";
     private String dockerPort="4243";
     private String ovsPort="6677";
+    private String remote_ovs_port="6634";
 
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationProviderService notificationService,
@@ -99,6 +100,7 @@ public class L2SwitchMainProvider {
 		docker.remoteShutdownContainer(dataplaneIP, dockerPort, name, ovsBridge, ovsPort);
 	    }
 	}
+	docker.remoteDeleteFlows(dataplaneIP, remote_ovs_port, "13");
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
     }
 

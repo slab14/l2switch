@@ -216,4 +216,13 @@ public class Containers {
 	updateDefaultRoutes(this.remoteIP, ovsBridge_remotePort, in_port, newOutPort, this.OpenFlowVersion);
     }    
 
+    public void addRouteinCont(String container_name, String cont_iface, String route) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteAddRoute(this.remoteIP, this.remoteDockerPort, container_name, route, cont_iface);
+    }
+
+    public void disableContGRO(String container_name, String cont_iface) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteDisableGRO(this.remoteIP, this.remoteDockerPort, container_name, cont_iface);
+    }
 }
