@@ -86,8 +86,8 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     private AtomicLong flowCookieInc = new AtomicLong(0x2a00000000000000L);
     private final Integer DEFAULT_TABLE_ID = 0;
     private final Integer DEFAULT_PRIORITY = 10;
-    private final Integer DEFAULT_HARD_TIMEOUT = 3600;
-    private final Integer DEFAULT_IDLE_TIMEOUT = 1800;
+    private final Integer DEFAULT_HARD_TIMEOUT = 0;
+    private final Integer DEFAULT_IDLE_TIMEOUT = 0;
 
     private String dataplaneIP = "192.1.1.1";
     private String dockerPort = "4243";
@@ -192,7 +192,77 @@ public class FlowWriterServiceImpl implements FlowWriterService {
             return;
         }
 
+	// Proxy Password Demo -- non-elegant version
+	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
+	    if (macAddrMap.get(sourceMac.getValue())==null) {
+		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
+	    }
+	    if (macAddrMap.get(destMac.getValue())==null) {
+		macAddrMap.put(destMac.getValue(), new ArrayList<String>());
+	    }
+	    macAddrMap.get(sourceMac.getValue()).add(destMac.getValue());
+	    macAddrMap.get(destMac.getValue()).add(sourceMac.getValue());	    
+	    String container_name = "demo"+containerCounter;
+	    String iface1 = "eth1";
+	    String iface2 = "eth2";	    
+	    ++containerCounter;
+	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
+	    // IPS: Snort Container
+	    String IPS_Name=container_name+"_snort";
+	    containerCalls.startContainer_bind(IPS_Name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");
+	    // Proxy: Squid Container
+	    String Proxy_Name=container_name+"_squid";
+	    //TODO: find proxy container to use configured with authentication
+	    containerCalls.startContainer_bind(Proxy_Name, "squid", "/mnt/slab/squid/log/", "/var/log/squid/"); 
+	    String ovsBridge = containerCalls.getOVSBridge();
+	    // Add 2 ports to Snort container
+	    containerCalls.addPortOnContainer(ovsBridge, IPS_Name, iface1);
+	    containerCalls.addPortOnContainer(ovsBridge, IPS_Name, iface2);
+	    // Add 1 port to Squid container
+	    String ProxyIP="10.1.2.1/16";
+	    containerCalls.addPortOnContainer(ovsBridge, Proxy_Name, iface1, ProxyIP);
+	    String ovsBridge_remotePort = "6634";
+	    // Get OpenFlow Port #s
+	    String IPScontOFPortNum1 = containerCalls.getContOFPortNum(ovsBridge_remotePort, IPS_Name, iface1);
+	    String IPScontOFPortNum2 = containerCalls.getContOFPortNum(ovsBridge_remotePort, IPS_Name, iface2);
+	    String ProxycontOFPortNum = containerCalls.getContOFPortNum(ovsBridge_remotePort, Proxy_Name, iface1);
+	    // Get MAC Addresses
+	    String IPSMAC1 = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, IPS_Name, IPScontOFPortNum1);
+	    MacAddress IPSMac1 = containerCalls.str2Mac(IPSMAC1);
+	    String IPSMAC2 = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, IPS_Name, IPScontOFPortNum2);
+	    MacAddress IPSMac2 = containerCalls.str2Mac(IPSMAC2);
+	    String ProxyMAC = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, Proxy_Name, ProxycontOFPortNum);
+	    MacAddress ProxyMac = containerCalls.str2Mac(ProxyMAC1);	    
+	    macAddrMap.get(sourceMac.getValue()).add(IPSMAC1);
+	    macAddrMap.put(IPSMAC1, new ArrayList<String>());
+	    macAddrMap.get(IPSMAC1).add(sourceMac.getValue());
+	    macAddrMap.get(destMac.getValue()).add(IPSMAC2);
+	    macAddrMap.put(IPSMAC2, new ArrayList<String>());
+	    macAddrMap.get(IPSMAC2).add(destMac.getValue());
+	    macAddrMap.get(IPSMAC2).add(ProxyMAC);
+	    macAddrMap.put(ProxyMAC, new ArrayList<String>());
+	    macAddrMap.get(ProxyMAC).add(IPSMAC2);
+	    macAddrMap.get(ProxyMAC).add(destMac.getValue());
+	    macAddrMap.get(destMac.getValue()).add(ProxyMAC);
+	    String nodeStr = containerCalls.getNodeString(destNodeConnectorRef);
+	    NodeConnectorRef IDScontNodeConnectorRef1 = containerCalls.getContainerNodeConnectorRef(nodeStr, IDScontOFPortNum1);
+	    NodeConnectorRef IDScontNodeConnectorRef2 = containerCalls.getContainerNodeConnectorRef(nodeStr, IDScontOFPortNum2);
+	    NodeConnectorRef ProxycontNodeConnectorRef = containerCalls.getContainerNodeConnectorRef(nodeStr, ProxycontOFPortNum);
+	    // Add Routing (SRC <-IPS-> Proxy; Proxy <-> DST)
+	    addMacToMacFlow(sourceMac, ProxyMac, IPScontNodeConnectorRef1, sourceNodeConnectorRef);
+	    addMacToMacFlow(sourceMac, ProxyMac, ProxycontNodeConnectorRef, IPScontNodeConnectorRef2);
+	    addMacToMacFlow(ProxyMac, destMac, destNodeConnectorRef, ProxycontNodeConnectorRef);
+	    addMacToMacFlow(destMac, ProxyMac, ProxycontNodeConnectorRef, destNodeConnectorRef);
+	    addMacToMacFlow(ProxyMac, sourceMac, IPScontNodeConnectorRef2, ProxycontNodeConnectorRef);
+	    addMacToMacFlow(ProxyMac, sourceMac, sourceNodeConnectorRef, IPScontNodeConnectorRef1);	    
+	    String srcPort = getPortFromNodeConnectorRef(sourceNodeConnectorRef);
+	    String dstPort = getPortFromNodeConnectorRef(destNodeConnectorRef);	    
+	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, srcPort);
+	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, dstPort);
+	}
+	
 	// This is for routing host to host flows through a middlebox
+	/*
 	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
 	    if (macAddrMap.get(sourceMac.getValue())==null) {
 		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
@@ -237,7 +307,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface1, srcPort);
 	    //containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface2, dstPort);
 	}
-
+	*/
 	
 	// This is for host to host routing, with adding a container accessible by each of the hosts
 	/*
