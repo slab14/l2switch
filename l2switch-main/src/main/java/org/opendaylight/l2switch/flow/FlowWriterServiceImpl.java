@@ -209,10 +209,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
 	    // IPS: Snort Container
 	    String IPS_Name=container_name+"_snort";
-	    containerCalls.startContainer_bind(IPS_Name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");
+	    containerCalls.startContainer_bind(IPS_Name, "snort_direct_block_v2", "/mnt/slab/snort/log/", "/var/log/snort/");
 	    // Proxy: Squid Container
 	    String Proxy_Name=container_name+"_squid";
-	    containerCalls.startContainer_bind(Proxy_Name, "squid_proxy", "/mnt/slab/squid/log/", "/var/log/squid/"); 
+	    containerCalls.startContainer_bind(Proxy_Name, "squid_proxy_v2", "/mnt/slab/squid/log/", "/var/log/squid/"); 
 	    String ovsBridge = containerCalls.getOVSBridge();
 	    // Add 2 ports to Snort container
 	    containerCalls.addPortOnContainer(ovsBridge, IPS_Name, iface1);
