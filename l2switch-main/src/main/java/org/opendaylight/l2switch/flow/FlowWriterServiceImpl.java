@@ -193,6 +193,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         }
 
 	// Proxy Password Demo -- non-elegant version
+
 	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
 	    if (macAddrMap.get(sourceMac.getValue())==null) {
 		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
@@ -269,6 +270,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, srcPort);
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, dstPort);
 	}
+
 	
 	// This is for routing host to host flows through a middlebox
 	/*
@@ -281,16 +283,25 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    }
 	    macAddrMap.get(sourceMac.getValue()).add(destMac.getValue());
 	    macAddrMap.get(destMac.getValue()).add(sourceMac.getValue());	    
-	    String container_name = "demo"+containerCounter;
+	    String container_name = "demo"+containerCounter+"_kitsune";
 	    String iface1 = "eth1";
 	    String iface2 = "eth2";	    
 	    ++containerCounter;
 	    Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
-	    //containerCalls.startContainer(container_name, "snort_ping_alert");
-	    containerCalls.startContainer_bind(container_name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");  
+	    containerCalls.startContainer(container_name, "kitsune_v2");
+	    //containerCalls.startContainer_bind(container_name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");  
 	    String ovsBridge = containerCalls.getOVSBridge();	    //TODO make this a part of contstructor
 	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface1);
-	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);	    	    
+	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);
+	    //Ensure routes are accessible on container
+	    String Route1="192.1.0.0/16";
+	    String Route2="10.1.0.0/16";
+	    containerCalls.addRouteinCont(container_name, iface1, Route1);
+	    containerCalls.addRouteinCont(container_name, iface2, Route1);
+	    containerCalls.addRouteinCont(container_name, iface1, Route2);
+	    containerCalls.addRouteinCont(container_name, iface2, Route2);
+	    containerCalls.disableContGRO(container_name, iface1);
+	    containerCalls.disableContGRO(container_name, iface2);	    
 	    String ovsBridge_remotePort = "6634";
 	    String contOFPortNum1 = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface1);
 	    String contOFPortNum2 = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface2);
