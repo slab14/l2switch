@@ -28,9 +28,8 @@ public class DemoRoutes {
 	Containers containerCalls = new Containers(dataplaneIP, dockerPort, ovsPort, "13");
 	//containerCalls.startContainer_bind(container_name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");
 	containerCalls.startContainer_bind(container_name, containerImage, hostPath, contPath);
-	String ovsBridge = containerCalls.getOVSBridge();	    //TODO make this a part of contstructor
-	containerCalls.addPortOnContainer(ovsBridge, container_name, iface1);
-	containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);
+	containerCalls.addPortOnContainer(container_name, iface1);
+	containerCalls.addPortOnContainer(container_name, iface2);
 	String ovsBridge_remotePort = "6634";
 	String contOFPortNum1 = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface1);
 	String contOFPortNum2 = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface2);
@@ -77,8 +76,7 @@ public class DemoRoutes {
 	//containerCalls.startContainer(container_name, "busybox", "/bin/sh");
 	//containerCalls.startContainer_bind(container_name, "squid", "/bin/sh", "/mnt/slab/squid/log/", "/var/log/squid/");
 	containerCalls.startContainer_bind(container_name, containerImage, hostPath, contPath);
-	String ovsBridge = containerCalls.getOVSBridge();	    
-	containerCalls.addPortOnContainer(ovsBridge, container_name, iface, "10.0.6.1/16");	    
+	containerCalls.addPortOnContainer(container_name, iface, "10.0.6.1/16");	    
 	String ovsBridge_remotePort = "6634";
 	String contOFPortNum = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface); 
 	String contMAC = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum);

@@ -125,6 +125,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	this.dockerPort = port;
     }
 
+    public void setOVSPort(String port) {
+	this.ovsPort = port;
+    }    
+
     /**
      * Writes a flow that forwards packets to destPort if destination mac in
      * packet is destMac and source Mac in packet is sourceMac. If sourceMac is
@@ -214,16 +218,18 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    // Proxy: Squid Container
 	    String Proxy_Name=container_name+"_squid";
 	    containerCalls.startContainer_bind(Proxy_Name, "squid_proxy_v2", "/mnt/slab/squid/log/", "/var/log/squid/"); 
-	    String ovsBridge = containerCalls.getOVSBridge();
+	    //String ovsBridge = containerCalls.getOVSBridge();
 	    // Add 2 ports to Snort container
-	    containerCalls.addPortOnContainer(ovsBridge, IPS_Name, iface1);
-	    containerCalls.addPortOnContainer(ovsBridge, IPS_Name, iface2);
+	    containerCalls.addPortOnContainer(IPS_Name, iface1);
+	    containerCalls.addPortOnContainer(IPS_Name, iface2);
 	    // Add 1 port to Squid container
-	    String ProxyIP="10.1.2.1/16";
-	    containerCalls.addPortOnContainer(ovsBridge, Proxy_Name, iface1, ProxyIP);
+	    String ProxyIP="10.1.2.1/32";
+	    containerCalls.addPortOnContainer(Proxy_Name, iface1, ProxyIP);
 	    // Add routes to proxy
-	    String otherRoute="192.1.0.0/16";
-	    containerCalls.addRouteinCont(Proxy_Name, iface1, otherRoute);
+	    String Route1="192.1.0.0/16";
+	    String Route2="10.1.0.0/16";
+	    containerCalls.addRouteinCont(Proxy_Name, iface1, Route1);
+	    containerCalls.addRouteinCont(Proxy_Name, iface1, Route2);	    
 	    containerCalls.disableContGRO(Proxy_Name, iface1);
 	    String ovsBridge_remotePort = "6634";
 	    // Get OpenFlow Port #s
@@ -291,8 +297,8 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    containerCalls.startContainer(container_name, "kitsune_v2");
 	    //containerCalls.startContainer_bind(container_name, "snort_ping_alert", "/mnt/slab/snort/log/", "/var/log/snort/");  
 	    String ovsBridge = containerCalls.getOVSBridge();	    //TODO make this a part of contstructor
-	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface1);
-	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface2);
+	    containerCalls.addPortOnContainer(container_name, iface1);
+	    containerCalls.addPortOnContainer(container_name, iface2);
 	    //Ensure routes are accessible on container
 	    String Route1="192.1.0.0/16";
 	    String Route2="10.1.0.0/16";
@@ -353,7 +359,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    //containerCalls.startContainer(container_name, "busybox", "/bin/sh");
 	    containerCalls.startContainer_bind(container_name, "squid", "/bin/sh", "/mnt/slab/squid/log/", "/var/log/squid/");
 	    String ovsBridge = containerCalls.getOVSBridge();	    
-	    containerCalls.addPortOnContainer(ovsBridge, container_name, iface, "10.0.6.1/16");	    
+	    containerCalls.addPortOnContainer(container_name, iface, "10.0.6.1/16");	    
 	    String ovsBridge_remotePort = "6634";
 	    String contOFPortNum = containerCalls.getContOFPortNum(ovsBridge_remotePort, container_name, iface); 
 	    String contMAC = containerCalls.getContMAC_fromPort(ovsBridge_remotePort, container_name, contOFPortNum);
