@@ -17,6 +17,11 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.arp.pa
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.PacketChain;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.packet.chain.packet.RawPacket;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.ethernet.packet.received.packet.chain.packet.EthernetPacket;
+import org.opendaylight.l2switch.flow.chain.ServiceChain;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
@@ -24,11 +29,33 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.e
 public class ReactiveFlowWriter implements ArpPacketListener {
     private InventoryReader inventoryReader;
     private FlowWriterService flowWriterService;
+    private String dataplaneIP;
+    private String dockerPort;
+    private String ovsPort;
+    private String remoteOVSPort;
+    private String OFversion;
+    private int counter=0;
+    private boolean doOnce=true;
 
-    public ReactiveFlowWriter(InventoryReader inventoryReader, FlowWriterService flowWriterService) {
-        this.inventoryReader = inventoryReader;
+    public ReactiveFlowWriter(InventoryReader inventoryReader,
+			      FlowWriterService flowWriterService) {
+	this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
     }
+
+    public ReactiveFlowWriter(InventoryReader inventoryReader,
+			      FlowWriterService flowWriterService,
+			      String dataplaneIP, String dockerPort,
+			      String ovsPort, String remoteOVSPort,
+			      String OFversion) {
+        this.inventoryReader = inventoryReader;
+        this.flowWriterService = flowWriterService;
+	this.dataplaneIP=dataplaneIP;
+	this.dockerPort=dockerPort;
+	this.ovsPort=ovsPort;
+	this.remoteOVSPort=remoteOVSPort;
+	this.OFversion=OFversion;
+    }    
 
     /**
      * Checks if a MAC should be considered for flow creation
@@ -77,7 +104,37 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         }
         MacAddress destMac = ethernetPacket.getDestinationMac();
         if (!ignoreThisMac(destMac)) {
-            writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ethernetPacket.getDestinationMac());
+	    /*
+	    if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
+		if (macAddrMap.get(sourceMac.getValue())==null) {
+		    macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
+		}
+		if (macAddrMap.get(destMac.getValue())==null) {
+		    macAddrMap.put(destMac.getValue(), new ArrayList<String>());
+		}  
+	    */
+	    if(doOnce){
+		doOnce=false;
+		NodeConnectorRef destNodeConnector = inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());		
+		//TEsting Can I get the IP addresses
+		String sourceIp = arpPacket.getSourceProtocolAddress();
+		String destIp = arpPacket.getDestinationProtocolAddress();
+		System.out.println("Source IP: "+sourceIp+"\nDestination IP: "+destIp);
+		//Final State add modified code here
+		//should be able to get IP addresses from arp packet
+		//can call all of the flowWriter methods from here
+		String contName="demo"+counter;
+		String contImage="docker-click-bridge";
+		String[] ifaces={"eth1","eth2"};
+		String[] routes={"10.10.1.0/24", "10.10.2.0/24"};
+		ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, contName, contImage, ifaces, routes, rawPacket.getIngress(), this.remoteOVSPort);
+		scWorker.startPassThroughCont();
+		NodeConnectorRef[] ncrs = new NodeConnectorRef[2];
+		ncrs=scWorker.getContNodeConnectorRefs();
+		writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ncrs[0], ethernetPacket.getDestinationMac());
+		writeFlows(ncrs[1], ethernetPacket.getSourceMac(), destNodeConnector, ethernetPacket.getDestinationMac());	    
+	    //            writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ethernetPacket.getDestinationMac());
+	    }
         }
     }
 
@@ -98,5 +155,23 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         if (destNodeConnector != null) {
             flowWriterService.addBidirectionalMacToMacFlows(srcMac, ingress, destMac, destNodeConnector);
         }
+    }
+
+    public void writeFlows(NodeConnectorRef ingress, MacAddress srcMac, NodeConnectorRef egress, MacAddress destMac) {
+        if (egress != null) {
+            flowWriterService.addBidirectionalMacToMacFlows(srcMac, ingress, destMac, egress);
+        }
+    }
+
+    private boolean inMap(HashMap<String, ArrayList<String>> m1, String testKey, String testVal) {
+	if (m1.containsKey(testKey)){
+	    ArrayList<String> listVals = m1.get(testKey);
+	    if(listVals.contains(testVal))
+		return true;
+	    else
+		return false;
+	}
+	else
+	    return false;
     }
 }

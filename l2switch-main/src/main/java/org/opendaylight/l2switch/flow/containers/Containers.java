@@ -89,7 +89,13 @@ public class Containers {
     public void addPortOnContainer(String container_name, String cont_iface) {
 	DockerCalls docker = new DockerCalls();	
 	docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort);
-    }    
+    }
+
+    public String addPortOnContainer_get(String container_name, String cont_iface, String ovsBridge_remotePort) {
+	DockerCalls docker = new DockerCalls();	
+	String OFport=docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort, ovsBridge_remotePort, this.OpenFlowVersion);
+	return OFport;
+    }        
 
     public void addPortOnContainer(String dataplaneIP, String dockerPort, String ovsPort, String ovsBridge, String container_name, String cont_iface, String contPortIP) {
 	DockerCalls docker = new DockerCalls();	
@@ -100,6 +106,12 @@ public class Containers {
 	DockerCalls docker = new DockerCalls();	
 	docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort, contPortIP);
     }
+
+    public String addPortOnContainer_get(String container_name, String cont_iface, String contPortIP, String ovsBridge_remotePort) {
+	DockerCalls docker = new DockerCalls();	
+	String OFport=docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort, contPortIP, ovsBridge_remotePort, this.OpenFlowVersion);
+	return OFport;
+    }    
     
     public String getContOFPortNum(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion) {
 	DockerCalls docker = new DockerCalls();		

@@ -190,22 +190,21 @@ public class DockerCalls {
 
     public void remoteAddContainerPort(String bridge, String name, String iface, String ip, String ovs_port, String docker_port, String cont_ip) {
 	String ip_arg=String.format("--ipaddress=%s", cont_ip);
-	/*
-	try {
-	    ProcessBuilder pb = new ProcessBuilder("/users/slab/IoT_Sec_Gateway/ovs_remote/ovs-docker-remote", "add-port", bridge, iface, name, ip, ovs_port, docker_port, ip_arg);
-	    Process p = pb.start();
-	    int errCode=p.waitFor();
-	} catch (InterruptedException e) {
-	    e.printStackTrace();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-	*/
 	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote add-port %s %s %s %s %s %s %s", bridge, iface, name, ip, ovs_port, docker_port, ip_arg);
 	ExecShellCmd obj = new ExecShellCmd();
 	String output = obj.exeCmd(cmd);
 	System.out.println("Added interface "+iface+" to container "+name+" with IP address "+cont_ip);
     }
+
+    public String remoteAddContainerPort(String bridge, String name, String iface, String ip, String ovs_port, String docker_port, String cont_ip, String bridge_remote_port, String OF_version) {
+	String ip_arg=String.format("--ipaddress=%s", cont_ip);
+	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote add-port %s %s %s %s %s %s %s", bridge, iface, name, ip, ovs_port, docker_port, ip_arg);
+	ExecShellCmd obj = new ExecShellCmd();
+	String output = obj.exeCmd(cmd);
+	System.out.println("Added interface "+iface+" to container "+name+" with IP address "+cont_ip);
+	String OFPort = remoteFindContOfPort(ip, ovs_port, bridge_remote_port, name, iface, OF_version);
+	return OFPort;
+    }    
 
 
     public void addContainerPort(String bridge, String name, String iface, String ip) {
@@ -216,21 +215,19 @@ public class DockerCalls {
     }    
 
     public void remoteAddContainerPort(String bridge, String name, String iface, String ip, String ovs_port, String docker_port) {
-	/*
-	try {
-	    ProcessBuilder pb = new ProcessBuilder("/users/slab/IoT_Sec_Gateway/ovs_remote/ovs-docker-remote", "add-port", bridge, iface, name, ip, ovs_port, docker_port);
-	    Process p = pb.start();
-	    int errCode=p.waitFor();
-	} catch (InterruptedException e) {
-	    e.printStackTrace();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-	*/
 	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote add-port %s %s %s %s %s %s", bridge, iface, name, ip, ovs_port, docker_port);
 	ExecShellCmd obj = new ExecShellCmd();
 	String output = obj.exeCmd(cmd);
 	System.out.println("Added interface "+iface+" to container "+name);
+    }        
+    
+    public String remoteAddContainerPort(String bridge, String name, String iface, String ip, String ovs_port, String docker_port, String bridge_remote_port, String OF_version) {
+	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote add-port %s %s %s %s %s %s", bridge, iface, name, ip, ovs_port, docker_port);
+	ExecShellCmd obj = new ExecShellCmd();
+	String output = obj.exeCmd(cmd);
+	System.out.println("Added interface "+iface+" to container "+name);
+	String OFPort = remoteFindContOfPort(ip, ovs_port, bridge_remote_port, name, iface, OF_version);
+	return OFPort;	
     }    
     
 

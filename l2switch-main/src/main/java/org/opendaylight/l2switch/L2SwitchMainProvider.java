@@ -31,10 +31,11 @@ public class L2SwitchMainProvider {
     private final NotificationProviderService notificationService;
     private final SalFlowService salFlowService;
     private final L2switchConfig mainConfig;
-    private String dataplaneIP="192.1.1.1";
+    private String dataplaneIP="127.0.0.1";
     private String dockerPort="4243";
     private String ovsPort="6677";
     private String remote_ovs_port="6634";
+    private String OFversion="13";
 
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationProviderService notificationService,
@@ -76,7 +77,11 @@ public class L2SwitchMainProvider {
         else {
             // Setup reactive flow writer
             LOG.info("L2Switch will react to network traffic and install flows");
-            ReactiveFlowWriter reactiveFlowWriter = new ReactiveFlowWriter(inventoryReader, flowWriterService);
+            ReactiveFlowWriter reactiveFlowWriter = new ReactiveFlowWriter(inventoryReader,
+									   flowWriterService,
+									   dataplaneIP, dockerPort,
+									   ovsPort, remote_ovs_port,
+									   OFversion);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
         }
 

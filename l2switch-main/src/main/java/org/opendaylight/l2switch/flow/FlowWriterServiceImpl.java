@@ -197,7 +197,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         }
 
 	// Proxy Password Demo -- non-elegant version
-
+	/*
 	if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
 	    if (macAddrMap.get(sourceMac.getValue())==null) {
 		macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
@@ -276,7 +276,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, srcPort);
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, Proxy_Name, iface1, dstPort);
 	}
-
+	*/
 	
 	// This is for routing host to host flows through a middlebox
 	/*
@@ -374,6 +374,12 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	    containerCalls.addDirectContainerRouting(ovsBridge_remotePort, container_name, iface, outPort[2]);	    
 	}
 	*/
+	
+        // add destMac-To-sourceMac flow on source port
+        addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, destNodeConnectorRef);
+
+        // add sourceMac-To-destMac flow on destination port
+        addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef, sourceNodeConnectorRef);	
 	
     }
 
