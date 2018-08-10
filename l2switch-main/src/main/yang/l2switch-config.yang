@@ -52,5 +52,14 @@ module l2switch-config {
             type uint16;
             default 0;
         }
+	leaf policy-file {
+	     type string;
+	     default "/mnt/IoT_Sec_Gateway/policies/newPolicy0.json";
+	}
+	leaf policy-string {
+	     type string;
+	     default "{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
+        }
+	     
     }
 }

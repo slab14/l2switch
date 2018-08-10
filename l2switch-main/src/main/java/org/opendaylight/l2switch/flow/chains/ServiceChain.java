@@ -64,17 +64,19 @@ public class ServiceChain {
 	}
     }
 
-    public String[] startPassThroughCont_getOFPort() {
+    public NodeConnectorRef[] startPassThroughCont_getNCR() {
 	this.containerCalls.startContainer(this.contName, this.contImage);
 	String[] OFports = new String[this.ifaces.length];
+	NodeConnectorRef[] ncrs = new NodeConnectorRef[this.ifaces.length];	
 	for(int i=0; i<this.ifaces.length; i++){
 	    OFports[i]=this.containerCalls.addPortOnContainer_get(this.contName, this.ifaces[i], this.ovsBridge_remotePort);
+	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(this.contName, this.ifaces[i]);
 	    for(String route:this.routes) {
 		this.containerCalls.addRouteinCont(this.contName, this.ifaces[i], route);
 	    }
 	}
-	return OFports;
+	return ncrs;
     }    
 
     public NodeConnectorRef getContNodeConnectorRef(String iface) {

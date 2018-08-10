@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
 import java.util.Scanner;
+import org.opendaylight.l2switch.flow.json.PolicyParser;
+import org.opendaylight.l2switch.flow.json.GetFile;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class L2SwitchMainProvider {
 
@@ -36,7 +40,8 @@ public class L2SwitchMainProvider {
     private String ovsPort="6677";
     private String remote_ovs_port="6634";
     private String OFversion="13";
-
+    private String jsonData="{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
+    
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationProviderService notificationService,
             final SalFlowService salFlowService, final L2switchConfig config) {
@@ -47,6 +52,17 @@ public class L2SwitchMainProvider {
     }
 
     public void init() {
+	//PolicyParser policy=new PolicyParser(mainConfig.getPolicyString());
+	GetFile policyReader=new GetFile();
+	String jsonString=new String();
+	try {
+	    jsonString=policyReader.readFile(mainConfig.getPolicyFile());
+	} catch (FileNotFoundException e) {
+	    System.out.println("Error: "+e);
+	} catch (IOException e) {
+	    System.out.println("Error: "+e);
+	}
+	PolicyParser policy=new PolicyParser(jsonString);
         // Setup FlowWrtierService
         FlowWriterServiceImpl flowWriterService = new FlowWriterServiceImpl(salFlowService);
         flowWriterService.setFlowTableId(mainConfig.getReactiveFlowTableId());
@@ -81,7 +97,7 @@ public class L2SwitchMainProvider {
 									   flowWriterService,
 									   dataplaneIP, dockerPort,
 									   ovsPort, remote_ovs_port,
-									   OFversion);
+									   OFversion, policy);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
         }
 

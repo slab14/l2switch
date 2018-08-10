@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import org.opendaylight.l2switch.flow.json.PolicyParser;
 
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
@@ -34,6 +35,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private String ovsPort;
     private String remoteOVSPort;
     private String OFversion;
+    private PolicyParser policy;
     private int counter=0;
     private boolean doOnce=true;
 
@@ -47,7 +49,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 			      FlowWriterService flowWriterService,
 			      String dataplaneIP, String dockerPort,
 			      String ovsPort, String remoteOVSPort,
-			      String OFversion) {
+			      String OFversion, PolicyParser policy) {
         this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
 	this.dataplaneIP=dataplaneIP;
@@ -55,6 +57,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	this.ovsPort=ovsPort;
 	this.remoteOVSPort=remoteOVSPort;
 	this.OFversion=OFversion;
+	this.policy=policy;
     }    
 
     /**
@@ -113,27 +116,26 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    macAddrMap.put(destMac.getValue(), new ArrayList<String>());
 		}  
 	    */
-	    if(doOnce){
-		doOnce=false;
-		NodeConnectorRef destNodeConnector = inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());		
-		//TEsting Can I get the IP addresses
-		String sourceIp = arpPacket.getSourceProtocolAddress();
-		String destIp = arpPacket.getDestinationProtocolAddress();
-		System.out.println("Source IP: "+sourceIp+"\nDestination IP: "+destIp);
-		//Final State add modified code here
-		//should be able to get IP addresses from arp packet
-		//can call all of the flowWriter methods from here
-		String contName="demo"+counter;
-		String contImage="docker-click-bridge";
-		String[] ifaces={"eth1","eth2"};
-		String[] routes={"10.10.1.0/24", "10.10.2.0/24"};
-		ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, contName, contImage, ifaces, routes, rawPacket.getIngress(), this.remoteOVSPort);
-		scWorker.startPassThroughCont();
-		NodeConnectorRef[] ncrs = new NodeConnectorRef[2];
-		ncrs=scWorker.getContNodeConnectorRefs();
-		writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ncrs[0], ethernetPacket.getDestinationMac());
-		writeFlows(ncrs[1], ethernetPacket.getSourceMac(), destNodeConnector, ethernetPacket.getDestinationMac());	    
+	    NodeConnectorRef destNodeConnector =inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
+	    if(destNodeConnector != null){
+		if(doOnce){
+		    if (checkMacAddrs(ethernetPacket.getSourceMac(), policy.parsed.getInMAC(), ethernetPacket.getDestinationMac(), policy.parsed.getOutMAC())){
+			doOnce=false;
+			String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "24");
+			String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "24");
+			String contName="demo"+counter;
+			String contImage=policy.parsed.getImages()[0];
+			String[] ifaces={"eth1","eth2"};
+			String[] routes={sourceRange, destRange};
+			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, contName, contImage, ifaces, routes, rawPacket.getIngress(), this.remoteOVSPort);
+			scWorker.startPassThroughCont();
+			NodeConnectorRef[] ncrs = new NodeConnectorRef[2];
+			ncrs=scWorker.getContNodeConnectorRefs();
+			writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ncrs[0], ethernetPacket.getDestinationMac());
+			writeFlows(ncrs[1], ethernetPacket.getSourceMac(), destNodeConnector, ethernetPacket.getDestinationMac());	    
 	    //            writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ethernetPacket.getDestinationMac());
+		    }
+		}
 	    }
         }
     }
@@ -173,5 +175,31 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	}
 	else
 	    return false;
+    }
+
+    private String getCDIR(String ip, String range) {
+	String[] parts = ip.split("\\.");
+	String output;
+	switch(range) {
+	case "8" : output=parts[0]+".0.0.0/"+range;
+	    break;
+	case "16" : output=parts[0]+"."+parts[1]+".0.0/"+range;
+	    break;
+	case "24": output=parts[0]+"."+parts[1]+"."+parts[2]+".0/"+range;
+	    break;
+	case "32" : output=ip+"/"+range;
+	    break;
+	default : output=ip+"/"+range;
+	    break;
+	}
+	return output;
+    }
+
+    private boolean checkMacAddrs(MacAddress pktSrc, String policySrc, MacAddress pktDst, String policyDst){
+	if((pktSrc.getValue().equals(policySrc) && pktDst.getValue().equals(policyDst))||(pktSrc.getValue().equals(policyDst) && pktDst.getValue().equals(policySrc))){
+	    return true;
+	}else{
+	    return false;
+	}
     }
 }
