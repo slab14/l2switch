@@ -9,19 +9,25 @@
 package org.opendaylight.l2switch.flow.json;
 
 public class ContOpts {
-    public String contImage;
-    public String[] contOpts;
+    public String ip;
+    public String hostFS;
+    public String contFS;
 
-    public ContOpts(String contImage, String[] opts) {
-	this.contImage=contImage;
-	this.contOpts=opts;
+    public ContOpts(String ip, String hostFS, String contFS) {
+	this.ip=ip;
+	this.hostFS=hostFS;
+	this.contFS=contFS;
     }
 
-    public String getContImage() {
-	return this.contImage;
+    public String getIP() {
+	return this.ip;
     }
 
-    public String[] getContOpts() {
-	return this.contOpts;
+    public String getHostFS() {
+	return this.hostFS;
+    }
+
+    public String getContFS() {
+	return this.contFS;
     }
 }
