@@ -119,12 +119,12 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	    NodeConnectorRef destNodeConnector =inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
 	    if(destNodeConnector != null){
 		if(doOnce){
-		    if (checkMacAddrs(ethernetPacket.getSourceMac(), policy.parsed.getInMAC(), ethernetPacket.getDestinationMac(), policy.parsed.getOutMAC())){
+		    if (checkMacAddrs(ethernetPacket.getSourceMac(), policy.parsed.devices[0].inMAC, ethernetPacket.getDestinationMac(), policy.parsed.devices[0].outMAC)){
 			doOnce=false;
 			String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "24");
 			String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "24");
 			String contName="demo"+counter;
-			String contImage=policy.parsed.getImages()[0];
+			String contImage=policy.parsed.devices[0].images[0];
 			String[] ifaces={"eth1","eth2"};
 			String[] routes={sourceRange, destRange};
 			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, contName, contImage, ifaces, routes, rawPacket.getIngress(), this.remoteOVSPort);

@@ -8,25 +8,20 @@
 
 package org.opendaylight.l2switch.flow.json;
 
-import java.util.HashMap;
-import java.util.ArrayList;
-import org.opendaylight.l2switch.flow.json.DevPolicy;
+public class ContOpts {
+    public String contImage;
+    public String[] contOpts;
 
-public class PolicyFile {
-    public int n;
-    public DevPolicy[] devices;
-
-    public PolicyFile(int n, DevPolicy[] devices){
-	this.n = n;
-	this.devices=devices;
+    public ContOpts(String contImage, String[] opts) {
+	this.contImage=contImage;
+	this.contOpts=opts;
     }
 
-    public int getN(){
-	return this.n;
+    public String getContImage() {
+	return this.contImage;
     }
 
-    public DevPolicy[] getDevices(){
-	return this.devices;
+    public String[] getContOpts() {
+	return this.contOpts;
     }
-
 }
