@@ -1,0 +1,21 @@
+/*
+ * Copyright (c) 2018 Slab and others.  All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
+package org.opendaylight.l2switch.flow.chain;
+
+import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
+import java.util.ArrayList;
+
+public class NewFlows {
+    public ArrayList<RuleDescriptor> rules;
+
+    public NewFlows(ArrayList<RuleDescriptor> rules) {
+	this.rules = rules;
+    }
+
+}
