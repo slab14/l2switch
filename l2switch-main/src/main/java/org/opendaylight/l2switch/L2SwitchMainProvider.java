@@ -40,7 +40,8 @@ public class L2SwitchMainProvider {
     private String ovsPort="6677";
     private String remote_ovs_port="6634";
     private String OFversion="13";
-    private String jsonData="{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
+    //    private String jsonData="{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
+    private PolicyParser policy;
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationProviderService notificationService,
@@ -62,7 +63,7 @@ public class L2SwitchMainProvider {
 	} catch (IOException e) {
 	    System.out.println("Error: "+e);
 	}
-	PolicyParser policy=new PolicyParser(jsonString);
+	policy=new PolicyParser(jsonString);
         // Setup FlowWrtierService
         FlowWriterServiceImpl flowWriterService = new FlowWriterServiceImpl(salFlowService);
         flowWriterService.setFlowTableId(mainConfig.getReactiveFlowTableId());

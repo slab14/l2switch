@@ -123,7 +123,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 			doOnce=false;
 			String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "24");
 			String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "24");
-			String contName="demo"+counter;
+			String contName=policy.parsed.devices[0].imageOpts[0].contName;
 			String contImage=policy.parsed.devices[0].images[0];
 			String[] ifaces={"eth1","eth2"};
 			String[] routes={sourceRange, destRange};

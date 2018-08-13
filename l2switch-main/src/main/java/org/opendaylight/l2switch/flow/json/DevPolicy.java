@@ -14,23 +14,33 @@ public class DevPolicy {
     public String name;
     public String inMAC;
     public String outMAC;
+    public String chain;
     public String[] images;
     public ContOpts[] imageOpts;
 
-    public DevPolicy(String name, String inMAC, String outMAC, String[] images, ContOpts[] imageOpts) {
+    public DevPolicy(String name, String inMAC, String outMAC, String chain, String[] images, ContOpts[] imageOpts) {
 	this.name=name;
 	this.inMAC=inMAC;
 	this.outMAC=outMAC;
+	this.chain=chain;
 	this.images=images;
 	this.imageOpts=imageOpts;
     }
 
+    public String getName() {
+	return this.name;
+    }
+    
     public String getInMAC(){
 	return this.inMAC;
     }
 
     public String getOutMAC(){
 	return this.outMAC;
+    }
+
+    public String getChain(){
+	return this.chain;
     }
 
     public String[] getImages(){
