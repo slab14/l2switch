@@ -40,12 +40,11 @@ public class L2SwitchMainProvider {
     private final NotificationProviderService notificationService;
     private final SalFlowService salFlowService;
     private final L2switchConfig mainConfig;
-    private String dataplaneIP="127.0.0.1";
-    private String dockerPort="4243";
+    private String dataplaneIP;//"127.0.0.1";
+    private String dockerPort;//"4243";
     private String ovsPort="6677";
     private String remote_ovs_port="6634";
     private String OFversion="13";
-    //    private String jsonData="{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
     private PolicyParser policy;
     private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
 
@@ -57,6 +56,11 @@ public class L2SwitchMainProvider {
         this.notificationService = notificationService;
         this.salFlowService = salFlowService;
         this.mainConfig = config;
+	this.dataplaneIP=config.getDataplaneIP();
+	this.dockerPort=config.getDockerPort();
+	this.ovsPort=config.getOvsPort();
+	this.remote_ovs_port=config.getRemoteOvsPort();
+	this.OFversion=config.getOFversion();
     }
 
     public void init() {

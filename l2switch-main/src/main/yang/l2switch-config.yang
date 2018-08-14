@@ -60,6 +60,26 @@ module l2switch-config {
 	     type string;
 	     default "{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
         }
+	leaf dataplane-IP {
+	     type string;
+	     default "127.0.0.1";
+	}
+	leaf docker-port {
+	     type string;
+	     default "4243";
+	}
+	leaf ovs-port {
+	     type string;
+	     default "6677";
+	}
+	leaf remote-ovs-port {
+	     type string;
+	     default "6634";
+	}
+	leaf OFversion {
+	     type string;
+	     default "13";
+	}
 	     
     }
 }
