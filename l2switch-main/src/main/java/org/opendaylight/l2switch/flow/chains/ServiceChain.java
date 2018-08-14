@@ -168,10 +168,14 @@ public class ServiceChain {
 		}
 		for(NodeConnectorRef newNode:contNCRs){
 		    nodes.add(newNode);
+		    System.out.println("adding nodes to array");
 		}
+		System.out.println("output nodes");
 	    }
 	    else if(chainLinks[i].equals("A")){
-		groups.remove(groups.size()-1);
+		if(groups.contains(group0)) {
+		    groups.remove(groups.indexOf(group0));
+		}
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
 		if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){
@@ -194,16 +198,18 @@ public class ServiceChain {
 		groupCnt++;
 	    }
 	}
-	macMap.put(groupCnt,chainLength-1);
+	macMap.put(groupCnt,chainLength);
 	nodes.add(outNCR);
 	groupCnt=0;
 	MacAddress ruleInMac;
 	MacAddress ruleOutMac;
+	System.out.println("getting ready to write rules");
 	for (int i=0; i<chainLength; i++) {
 	    ruleInMac = groups.get(groupCnt).inMac;
 	    ruleOutMac = groups.get(groupCnt).outMac;
-	    RuleDescriptor newRule=new RuleDescriptor(nodes.get(2*i), ruleInMac, nodes.get((2*i)+1), ruleOutMac);		
+	    RuleDescriptor newRule=new RuleDescriptor(nodes.get(2*i), ruleInMac, nodes.get((2*i)+1), ruleOutMac);
 	    newRules.add(newRule);
+	    System.out.println("adding rule");
 	    if(macMap.get(groupCnt)<=i){
 		groupCnt++;
 	    }
@@ -212,6 +218,7 @@ public class ServiceChain {
 	ruleOutMac = groups.get(groupCnt).outMac;
 	RuleDescriptor lastRule=new RuleDescriptor(nodes.get(nodes.size()-2), ruleInMac, nodes.get(nodes.size()-1), ruleOutMac);
 	newRules.add(lastRule);
+	System.out.println("adding last rule");
 	NewFlows updates=new NewFlows(newRules);
 	return updates;
     }
