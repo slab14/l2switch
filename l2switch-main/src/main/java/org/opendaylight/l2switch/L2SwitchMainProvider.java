@@ -25,6 +25,11 @@ import org.opendaylight.l2switch.flow.json.PolicyParser;
 import org.opendaylight.l2switch.flow.json.GetFile;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.opendaylight.l2switch.flow.chain.PolicyMapBuilder;
+import java.util.HashMap;
+import org.opendaylight.l2switch.flow.chain.MacGroup;
+import org.opendaylight.l2switch.flow.chain.PolicyStatus;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 
 public class L2SwitchMainProvider {
 
@@ -42,6 +47,8 @@ public class L2SwitchMainProvider {
     private String OFversion="13";
     //    private String jsonData="{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
     private PolicyParser policy;
+    private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
+
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationProviderService notificationService,
@@ -53,7 +60,6 @@ public class L2SwitchMainProvider {
     }
 
     public void init() {
-	//PolicyParser policy=new PolicyParser(mainConfig.getPolicyString());
 	GetFile policyReader=new GetFile();
 	String jsonString=new String();
 	try {
@@ -64,6 +70,8 @@ public class L2SwitchMainProvider {
 	    System.out.println("Error: "+e);
 	}
 	policy=new PolicyParser(jsonString);
+	PolicyMapBuilder mapBuilder = new PolicyMapBuilder(policy);
+	policyMap=mapBuilder.build();
         // Setup FlowWrtierService
         FlowWriterServiceImpl flowWriterService = new FlowWriterServiceImpl(salFlowService);
         flowWriterService.setFlowTableId(mainConfig.getReactiveFlowTableId());
@@ -98,7 +106,7 @@ public class L2SwitchMainProvider {
 									   flowWriterService,
 									   dataplaneIP, dockerPort,
 									   ovsPort, remote_ovs_port,
-									   OFversion, policy);
+									   OFversion, policy, policyMap);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
         }
 

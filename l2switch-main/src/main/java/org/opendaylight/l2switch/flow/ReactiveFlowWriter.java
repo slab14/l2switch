@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
 import org.opendaylight.l2switch.flow.json.PolicyParser;
 import org.opendaylight.l2switch.flow.chain.NewFlows;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
+import org.opendaylight.l2switch.flow.chain.MacGroup;
+import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
@@ -40,6 +42,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private PolicyParser policy;
     private int counter=0;
     private boolean doOnce=true;
+    private HashMap<String, PolicyStatus> policyMap;
 
     public ReactiveFlowWriter(InventoryReader inventoryReader,
 			      FlowWriterService flowWriterService) {
@@ -51,7 +54,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 			      FlowWriterService flowWriterService,
 			      String dataplaneIP, String dockerPort,
 			      String ovsPort, String remoteOVSPort,
-			      String OFversion, PolicyParser policy) {
+			      String OFversion, PolicyParser policy,
+			      HashMap<String, PolicyStatus> policyMap) {
         this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
 	this.dataplaneIP=dataplaneIP;
@@ -60,6 +64,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	this.remoteOVSPort=remoteOVSPort;
 	this.OFversion=OFversion;
 	this.policy=policy;
+	this.policyMap=policyMap;
     }    
 
     /**
@@ -109,47 +114,26 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         }
         MacAddress destMac = ethernetPacket.getDestinationMac();
         if (!ignoreThisMac(destMac)) {
-	    /*
-	    if(!(inMap(macAddrMap, sourceMac.getValue(), destMac.getValue())) || !(inMap(macAddrMap, destMac.getValue(), sourceMac.getValue()))){
-		if (macAddrMap.get(sourceMac.getValue())==null) {
-		    macAddrMap.put(sourceMac.getValue(), new ArrayList<String>());
-		}
-		if (macAddrMap.get(destMac.getValue())==null) {
-		    macAddrMap.put(destMac.getValue(), new ArrayList<String>());
-		}  
-	    */
 	    NodeConnectorRef destNodeConnector =inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
 	    if(destNodeConnector != null){
-		if(doOnce){
-		    if (checkMacAddrs_strict(ethernetPacket.getSourceMac(), policy.parsed.devices[0].inMAC, ethernetPacket.getDestinationMac(), policy.parsed.devices[0].outMAC)){
-			doOnce=false;
-			String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
-			String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
-			String contName=policy.parsed.devices[0].imageOpts[0].contName;
-			String contImage=policy.parsed.devices[0].images[0];
-			String[] ifaces={"eth1","eth2"};
-			String[] routes={sourceRange, destRange};
-			NodeConnectorRef inNCR=rawPacket.getIngress();
-			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[0], inNCR, destNodeConnector);
-			NewFlows updates = scWorker.setupChain();
-			for(RuleDescriptor rule:updates.rules){
-			    writeFlows(rule);
-			}
-			/*
-			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, contName, contImage, ifaces, routes, rawPacket.getIngress(), this.remoteOVSPort);
-			//scWorker.startPassThroughCont();
-			NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];
-			//ncrs=scWorker.getContNodeConnectorRefs();
-			ncrs=scWorker.startPassThroughCont_getNCR();
-			writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ncrs[0], ethernetPacket.getDestinationMac());
-			writeFlows(ncrs[1], ethernetPacket.getSourceMac(), destNodeConnector, ethernetPacket.getDestinationMac());	    
-			*/
-	    //            writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ethernetPacket.getDestinationMac());
+		String srcMac = ethernetPacket.getSourceMac().getValue();
+		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
+		    int devNum = policyMap.get(srcMac).devNum;
+		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
+		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
+		    String[] routes={sourceRange, destRange};
+		    NodeConnectorRef inNCR=rawPacket.getIngress();
+		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], inNCR, destNodeConnector);
+		    NewFlows updates = scWorker.setupChain();
+		    for(RuleDescriptor rule:updates.rules){
+			writeFlows(rule);
 		    }
+		    policyMap.get(srcMac).updateSetup(true);
 		}
 	    }
-        }
+	}
     }
+
 
     /**
      * Invokes flow writer service to write bidirectional mac-mac flows on a
@@ -220,6 +204,14 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 
     private boolean checkMacAddrs_strict(MacAddress pktSrc, String policySrc, MacAddress pktDst, String policyDst){
 	if((pktSrc.getValue().equals(policySrc) && pktDst.getValue().equals(policyDst))){
+	    return true;
+	}else{
+	    return false;
+	}
+    }
+
+    private boolean checkMacAddrs_strict(MacGroup pktMacs, MacGroup policyMacs) {
+	if((pktMacs.inMac.getValue().equals(policyMacs.inMac.getValue()) && pktMacs.inMac.getValue().equals(policyMacs.inMac.getValue()))){
 	    return true;
 	}else{
 	    return false;
