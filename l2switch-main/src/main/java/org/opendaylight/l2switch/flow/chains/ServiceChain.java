@@ -98,7 +98,7 @@ public class ServiceChain {
 	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(contName, ifaces[i]);
 	    for(String route:this.routes) {
-		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
+		this.containerCalls.addRouteinCont(contName, ifaces[i], route, ip);
 	    }
 	}
 	return ncrs;
@@ -113,7 +113,7 @@ public class ServiceChain {
 	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(contName, ifaces[i]);
 	    for(String route:this.routes) {
-		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
+		this.containerCalls.addRouteinCont(contName, ifaces[i], route, ip);
 	    }
 	}
 	return ncrs;
@@ -171,9 +171,7 @@ public class ServiceChain {
 		}
 	    }
 	    else if(chainLinks[i].equals("A")){
-		if(groups.contains(group0)) {
-		    groups.remove(groups.indexOf(group0));
-		}
+		groups.remove(groups.size()-1);
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
 		if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){

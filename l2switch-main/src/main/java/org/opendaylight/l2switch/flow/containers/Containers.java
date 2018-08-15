@@ -146,7 +146,7 @@ public class Containers {
 
     public String getContMAC_fromIface(String ovsBridge_remotePort, String container_name, String cont_iface) {
 	DockerCalls docker = new DockerCalls();		
-	String contOFPortNum=docker.remoteFindContOfPort(this.remoteIP, this.remoteOvsPort, ovsBridge_remotePort, container_name, cont_iface, this.OpenFlowVersion);
+	String contOFPortNum=getContOFPortNum(ovsBridge_remotePort, container_name, cont_iface);
 	String contMAC = docker.remoteFindContainerMACNewIface(container_name, this.remoteIP, this.remoteDockerPort, ovsBridge_remotePort, contOFPortNum, this.OpenFlowVersion);
 	return contMAC;
     }        
@@ -215,9 +215,8 @@ public class Containers {
     }
 
     public void addDirectContainer(String containerName, String containerImage, String cont_iface, String contIP) {
-	startContainer(this.remoteIP, this.remoteDockerPort, containerName, containerImage);
-	String ovsBridge = getOVSBridge(this.remoteIP, this.remoteOvsPort);
-	addPortOnContainer(this.remoteIP, this.remoteDockerPort, this.remoteOvsPort, ovsBridge, containerName, cont_iface, contIP);
+	startContainer(containerName, containerImage);
+	addPortOnContainer(containerName, cont_iface, contIP);
     }    
 
     public void addDirectContainerRouting(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion, String in_port){
@@ -226,14 +225,19 @@ public class Containers {
     }
 
     public void addDirectContainerRouting(String ovsBridge_remotePort, String container_name, String cont_iface, String in_port){
-	String newOutPort = getContOFPortNum(this.remoteIP, this.remoteOvsPort, ovsBridge_remotePort, container_name, cont_iface, this.OpenFlowVersion);
-	updateDefaultRoutes(this.remoteIP, ovsBridge_remotePort, in_port, newOutPort, this.OpenFlowVersion);
+	String newOutPort = getContOFPortNum(ovsBridge_remotePort, container_name, cont_iface);
+	updateDefaultRoutes(ovsBridge_remotePort, in_port, newOutPort);
     }    
 
     public void addRouteinCont(String container_name, String cont_iface, String route) {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteAddRoute(this.remoteIP, this.remoteDockerPort, container_name, route, cont_iface);
     }
+
+    public void addRouteinCont(String container_name, String cont_iface, String route, String contIP) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteAddRoute(this.remoteIP, this.remoteDockerPort, container_name, route, cont_iface, contIP);
+    }    
 
     public void disableContGRO(String container_name, String cont_iface) {
 	DockerCalls docker = new DockerCalls();

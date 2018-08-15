@@ -114,7 +114,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         }
         MacAddress destMac = ethernetPacket.getDestinationMac();
         if (!ignoreThisMac(destMac)) {
-	    NodeConnectorRef destNodeConnector =inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
+	    NodeConnectorRef destNodeConnector=inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
 	    if(destNodeConnector != null){
 		String srcMac = ethernetPacket.getSourceMac().getValue();
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {

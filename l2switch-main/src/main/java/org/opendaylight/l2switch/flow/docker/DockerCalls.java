@@ -446,6 +446,17 @@ public class DockerCalls {
 
     }
 
+    public void remoteAddRoute(String ip, String dockerPort, String contName, String route, String device, String contIP) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ip\", \"route\", \"add\", \"%s\", \"dev\", \"%s\", \"src\", \"%s\"]}\' | jq -r '.Id'", ip, dockerPort, contName, route, device, contIP);
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();	
+	String execID=obj.exeCmd(newCmd);
+
+	String secondCmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/exec/%s/start -d \'{\"Detach\": false, \"Tty\": true }\'", ip, dockerPort, execID);
+	String[] newCmd2 = {"/bin/bash", "-c", secondCmd};
+	String output=obj.exeCmd(newCmd2);
+    }    
+
     public void remoteDisableGRO(String ip, String dockerPort, String contName, String iface) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ethtool\", \"--offload\", \"%s\", \"tx\", \"off\", \"rx\", \"off\"]}\' | jq -r '.Id'", ip, dockerPort, contName, iface);
 	String[] newCmd = {"/bin/bash", "-c", cmd};
