@@ -8,17 +8,21 @@
 
 package org.opendaylight.l2switch.flow.json;
 
+import org.opendaylight.l2switch.flow.json.Archive;
+
 public class ContOpts {
     public String contName;
     public String ip;
     public String hostFS;
     public String contFS;
+    public Archive[] archives;
 
-    public ContOpts(String name, String ip, String hostFS, String contFS) {
+    public ContOpts(String name, String ip, String hostFS, String contFS, Archive[] archives) {
 	this.contName=name;
 	this.ip=ip;
 	this.hostFS=hostFS;
 	this.contFS=contFS;
+	this.archives=archives;
     }
 
     public String getContName() {
@@ -35,5 +39,9 @@ public class ContOpts {
 
     public String getContFS() {
 	return this.contFS;
+    }
+
+    public Archive[] getArchives(){
+	return this.archives;
     }
 }

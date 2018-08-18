@@ -74,6 +74,10 @@ public class ServiceChain {
 	return ncrs;
     }
 
+    public void createPassThroughCont(String contName, String contImage) {
+	this.containerCalls.createContainer(contName, contImage);
+    }    
+
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces, String hostFS, String contFS) {
 	this.containerCalls.startContainer_bind(contName, contImage, hostFS, contFS);
 	String[] OFports = new String[ifaces.length];
@@ -89,6 +93,29 @@ public class ServiceChain {
 	return ncrs;
     }    
 
+    public void createPassThroughCont(String contName, String contImage, String hostFS, String contFS) {
+	this.containerCalls.createContainer_bind(contName, contImage, hostFS, contFS);
+    }
+
+    public void attachArchiveToPassThroughCont(String contName, String archiveFile, String contPath) {
+	this.containerCalls.attachArchive(contName, archiveFile, contPath);
+    }
+
+    public NodeConnectorRef[] startCreatedPassThroughCont(String contName, String[] ifaces) {
+	this.containerCalls.startCreatedContainer(contName);
+	String[] OFports = new String[ifaces.length];
+	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
+	for(int i=0; i<ifaces.length; i++){
+	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName, ifaces[i], this.ovsBridge_remotePort);
+	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
+	    this.containerCalls.disableContGRO(contName, ifaces[i]);
+	    for(String route:this.routes) {
+		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
+	    }
+	}
+	return ncrs;
+    }
+    
     public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip) {
 	this.containerCalls.startContainer(contName, contImage);
 	String[] OFports = new String[ifaces.length];
@@ -161,10 +188,22 @@ public class ServiceChain {
 	    if(chainLinks[i].equals("P")){
 		//assumes that all passthrough middleboxes will utilize 2 interfaces
 		String[] ifaces={"eth1", "eth2"};
-		if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){
-		    contNCRs=startPassThroughCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces);
-		} else {
-		    contNCRs=startPassThroughCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces, devPolicy.imageOpts[i].hostFS, devPolicy.imageOpts[i].contFS);
+		if(devPolicy.imageOpts[i].archives.length==0) {
+		    if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){
+			contNCRs=startPassThroughCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces);
+		    } else {
+			contNCRs=startPassThroughCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces, devPolicy.imageOpts[i].hostFS, devPolicy.imageOpts[i].contFS);
+		    }
+		}else{
+		    if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){
+			createPassThroughCont(devPolicy.imageOpts[i].contName, devPolicy.images[i]);
+		    } else {
+			createPassThroughCont(devPolicy.imageOpts[i].contName, devPolicy.images[i], devPolicy.imageOpts[i].hostFS, devPolicy.imageOpts[i].contFS);
+		    }
+		    for(int j=0; j<devPolicy.imageOpts[i].archives.length; j++) {
+			attachArchiveToPassThroughCont(devPolicy.imageOpts[i].contName, devPolicy.imageOpts[i].archives[j].tar, devPolicy.imageOpts[i].archives[j].path);
+		    }
+		    contNCRs=startCreatedPassThroughCont(devPolicy.imageOpts[i].contName, ifaces);
 		}
 		for(NodeConnectorRef newNode:contNCRs){
 		    nodes.add(newNode);

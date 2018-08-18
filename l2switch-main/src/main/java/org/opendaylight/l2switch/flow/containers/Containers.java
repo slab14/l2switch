@@ -50,7 +50,7 @@ public class Containers {
     public void startContainer(String container_name, String containerImage) {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
-    }
+    }    
 
     public void startContainer(String container_name, String containerImage, String containerCmd) {
 	DockerCalls docker = new DockerCalls();
@@ -66,6 +66,31 @@ public class Containers {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd, hostPath, contPath);
     }        
+
+    public void createContainer(String container_name, String containerImage) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
+    }
+
+    public void createContainer_bind(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteCreateContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd, hostPath, contPath);
+    }
+    
+    public void createContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteCreateContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, hostPath, contPath);
+    }    
+
+    public void attachArchive(String cont_name, String archiveFile, String contPath) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteAttatchArchive(this.remoteIP, this.remoteDockerPort, cont_name, archiveFile, contPath);
+    }
+
+    public void startCreatedContainer(String cont_name) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteStartCreatedContainer(this.remoteIP, this.remoteDockerPort, cont_name);
+    }
     
     public String getOVSBridge(String dataplaneIP, String ovsPort){
 	DockerCalls docker = new DockerCalls();	

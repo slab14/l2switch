@@ -50,5 +50,5 @@ public class DevPolicy {
     public ContOpts[] getImageOpts() {
 	return this.imageOpts;
     }
-    
+
 }

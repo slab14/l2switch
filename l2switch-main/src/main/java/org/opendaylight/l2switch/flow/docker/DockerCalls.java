@@ -131,6 +131,13 @@ public class DockerCalls {
 	System.out.println("New Container Started "+cont_name);
     }
 
+    public void remoteCreateContainer(String ip, String docker_port, String cont_name, String container_image) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"HostConfig\": {\"AutoRemove\": true}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(newCmd);
+    }    
+
     public void remoteStartContainer(String ip, String docker_port, String cont_name, String container_image, String cont_cmd, String hostPath, String contPath) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Cmd\": [\"%s\"], \"HostConfig\": {\"AutoRemove\": true, \"Binds\": [\"%s:%s\"]}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, cont_cmd, hostPath, contPath);
 	String[] newCmd = {"/bin/sh", "-c", cmd};
@@ -141,6 +148,13 @@ public class DockerCalls {
 	output=obj.exeCmd(newCmd2);
 	System.out.println("New Container Started "+cont_name);
     }
+
+    public void remoteCreateContainer_bind(String ip, String docker_port, String cont_name, String container_image, String cont_cmd, String hostPath, String contPath) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Cmd\": [\"%s\"], \"HostConfig\": {\"AutoRemove\": true, \"Binds\": [\"%s:%s\"]}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, cont_cmd, hostPath, contPath);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(newCmd);
+    }    
     
     public void remoteStartContainer_bind(String ip, String docker_port, String cont_name, String container_image, String hostPath, String contPath) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"HostConfig\": {\"AutoRemove\": true, \"Binds\": [\"%s:%s\"]}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, hostPath, contPath);
@@ -151,7 +165,30 @@ public class DockerCalls {
 	String[] newCmd2={"/bin/sh", "-c", cmd};
 	output=obj.exeCmd(newCmd2);
 	System.out.println("New Container Started "+cont_name);
-    }            
+    }
+
+    public void remoteCreateContainer_bind(String ip, String docker_port, String cont_name, String container_image, String hostPath, String contPath) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"HostConfig\": {\"AutoRemove\": true, \"Binds\": [\"%s:%s\"]}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, hostPath, contPath);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(newCmd);
+	System.out.println("New Container Started "+cont_name);
+    }
+
+    public void remoteAttatchArchive(String ip, String docker_port, String cont_name, String archiveFile, String contPath) {
+	String cmd = String.format("/usr/bin/curl -s -X PUT -T %s http://%s:%s/v1.37/containers/%s/archive?path=%s", archiveFile, ip, docker_port, cont_name, contPath);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(newCmd);
+    }
+
+    public void remoteStartCreatedContainer(String ip, String docker_port, String cont_name) {
+	String cmd=String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/start", ip, docker_port, cont_name);
+	String[] newCmd={"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();	
+	String output=obj.exeCmd(newCmd);
+	System.out.println("New Container Started "+cont_name);
+    }
 
     public void installOVSBridge(String name){
 	String cmd=String.format("/usr/bin/sudo /usr/bin/ovs-vsctl --may-exist add-br %s", name);
