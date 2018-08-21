@@ -161,7 +161,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     }
 
     public void writeFlows(RuleDescriptor rule){
-	flowWriterService.addBidirectionalMacToMacFlows(rule.inMac, rule.inNCR, rule.outMac, rule.outNCR);
+	if(rule.outMac.equals("*")){
+	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR);
+	} else {
+	    flowWriterService.addBidirectionalMacToMacFlows(new MacAddress(rule.inMac), rule.inNCR, new MacAddress(rule.outMac), rule.outNCR);
+	}
     }    
 
     private boolean inMap(HashMap<String, ArrayList<String>> m1, String testKey, String testVal) {
@@ -211,7 +215,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     }
 
     private boolean checkMacAddrs_strict(MacGroup pktMacs, MacGroup policyMacs) {
-	if((pktMacs.inMac.getValue().equals(policyMacs.inMac.getValue()) && pktMacs.inMac.getValue().equals(policyMacs.inMac.getValue()))){
+	if((pktMacs.inMac.equals(policyMacs.inMac)) && (pktMacs.inMac.equals(policyMacs.inMac))){
 	    return true;
 	}else{
 	    return false;

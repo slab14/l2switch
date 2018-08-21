@@ -43,6 +43,9 @@ public interface FlowWriterService {
      * @param destNodeConnectorRef
      */
     public void addBidirectionalMacToMacFlows(MacAddress sourceMac, NodeConnectorRef sourceNodeConnectorRef,
-            MacAddress destMac, NodeConnectorRef destNodeConnectorRef);
+					      MacAddress destMac, NodeConnectorRef destNodeConnectorRef);
+
+    public void addBidirectionalMacFlows(MacAddress sourceMac, NodeConnectorRef sourceNodeConnectorRef,
+					      NodeConnectorRef destNodeConnectorRef);
 
 }

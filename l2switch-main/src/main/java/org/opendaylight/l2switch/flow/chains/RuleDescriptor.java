@@ -12,12 +12,12 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
 
 public class RuleDescriptor {
-    public MacAddress inMac;
+    public String inMac;
     public NodeConnectorRef inNCR;
-    public MacAddress outMac;
+    public String outMac;
     public NodeConnectorRef outNCR;
 
-    public RuleDescriptor(NodeConnectorRef inNCR, MacAddress inMac, NodeConnectorRef outNCR, MacAddress outMac) {
+    public RuleDescriptor(NodeConnectorRef inNCR, String inMac, NodeConnectorRef outNCR, String outMac) {
 	this.inNCR=inNCR;	
 	this.inMac=inMac;
 	this.outNCR=outNCR;
@@ -29,7 +29,7 @@ public class RuleDescriptor {
 	this.outNCR=newOutNCR;
     }
 
-    public void changeMacs(MacAddress newInMac, MacAddress newOutMac) {
+    public void changeMacs(String newInMac, String newOutMac) {
 	this.inMac=newInMac;
 	this.outMac=newOutMac;
     }

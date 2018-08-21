@@ -11,10 +11,10 @@ package org.opendaylight.l2switch.flow.chain;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 
 public class MacGroup {
-    public MacAddress inMac;
-    public MacAddress outMac;
+    public String inMac;
+    public String outMac;
 
-    public MacGroup(MacAddress inMac, MacAddress outMac){
+    public MacGroup(String inMac, String outMac){
 	this.inMac=inMac;
 	this.outMac=outMac;
     }

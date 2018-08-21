@@ -170,8 +170,10 @@ public class ServiceChain {
     }	
 
     public NewFlows setupChain() {
-	MacAddress inMac=new MacAddress(devPolicy.inMAC);
-	MacAddress outMac=new MacAddress(devPolicy.outMAC);
+	//MacAddress inMac=new MacAddress(devPolicy.inMAC);
+	String inMac= devPolicy.inMAC;
+	//MacAddress outMac=new MacAddress(devPolicy.outMAC);
+	String outMac=devPolicy.outMAC;	
 	int chainLength = getChainLength();
 	String[] chainLinks = getChain();
 	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
@@ -225,8 +227,8 @@ public class ServiceChain {
 		}
 		enableARPs(devPolicy.imageOpts[i].contName, ifaces, inNCR, outNCR);
 		contMac = getContMacAddress(devPolicy.imageOpts[i].contName, ifaces[0]);
-		MacGroup newGroupA = new MacGroup(inMac, contMac);
-		MacGroup newGroupB = new MacGroup(contMac, outMac);
+		MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
+		MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
 		groups.add(newGroupA);
 		groups.add(newGroupB);
 		macMap.put(groupCnt, i);
@@ -236,8 +238,8 @@ public class ServiceChain {
 	macMap.put(groupCnt,chainLength);
 	nodes.add(outNCR);
 	groupCnt=0;
-	MacAddress ruleInMac;
-	MacAddress ruleOutMac;
+	String ruleInMac;
+	String ruleOutMac;
 	for (int i=0; i<chainLength; i++) {
 	    ruleInMac = groups.get(groupCnt).inMac;
 	    ruleOutMac = groups.get(groupCnt).outMac;
