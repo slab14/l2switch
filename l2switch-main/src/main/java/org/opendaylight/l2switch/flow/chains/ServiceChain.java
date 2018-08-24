@@ -132,7 +132,7 @@ public class ServiceChain {
     }
 
     public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip, String hostFS, String contFS) {
-	this.containerCalls.startContainer(contName, contImage, hostFS, contFS);
+	this.containerCalls.startContainer_bind(contName, contImage, hostFS, contFS);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){

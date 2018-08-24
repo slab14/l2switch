@@ -118,6 +118,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	    if(destNodeConnector != null){
 		String srcMac = ethernetPacket.getSourceMac().getValue();
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
+		    System.out.println("Got Mac source from policy file");
 		    int devNum = policyMap.get(srcMac).devNum;
 		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
