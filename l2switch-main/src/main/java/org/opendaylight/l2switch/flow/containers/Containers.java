@@ -231,7 +231,12 @@ public class Containers {
     public void updateDefaultRoutes(String ovsBridge_remotePort, String in_port, String newOutPort) {
 	DockerCalls docker = new DockerCalls();		
 	docker.remoteUpdateDefaultRoute(this.remoteIP, ovsBridge_remotePort, in_port, newOutPort, this.OpenFlowVersion);
-    }    
+    }
+
+    public void updateArp(String ovsBridge_remotePort, String newOutPort) {
+	DockerCalls docker = new DockerCalls();		
+	docker.remoteUpdateArp(this.remoteIP, ovsBridge_remotePort, newOutPort, this.OpenFlowVersion);
+    }        
 
     public void addDirectContainer(String dataplaneIP, String dockerPort, String ovsPort, String containerName, String containerImage, String cont_iface, String contIP) {
 	startContainer(dataplaneIP, dockerPort, containerName, containerImage);

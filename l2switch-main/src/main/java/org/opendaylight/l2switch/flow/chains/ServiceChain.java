@@ -124,6 +124,7 @@ public class ServiceChain {
 	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName, ifaces[i], ip, this.ovsBridge_remotePort);
 	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(contName, ifaces[i]);
+	    this.containerCalls.updateArp(this.ovsBridge_remotePort, OFports[i]);	    
 	    for(String route:this.routes) {
 		this.containerCalls.addRouteinCont(contName, ifaces[i], route, ip);
 	    }
@@ -139,6 +140,7 @@ public class ServiceChain {
 	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName, ifaces[i], ip, this.ovsBridge_remotePort);
 	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(contName, ifaces[i]);
+	    this.containerCalls.updateArp(this.ovsBridge_remotePort, OFports[i]);
 	    for(String route:this.routes) {
 		this.containerCalls.addRouteinCont(contName, ifaces[i], route, ip);
 	    }
