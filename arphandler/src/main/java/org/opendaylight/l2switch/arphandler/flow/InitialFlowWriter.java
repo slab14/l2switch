@@ -9,21 +9,21 @@
 package org.opendaylight.l2switch.arphandler.flow;
 
 import com.google.common.collect.ImmutableList;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
-import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker;
-import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeEvent;
+import org.opendaylight.controller.md.sal.binding.api.DataObjectModification;
+import org.opendaylight.controller.md.sal.binding.api.DataTreeChangeListener;
+import org.opendaylight.controller.md.sal.binding.api.DataTreeIdentifier;
+import org.opendaylight.controller.md.sal.binding.api.DataTreeModification;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.openflowplugin.api.OFConstants;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
@@ -64,7 +64,6 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.EthernetMatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.KnownEtherType;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
-import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
@@ -74,20 +73,21 @@ import org.slf4j.LoggerFactory;
  * Adds a flow, which sends all ARP packets to the controller, on all switches.
  * Registers as ODL Inventory listener so that it can add flows once a new node i.e. switch is added
  */
-public class InitialFlowWriter implements DataChangeListener {
+public class InitialFlowWriter implements DataTreeChangeListener<Node> {
     private static final Logger LOG = LoggerFactory.getLogger(InitialFlowWriter.class);
+
+    private static final String FLOW_ID_PREFIX = "L2switch-";
 
     private final ExecutorService initialFlowExecutor = Executors.newCachedThreadPool();
     private final SalFlowService salFlowService;
-    private final String FLOW_ID_PREFIX = "L2switch-";
     private short flowTableId;
     private int flowPriority;
     private int flowIdleTimeout;
     private int flowHardTimeout;
     private boolean isHybridMode;
 
-    private AtomicLong flowIdInc = new AtomicLong();
-    private AtomicLong flowCookieInc = new AtomicLong(0x2b00000000000000L);
+    private final AtomicLong flowIdInc = new AtomicLong();
+    private final AtomicLong flowCookieInc = new AtomicLong(0x2b00000000000000L);
 
 
     public InitialFlowWriter(SalFlowService salFlowService) {
@@ -114,20 +114,32 @@ public class InitialFlowWriter implements DataChangeListener {
         this.isHybridMode = isHybridMode;
     }
 
-    public ListenerRegistration<DataChangeListener> registerAsDataChangeListener(DataBroker dataBroker) {
+    public ListenerRegistration<InitialFlowWriter> registerAsDataChangeListener(DataBroker dataBroker) {
         InstanceIdentifier<Node> nodeInstanceIdentifier = InstanceIdentifier.builder(Nodes.class)
                 .child(Node.class).build();
-        return dataBroker.registerDataChangeListener(LogicalDatastoreType.OPERATIONAL, nodeInstanceIdentifier, this, AsyncDataBroker.DataChangeScope.BASE);
+        return dataBroker.registerDataTreeChangeListener(new DataTreeIdentifier<>(LogicalDatastoreType.OPERATIONAL,
+                nodeInstanceIdentifier), this);
     }
 
     @Override
-    public void onDataChanged(AsyncDataChangeEvent<InstanceIdentifier<?>, DataObject> instanceIdentifierDataObjectAsyncDataChangeEvent) {
-        Map<InstanceIdentifier<?>, DataObject> createdData = instanceIdentifierDataObjectAsyncDataChangeEvent.getCreatedData();
-        if(createdData !=null && !createdData.isEmpty()) {
-            Set<InstanceIdentifier<?>> nodeIds = createdData.keySet();
-            if(nodeIds != null && !nodeIds.isEmpty()) {
-                initialFlowExecutor.submit(new InitialFlowWriterProcessor(nodeIds));
+    public void onDataTreeChanged(Collection<DataTreeModification<Node>> changes) {
+        Set<InstanceIdentifier<?>> nodeIds = new HashSet<>();
+        for (DataTreeModification<Node> change: changes) {
+            DataObjectModification<Node> rootNode = change.getRootNode();
+            final InstanceIdentifier<Node> identifier = change.getRootPath().getRootIdentifier();
+            switch (rootNode.getModificationType()) {
+                case WRITE:
+                    if (rootNode.getDataBefore() == null) {
+                        nodeIds.add(identifier);
+                    }
+                    break;
+                default:
+                    break;
             }
+        }
+
+        if (!nodeIds.isEmpty()) {
+            initialFlowExecutor.execute(new InitialFlowWriterProcessor(nodeIds));
         }
     }
 
@@ -136,23 +148,22 @@ public class InitialFlowWriter implements DataChangeListener {
      * thread that invoked the data node updated event. Avoids any thread lock it may cause.
      */
     private class InitialFlowWriterProcessor implements Runnable {
-        Set<InstanceIdentifier<?>> nodeIds = null;
+        private final Set<InstanceIdentifier<?>> nodeIds;
 
-        public InitialFlowWriterProcessor(Set<InstanceIdentifier<?>> nodeIds) {
+        InitialFlowWriterProcessor(Set<InstanceIdentifier<?>> nodeIds) {
             this.nodeIds = nodeIds;
         }
 
         @Override
         public void run() {
-
-            if(nodeIds == null) {
+            if (nodeIds == null) {
                 return;
             }
 
-            for(InstanceIdentifier<?> nodeId : nodeIds) {
-                if(Node.class.isAssignableFrom(nodeId.getTargetType())) {
+            for (InstanceIdentifier<?> nodeId : nodeIds) {
+                if (Node.class.isAssignableFrom(nodeId.getTargetType())) {
                     InstanceIdentifier<Node> invNodeId = (InstanceIdentifier<Node>)nodeId;
-                    if(invNodeId.firstKeyOf(Node.class,NodeKey.class).getId().getValue().contains("openflow:")) {
+                    if (invNodeId.firstKeyOf(Node.class,NodeKey.class).getId().getValue().contains("openflow:")) {
                         addInitialFlows(invNodeId);
                     }
                 }
@@ -187,7 +198,7 @@ public class InitialFlowWriter implements DataChangeListener {
 
         private InstanceIdentifier<Flow> getFlowInstanceId(InstanceIdentifier<Table> tableId) {
             // generate unique flow key
-            FlowId flowId = new FlowId(FLOW_ID_PREFIX+String.valueOf(flowIdInc.getAndIncrement()));
+            FlowId flowId = new FlowId(FLOW_ID_PREFIX + String.valueOf(flowIdInc.getAndIncrement()));
             FlowKey flowKey = new FlowKey(flowId);
             return tableId.child(Flow.class, flowKey);
         }
@@ -209,9 +220,9 @@ public class InitialFlowWriter implements DataChangeListener {
                     .setEthernetMatch(ethernetMatchBuilder.build())
                     .build();
 
-            List<Action> actions = new ArrayList<Action>();
+            List<Action> actions = new ArrayList<>();
             actions.add(getSendToControllerAction());
-            if(isHybridMode) {
+            if (isHybridMode) {
                 actions.add(getNormalAction());
             }
 

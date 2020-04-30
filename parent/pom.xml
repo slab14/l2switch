@@ -3,72 +3,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.opendaylight.odlparent</groupId>
-    <artifactId>odlparent</artifactId>
-    <version>1.8.0-Carbon</version>
+    <groupId>org.opendaylight.mdsal</groupId>
+    <artifactId>binding-parent</artifactId>
+    <version>0.12.4</version>
     <relativePath/>
   </parent>
   <groupId>org.opendaylight.l2switch</groupId>
   <artifactId>l2switch-parent</artifactId>
-  <version>0.5.0-Carbon</version>
+  <version>0.7.4</version>
   <packaging>pom</packaging>
 
   <properties>
-    <codeGeneratorPath>src/main/yang-gen-code</codeGeneratorPath>
-    <configCodeGeneratorPath>src/main/yang-gen-config</configCodeGeneratorPath>
-    <branding.version>1.4.0-Carbon</branding.version>
-    <karaf.resources.version>1.8.0-Carbon</karaf.resources.version>
-    <mdsal.version>2.2.0-Carbon</mdsal.version>
-    <mdsal.model.version>0.10.0-Carbon</mdsal.model.version>
-    <controller.mdsal.version>1.5.0-Carbon</controller.mdsal.version>
-    <yangtools.version>1.1.0-Carbon</yangtools.version>
-    <jung2.version>2.0.1</jung2.version>
-    <config.version>0.6.0-Carbon</config.version>
-    <openflow.plugin.version>0.4.0-Carbon</openflow.plugin.version>
-    <dlux.version>0.5.0-Carbon</dlux.version>
-    <config.configfile.directory>etc/opendaylight/karaf</config.configfile.directory>
-    <config.packethandler.configfile>50-packethandler.xml</config.packethandler.configfile>
-    <config.loopremover.configfile>52-loopremover.xml</config.loopremover.configfile>
-    <config.arphandler.configfile>54-arphandler.xml</config.arphandler.configfile>
-    <config.addresstracker.configfile>56-addresstracker.xml</config.addresstracker.configfile>
-    <config.hosttracker.configfile>57-hosttracker.xml</config.hosttracker.configfile>
-    <config.l2switchmain.configfile>58-l2switchmain.xml</config.l2switchmain.configfile>
+    <jung2.version>2.1.1</jung2.version>
+    <openflow.plugin.version>0.6.4</openflow.plugin.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.opendaylight.yangtools</groupId>
-        <artifactId>yangtools-artifacts</artifactId>
-        <version>${yangtools.version}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-      <dependency>
-        <groupId>org.opendaylight.mdsal</groupId>
-        <artifactId>mdsal-artifacts</artifactId>
-        <version>${mdsal.version}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-      <dependency>
-        <groupId>org.opendaylight.mdsal.model</groupId>
-        <artifactId>mdsal-model-artifacts</artifactId>
-        <version>${mdsal.model.version}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-      <dependency>
-        <groupId>org.opendaylight.controller</groupId>
-        <artifactId>config-artifacts</artifactId>
-        <version>${config.version}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-      <dependency>
         <groupId>org.opendaylight.controller</groupId>
         <artifactId>mdsal-artifacts</artifactId>
-        <version>${controller.mdsal.version}</version>
+        <version>1.7.4</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -88,8 +43,18 @@
       </dependency>
 
       <dependency>
-        <groupId>org.opendaylight.controller.thirdparty</groupId>
-        <artifactId>net.sf.jung2</artifactId>
+        <groupId>net.sf.jung</groupId>
+        <artifactId>jung-api</artifactId>
+        <version>${jung2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sf.jung</groupId>
+        <artifactId>jung-algorithms</artifactId>
+        <version>${jung2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sf.jung</groupId>
+        <artifactId>jung-graph-impl</artifactId>
         <version>${jung2.version}</version>
       </dependency>
     </dependencies>
@@ -122,75 +87,6 @@
                   <configuration>
                       <source>${java.version.source}</source>
                       <target>${java.version.target}</target>
-                  </configuration>
-              </plugin>
-
-              <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-checkstyle-plugin</artifactId>
-                  <configuration>
-                      <failOnViolation>true</failOnViolation>
-                      <configLocation>checkstyle-logging.xml</configLocation>
-                      <consoleOutput>true</consoleOutput>
-                      <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                      <sourceDirectory>${project.basedir}</sourceDirectory>
-                      <includes>**\/*.java,**\/*.yang,**\/*.xml,**\/*.ini,**\/*.sh,**\/*.bat</includes>
-                      <excludes>**\/target\/,**\/bin\/,**\/target-ide\/,**\/xtend-gen\/,**\/${codeGeneratorPath}\/,**\/${configCodeGeneratorPath}\/,</excludes>
-                  </configuration>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.opendaylight.yangtools</groupId>
-                          <artifactId>checkstyle-logging</artifactId>
-                          <version>${yangtools.version}</version>
-                      </dependency>
-                  </dependencies>
-                  <executions>
-                      <execution>
-                          <id>check</id>
-                          <goals>
-                              <goal>check</goal>
-                          </goals>
-                          <phase>process-sources</phase>
-                      </execution>
-                  </executions>
-              </plugin>
-
-              <!--  tells eclipse to import these folders into the package explorer as "source" folders
-                    which allows eclipse to resolve the classes correctly during an eclipse build -->
-              <plugin>
-                  <groupId>org.codehaus.mojo</groupId>
-                  <artifactId>build-helper-maven-plugin</artifactId>
-                  <version>1.8</version>
-                  <executions>
-                      <execution>
-                          <id>add-source</id>
-                          <goals>
-                              <goal>add-source</goal>
-                          </goals>
-                          <phase>generate-sources</phase>
-                          <configuration>
-                              <sources>
-                                  <source>src/main/yang</source>
-                                  <source>${codeGeneratorPath}</source>
-                                  <source>${configCodeGeneratorPath}</source>
-                              </sources>
-                          </configuration>
-                      </execution>
-                  </executions>
-              </plugin>
-              <!--  cleans up auto generated code  -->
-              <plugin>
-                  <artifactId>maven-clean-plugin</artifactId>
-                  <configuration>
-                      <filesets>
-                          <fileset>
-                              <directory>${codeGeneratorPath}</directory>
-                              <directory>${configCodeGeneratorPath}</directory>
-                              <includes>
-                                  <include>**</include>
-                              </includes>
-                          </fileset>
-                      </filesets>
                   </configuration>
               </plugin>
 
@@ -247,19 +143,6 @@
                               </pluginExecution>
                               <pluginExecution>
                                   <pluginExecutionFilter>
-                                      <groupId>org.apache.maven.plugins</groupId>
-                                      <artifactId>maven-checkstyle-plugin</artifactId>
-                                      <versionRange>[2.0,)</versionRange>
-                                      <goals>
-                                          <goal>check</goal>
-                                      </goals>
-                                  </pluginExecutionFilter>
-                                  <action>
-                                      <execute />
-                                  </action>
-                              </pluginExecution>
-                              <pluginExecution>
-                                  <pluginExecutionFilter>
                                       <groupId>org.opendaylight.yangtools</groupId>
                                       <artifactId>yang-maven-plugin</artifactId>
                                       <versionRange>[0.5,)</versionRange>
@@ -311,6 +194,16 @@
           <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-checkstyle-plugin</artifactId>
+              <configuration>
+                  <propertyExpansion>checkstyle.violationSeverity=error</propertyExpansion>
+              </configuration>
+          </plugin>
+          <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>findbugs-maven-plugin</artifactId>
+              <configuration>
+                  <failOnError>true</failOnError>
+              </configuration>
           </plugin>
       </plugins>
   </build>

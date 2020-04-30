@@ -10,8 +10,10 @@ package org.opendaylight.l2switch.hosttracker.plugin.internal;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import org.opendaylight.controller.md.sal.binding.api.BindingTransactionChain;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
@@ -30,12 +32,12 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
     private static final Logger LOG = LoggerFactory.getLogger(OperationProcessor.class);
     private final DataBroker dataBroker;
     private final BlockingQueue<HostTrackerOperation> queue;
-    private BindingTransactionChain transactionChain;
+    private final AtomicReference<BindingTransactionChain> transactionChain = new AtomicReference<>();
 
     OperationProcessor(final DataBroker dataBroker) {
         this.dataBroker = Preconditions.checkNotNull(dataBroker);
-        this.queue = new LinkedBlockingQueue<HostTrackerOperation>(QUEUE_DEPTH);
-        this.transactionChain = dataBroker.createTransactionChain(this);
+        this.queue = new LinkedBlockingQueue<>(QUEUE_DEPTH);
+        this.transactionChain.set(dataBroker.createTransactionChain(this));
     }
 
     @Override
@@ -54,10 +56,15 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
         while (!done) {
             try {
                 HostTrackerOperation op = queue.take();
-                ReadWriteTransaction tx = transactionChain.newReadWriteTransaction();
+                final BindingTransactionChain txChain = transactionChain.get();
+                if (txChain == null) {
+                    break;
+                }
+
+                ReadWriteTransaction tx = txChain.newReadWriteTransaction();
 
                 int ops = 0;
-                while ((op != null) && (ops < OPS_PER_CHAIN)) {
+                while (op != null && ops < OPS_PER_CHAIN) {
                     op.applyOperation(tx);
                     ops += 1;
                     op = queue.poll();
@@ -72,16 +79,20 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
     }
 
     @Override
-    public void close() throws Exception {
-        if (transactionChain != null) {
-            transactionChain.close();
+    public void close() {
+        final BindingTransactionChain txChain = transactionChain.getAndSet(null);
+        if (txChain != null) {
+            txChain.close();
         }
     }
 
     private void chainFailure() {
         try {
-            transactionChain.close();
-            transactionChain = dataBroker.createTransactionChain(this);
+            final BindingTransactionChain prevChain = transactionChain.getAndSet(
+                    dataBroker.createTransactionChain(this));
+            if (prevChain != null) {
+                prevChain.close();
+            }
             clearQueue();
         } catch (IllegalStateException e) {
             LOG.warn(e.getLocalizedMessage());
@@ -98,13 +109,15 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
 
     public void submitTransaction(final ReadWriteTransaction tx, final int tries) {
         Futures.addCallback(tx.submit(), new FutureCallback<Object>() {
-            public void onSuccess(Object o) {
+            @Override
+            public void onSuccess(Object obj) {
                 LOG.trace("tx {} succeeded", tx.getIdentifier());
             }
 
-            public void onFailure(Throwable t) {
-                if (t instanceof OptimisticLockFailedException) {
-                    if ((tries - 1) > 0) {
+            @Override
+            public void onFailure(Throwable failure) {
+                if (failure instanceof OptimisticLockFailedException) {
+                    if (tries - 1 > 0) {
                         LOG.warn("tx {} failed, retrying", tx.getIdentifier());
                         // do retry
                         submitTransaction(tx, tries - 1);
@@ -116,11 +129,11 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
                 } else {
                     // failed due to another type of
                     // TransactionCommitFailedException.
-                    LOG.warn("tx {} failed: {}", tx.getIdentifier(), t.getMessage());
+                    LOG.warn("tx {} failed: {}", tx.getIdentifier(), failure.getMessage());
                     chainFailure();
                 }
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private void clearQueue() {

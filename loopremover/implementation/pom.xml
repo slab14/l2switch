@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.opendaylight.l2switch</groupId>
     <artifactId>l2switch-parent</artifactId>
-    <version>0.5.0-Carbon</version>
+    <version>0.7.4</version>
     <relativePath>../../parent</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -38,20 +38,20 @@
       <artifactId>yang-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.opendaylight.controller.thirdparty</groupId>
-      <artifactId>net.sf.jung2</artifactId>
+      <groupId>net.sf.jung</groupId>
+      <artifactId>jung-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.jung</groupId>
+      <artifactId>jung-algorithms</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.jung</groupId>
+      <artifactId>jung-graph-impl</artifactId>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.l2switch.loopremover</groupId>
       <artifactId>loopremover-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>config-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>sal-binding-config</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -76,57 +76,29 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Export-Package>org.opendaylight.yang.gen.v1.urn.opendaylight.packet.loop.remover.impl.rev140528</Export-Package>
-            <Import-Package>*</Import-Package>
+            <Export-Package>org.apache.commons*,
+              edu.uci.ics.jung.algorithms.blockmodel,
+              edu.uci.ics.jung.algorithms.cluster,
+              edu.uci.ics.jung.algorithms.filters,
+              edu.uci.ics.jung.algorithms.flows,
+              edu.uci.ics.jung.algorithms.generators,
+              edu.uci.ics.jung.algorithms.generators.random,
+              edu.uci.ics.jung.algorithms.layout,
+              edu.uci.ics.jung.algorithms.layout.util,
+              edu.uci.ics.jung.algorithms.metrics,
+              edu.uci.ics.jung.algorithms.scoring,
+              edu.uci.ics.jung.algorithms.scoring.util,
+              edu.uci.ics.jung.algorithms.shortestpath,
+              edu.uci.ics.jung.algorithms.transformation,
+              edu.uci.ics.jung.algorithms.util,
+              edu.uci.ics.jung.graph;-split-package:=merge-first,
+              edu.uci.ics.jung.graph.event,
+              edu.uci.ics.jung.graph.util;-split-package:=merge-first,
+              org.opendaylight.yang.gen.v1.urn.opendaylight.packet.loop.remover.impl.rev140528</Export-Package>
+            <Import-Package>,
+              *</Import-Package>
           </instructions>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.opendaylight.yangtools</groupId>
-        <artifactId>yang-maven-plugin</artifactId>
-        <version>${yangtools.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>generate-sources</goal>
-            </goals>
-            <configuration>
-              <codeGenerators>
-                <generator>
-                  <codeGeneratorClass>
-                    org.opendaylight.controller.config.yangjmxgenerator.plugin.JMXGenerator
-                  </codeGeneratorClass>
-                  <outputBaseDir>${configCodeGeneratorPath}</outputBaseDir>
-                  <additionalConfiguration>
-                    <namespaceToPackage1>
-                      urn:opendaylight:params:xml:ns:yang:controller==org.opendaylight.controller.config.yang
-                    </namespaceToPackage1>
-                  </additionalConfiguration>
-                </generator>
-                <generator>
-                  <codeGeneratorClass>
-                    org.opendaylight.mdsal.binding.maven.api.gen.plugin.CodeGeneratorImpl
-                  </codeGeneratorClass>
-                  <outputBaseDir>${codeGeneratorPath}</outputBaseDir>
-                </generator>
-              </codeGenerators>
-              <inspectDependencies>true</inspectDependencies>
-            </configuration>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.opendaylight.controller</groupId>
-            <artifactId>yang-jmx-generator-plugin</artifactId>
-            <version>${config.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>org.opendaylight.mdsal</groupId>
-            <artifactId>maven-sal-api-gen-plugin</artifactId>
-            <version>${mdsal.model.version}</version>
-            <type>jar</type>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
   </build>

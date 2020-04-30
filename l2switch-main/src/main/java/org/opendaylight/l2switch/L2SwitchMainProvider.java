@@ -32,9 +32,9 @@ import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 
 public class L2SwitchMainProvider {
-
-    private final static Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
-    private Registration topoNodeListherReg = null, reactFlowWriterReg = null;
+    private static final Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
+    private Registration topoNodeListherReg;
+    private Registration reactFlowWriterReg;
 
     private final DataBroker dataService;
     private final NotificationProviderService notificationService;
@@ -117,11 +117,12 @@ public class L2SwitchMainProvider {
         LOG.info("L2SwitchMain initialized.");
     }
 
-    public void close() throws Exception {
-        if(reactFlowWriterReg != null) {
+    public void close() {
+        if (reactFlowWriterReg != null) {
             reactFlowWriterReg.close();
         }
-        if(topoNodeListherReg != null) {
+
+        if (topoNodeListherReg != null) {
             topoNodeListherReg.close();
         }
 	DockerCalls docker = new DockerCalls();
@@ -137,5 +138,4 @@ public class L2SwitchMainProvider {
 	docker.remoteDeleteFlows(dataplaneIP, remote_ovs_port, "13");
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
     }
-
 }

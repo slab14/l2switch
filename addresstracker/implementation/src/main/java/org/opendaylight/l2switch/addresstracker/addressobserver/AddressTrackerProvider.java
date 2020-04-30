@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.address.tracker.config.rev160621.AddressTrackerConfig;
@@ -20,11 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AddressTrackerProvider {
+    private static final Logger LOG = LoggerFactory.getLogger(AddressTrackerProvider.class);
+    private static final String ARP_PACKET_TYPE = "arp";
+    private static final String IPV4_PACKET_TYPE = "ipv4";
+    private static final String IPV6_PACKET_TYPE = "ipv6";
 
-    private final static Logger LOG = LoggerFactory.getLogger(AddressTrackerProvider.class);
-    private List<Registration> listenerRegistrations = new ArrayList<>();
-    private static String ARP_PACKET_TYPE = "arp", IPV4_PACKET_TYPE = "ipv4", IPV6_PACKET_TYPE = "ipv6";
-
+    private final List<Registration> listenerRegistrations = new ArrayList<>();
     private final NotificationProviderService notificationService;
     private final DataBroker dataBroker;
     private final Long timestampUpdateInterval;
@@ -45,8 +47,7 @@ public class AddressTrackerProvider {
         addressObservationWriter.setTimestampUpdateInterval(timestampUpdateInterval);
         Set<String> packetTypes = processObserveAddressesFrom(observerAddressesFrom);
 
-        if (packetTypes == null || packetTypes.isEmpty()) { // set default to
-                                                            // arp
+        if (packetTypes.isEmpty()) { // set default to arp
             packetTypes = new HashSet<>();
             packetTypes.add(ARP_PACKET_TYPE);
         }
@@ -72,17 +73,11 @@ public class AddressTrackerProvider {
     }
 
     public void close() {
-        if (listenerRegistrations != null && !listenerRegistrations.isEmpty()) {
-            for (Registration listenerRegistration : listenerRegistrations)
-                try {
-                    listenerRegistration.close();
-                } catch (Exception e) {
-                    LOG.error("Failed to close registration={}", listenerRegistration, e);
-                }
-        }
+        listenerRegistrations.forEach(reg -> reg.close());
         LOG.info("AddressTracker torn down.", this);
     }
 
+    @Nonnull
     private Set<String> processObserveAddressesFrom(String observeAddressesFrom) {
         Set<String> packetTypes = new HashSet<>();
         if (observeAddressesFrom == null || observeAddressesFrom.isEmpty()) {
@@ -90,7 +85,7 @@ public class AddressTrackerProvider {
             return packetTypes;
         }
         String[] observeAddressFromSplit = observeAddressesFrom.split(",");
-        if (observeAddressFromSplit == null || observeAddressFromSplit.length == 0) {
+        if (observeAddressFromSplit.length == 0) {
             packetTypes.add(ARP_PACKET_TYPE);
             return packetTypes;
         }

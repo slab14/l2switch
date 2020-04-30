@@ -6,21 +6,19 @@
  terms of the Eclipse Public License v1.0 which accompanies this distribution,
  and is available at http://www.eclipse.org/legal/epl-v10.html
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>single-feature-parent</artifactId>
-        <version>1.8.0-Carbon</version>
+        <version>3.1.6</version>
         <relativePath/>
     </parent>
 
     <groupId>org.opendaylight.l2switch</groupId>
     <artifactId>odl-l2switch-addresstracker</artifactId>
-    <version>0.5.0-Carbon</version>
+    <version>0.7.4</version>
     <packaging>feature</packaging>
 
     <name>OpenDaylight :: L2Switch :: AddressTracker</name>
@@ -36,7 +34,7 @@
         <dependency>
             <groupId>org.opendaylight.l2switch.addresstracker</groupId>
             <artifactId>addresstracker-impl</artifactId>
-            <version>0.5.0-Carbon</version>
+            <version>0.7.4</version>
         </dependency>
     </dependencies>
 </project>
