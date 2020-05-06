@@ -131,7 +131,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         writeFlowToConfigData(flowPath, flowBody);
     }
 
-<<<<<<< HEAD
     public void addMacFlow(MacAddress sourceMac, NodeConnectorRef destNodeConnectorRef,
 				NodeConnectorRef sourceNodeConnectorRef) {
 
@@ -190,8 +189,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      * @param destMac
      * @param destNodeConnectorRef
      */
-=======
->>>>>>> upstream/stable/oxygen
     @Override
     public void addBidirectionalMacToMacFlows(MacAddress sourceMac, NodeConnectorRef sourceNodeConnectorRef,
             MacAddress destMac, NodeConnectorRef destNodeConnectorRef) {
@@ -213,7 +210,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	
     }
 
-<<<<<<< HEAD
     @Override
     public void addBidirectionalMacFlows(MacAddress sourceMac, NodeConnectorRef sourceNodeConnectorRef,
             NodeConnectorRef destNodeConnectorRef) {
@@ -235,8 +231,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      * @param nodeConnectorRef
      * @return
      */
-=======
->>>>>>> upstream/stable/oxygen
     private InstanceIdentifier<Flow> buildFlowPath(NodeConnectorRef nodeConnectorRef, TableKey flowTableKey) {
 
         // generate unique flow key
