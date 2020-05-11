@@ -54,12 +54,8 @@ module l2switch-config {
         }
 	leaf policy-file {
 	     type string;
-	     default "/users/slab/IoT_Sec_Gateway/policies/newPolicy0.json";
+	     default "/home/pi/IoT_Sec_Gateway/policies/newPolicy20.json";
 	}
-	leaf policy-string {
-	     type string;
-	     default "{\"inMAC\":\"90:e2:ba:24:cf:f4\", \"outMAC\":\"90:e2:ba:1f:90:50\", \"images\":[\"docker-click-bridge\"], \"imageOpts\":[[]]}";
-        }
 	leaf dataplane-IP {
 	     type string;
 	     default "127.0.0.1";

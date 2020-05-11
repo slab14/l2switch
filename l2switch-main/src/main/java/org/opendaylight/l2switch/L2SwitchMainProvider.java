@@ -42,9 +42,9 @@ public class L2SwitchMainProvider {
     private final L2switchConfig mainConfig;
     private String dataplaneIP;//"127.0.0.1";
     private String dockerPort;//"4243";
-    private String ovsPort="6677";
-    private String remote_ovs_port="6634";
-    private String OFversion="13";
+    private String ovsPort;//="6677";
+    private String remote_ovs_port;//="6634";
+    private String OFversion;//="13";
     private PolicyParser policy;
     private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
 
