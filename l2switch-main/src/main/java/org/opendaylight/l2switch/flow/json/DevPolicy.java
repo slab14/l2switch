@@ -8,23 +8,23 @@
 
 package org.opendaylight.l2switch.flow.json;
 
-import org.opendaylight.l2switch.flow.json.ContOpts;
+import org.opendaylight.l2switch.flow.json.ProtectionDetails;
 
 public class DevPolicy {
     public String name;
     public String inMAC;
     public String outMAC;
-    public String chain;
-    public String[] images;
-    public ContOpts[] imageOpts;
+    public String[] states;
+    public String transition;
+    public ProtectionDetails[] protections;
 
-    public DevPolicy(String name, String inMAC, String outMAC, String chain, String[] images, ContOpts[] imageOpts) {
+    public DevPolicy(String name, String inMAC, String outMAC, String[] states, String transition, ProtectionDetails[] protections) {
 	this.name=name;
 	this.inMAC=inMAC;
 	this.outMAC=outMAC;
-	this.chain=chain;
-	this.images=images;
-	this.imageOpts=imageOpts;
+	this.states=states;
+	this.transition=transition;
+	this.protections=protections;
     }
 
     public String getName() {
@@ -39,16 +39,16 @@ public class DevPolicy {
 	return this.outMAC;
     }
 
-    public String getChain(){
-	return this.chain;
+    public String[] getStates(){
+	return this.states;
     }
 
-    public String[] getImages(){
-	return this.images;
+    public String getTransition(){
+	return this.transition;
     }
 
-    public ContOpts[] getImageOpts() {
-	return this.imageOpts;
+    public ProtectionDetails[] getProtections() {
+	return this.protections;
     }
 
 }
