@@ -27,9 +27,10 @@ public class PolicyMapBuilder {
 	int n = policy.parsed.n;
 	for (int i = 0; i < n; i++) {
 	    String inMac = policy.parsed.devices[i].inMAC;
-	    String outMac = policy.parsed.devices[i].outMAC;	    
+	    String outMac = policy.parsed.devices[i].outMAC;
+	    String[] states = policy.parsed.devices[i].states;
 	    //MacGroup grpMac = new MacGroup(inMac, outMac);
-	    PolicyStatus grpStats = new PolicyStatus(outMac, false, i);
+	    PolicyStatus grpStats = new PolicyStatus(outMac, states, i);
 	    policyMap.put(inMac, grpStats);
 	}
 	return policyMap;

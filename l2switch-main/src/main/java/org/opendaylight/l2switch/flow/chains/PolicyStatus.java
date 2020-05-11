@@ -14,15 +14,49 @@ public class PolicyStatus {
     //    public MacAddress destMac;
     public String destMac;
     public boolean setup;
+    public String[] states;
+    public String curState;
+    public boolean canTransition;
     public int devNum;
+    private int stateNum;
+    private int stateMax;
 
-    public PolicyStatus(String destMac, boolean policySetup, int devNum) {
+    public PolicyStatus(String destMac, String[] states, int devNum) {
 	this.destMac=destMac;
-	this.setup=policySetup;
+	this.states=states;
 	this.devNum=devNum;
+	this.stateMax=this.states.length;		
+	this.setup=false;
+	this.stateNum=0;
+	curState=states[stateNum];
+	if (this.stateMax >1){
+	    this.canTransition=true;
+	}else{
+	    this.canTransition=false;
+	}
     }
 
     public void updateSetup(boolean newSetupVal){
 	this.setup=newSetupVal;
     }
+
+    public String getCurState(void){
+	return this.curState;
+    }
+
+    public boolean getCanTransition(void) {
+	return this.canTransition;
+    }
+
+    public void transitionState(void){
+	if (!this.canTransition){
+	    return;
+	}
+	this.stateNum++;
+	this.curState=this.states[stateNum];
+	if (this.stateNum>=this.stateMax){
+	    this.canTransition=false;
+	}
+    }   
+	
 }
