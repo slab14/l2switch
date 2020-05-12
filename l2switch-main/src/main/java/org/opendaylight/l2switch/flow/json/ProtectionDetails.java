@@ -10,7 +10,7 @@ package org.opendaylight.l2switch.flow.json;
 
 import org.opendaylight.l2switch.flow.json.ContOpts;
 
-public class DevPolicy {
+public class ProtectionDetails {
     public String state;
     public String chain;
     public String[] images;
