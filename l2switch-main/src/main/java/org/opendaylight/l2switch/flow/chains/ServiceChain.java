@@ -264,8 +264,6 @@ public class ServiceChain {
 	return updates;
     }
 
-    private 
-
     private int getFirstChainLength() {
 	int len = protectionDetails.chain.split("-").length; // devPolicy.chain.split("-").length;
 	return len;
