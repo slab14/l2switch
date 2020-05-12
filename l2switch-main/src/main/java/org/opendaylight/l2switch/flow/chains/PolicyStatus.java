@@ -57,6 +57,5 @@ public class PolicyStatus {
 	if (this.stateNum>=this.stateMax){
 	    this.canTransition=false;
 	}
-    }   
-	
+    }	
 }
