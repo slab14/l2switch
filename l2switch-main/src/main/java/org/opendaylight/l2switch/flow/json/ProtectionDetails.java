@@ -16,7 +16,7 @@ public class DevPolicy {
     public String[] images;
     public ContOpts[] imageOpts;
 
-    public DevPolicy(String state, String chain, String[] images, ContOpts[] imageOpts) {
+    public ProtectionDetails(String state, String chain, String[] images, ContOpts[] imageOpts) {
 	this.state=state;
 	this.chain=chain;
 	this.images=images;
