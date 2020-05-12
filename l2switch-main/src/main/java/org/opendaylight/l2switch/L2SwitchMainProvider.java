@@ -49,7 +49,7 @@ public class L2SwitchMainProvider {
     private String alertPort; //"6969"
     private PolicyParser policy;
     private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
-    private AlertReceiver mboxAlertServer = new AlertReceiver;
+    private AlertReceiver mboxAlertServer = new AlertReceiver();
 
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
