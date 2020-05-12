@@ -181,8 +181,8 @@ public class ServiceChain {
 	String inMac= devPolicy.inMAC;
 	//MacAddress outMac=new MacAddress(devPolicy.outMAC);
 	String outMac=devPolicy.outMAC;	
-	int chainLength = getChainLength();
-	String[] chainLinks = getChain();
+	int chainLength = getFirstChainLength();
+	String[] chainLinks = getFirstChain();
 	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
 	ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
 	ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
@@ -197,22 +197,22 @@ public class ServiceChain {
 	    if(chainLinks[i].equals("P")){
 		//assumes that all passthrough middleboxes will utilize 2 interfaces
 		String[] ifaces={"eth1", "eth2"};
-		if(protectionDetails.imageOpts[i].archives.length==0) {
-		    if(protectionDetails.imageOpts[i].hostFS.equals("") || protectionDetails.imageOpts[i].contFS.equals("")){
-			contNCRs=startPassThroughCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces);
+		if(protectDetails.imageOpts[i].archives.length==0) {
+		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces);
 		    } else {
-			contNCRs=startPassThroughCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces, protectionDetails.imageOpts[i].hostFS, protectionDetails.imageOpts[i].contFS);
+			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
 		}else{
-		    if(protectionDetails.imageOpts[i].hostFS.equals("") || protectionDetails.imageOpts[i].contFS.equals("")){
-			createPassThroughCont(protectionDetails.imageOpts[i].contName, protectionDetails.images[i]);
+		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i]);
 		    } else {
-			createPassThroughCont(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], protectionDetails.imageOpts[i].hostFS, protectionDetails.imageOpts[i].contFS);
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
-		    for(int j=0; j<protectionDetails.imageOpts[i].archives.length; j++) {
-			attachArchiveToPassThroughCont(protectionDetails.imageOpts[i].contName, protectionDetails.imageOpts[i].archives[j].tar, protectionDetails.imageOpts[i].archives[j].path);
+		    for(int j=0; j<protectDetails.imageOpts[i].archives.length; j++) {
+			attachArchiveToPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
 		    }
-		    contNCRs=startCreatedPassThroughCont(protectionDetails.imageOpts[i].contName, ifaces);
+		    contNCRs=startCreatedPassThroughCont(protectDetails.imageOpts[i].contName, ifaces);
 		}
 		for(NodeConnectorRef newNode:contNCRs){
 		    nodes.add(newNode);
@@ -222,18 +222,18 @@ public class ServiceChain {
 		groups.remove(groups.size()-1);
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
-		if(protectionDetails.imageOpts[i].hostFS.equals("") || protectionDetails.imageOpts[i].contFS.equals("")){
-		    contNCRs = startAccessibleCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces, protectionDetails.imageOpts[i].ip);
+		if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip);
 		} else {
-		    contNCRs = startAccessibleCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces, protectionDetails.imageOpts[i].ip, protectionDetails.imageOpts[i].hostFS, protectionDetails.imageOpts[i].contFS);
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		}
 		for(NodeConnectorRef newNode:contNCRs){
 		    nodes.add(newNode);
 		    // Intentionally adding 2x to match number of outputs from passthrough containers
 		    nodes.add(newNode);		    
 		}
-		enableARPs(protectionDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
-		contMac = getContMacAddress(protectionDetails.imageOpts[i].contName, ifaces[0]);
+		enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
+		contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
 		MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
 		MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
 		groups.add(newGroupA);
@@ -265,7 +265,7 @@ public class ServiceChain {
     }
 
     private int getFirstChainLength() {
-	int len = protectionDetails.chain.split("-").length; // devPolicy.chain.split("-").length;
+	int len = protectDetails.chain.split("-").length; // devPolicy.chain.split("-").length;
 	return len;
     }
 
