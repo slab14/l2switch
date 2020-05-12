@@ -16,7 +16,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import org.opendaylight.l2switch.flow.middlebox.AlertHandler;
 
-public class AlertReceiver {
+public class AlertReceiver extends Thread {
 
     private ServerSocket serverSocket;
     private int port;
