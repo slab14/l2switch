@@ -19,6 +19,7 @@ import org.opendaylight.l2switch.flow.containers.Containers;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
 import org.opendaylight.l2switch.flow.chain.NewFlows;
 import org.opendaylight.l2switch.flow.json.DevPolicy;
+import org.opendaylight.l2switch.flow.json.ProtectionDetails;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,8 @@ public class ServiceChain {
     String nodeStr;
     String ovsBridge_remotePort;
     DevPolicy devPolicy;
+    ProtectionDetails protectDetails;
+    String curState;
     NodeConnectorRef inNCR;
     NodeConnectorRef outNCR;    
 
@@ -55,6 +58,8 @@ public class ServiceChain {
 	this.nodeStr=this.containerCalls.getNodeString(ncr);
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
 	this.devPolicy=devPolicy;
+	this.protectDetails=devPolicy.getProtections()[0];
+	this.curState=devPolicy.getFirstState();
 	this.inNCR=inNCR;
 	this.outNCR=outNCR;
     }    
@@ -192,22 +197,22 @@ public class ServiceChain {
 	    if(chainLinks[i].equals("P")){
 		//assumes that all passthrough middleboxes will utilize 2 interfaces
 		String[] ifaces={"eth1", "eth2"};
-		if(devPolicy.imageOpts[i].archives.length==0) {
-		    if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){
-			contNCRs=startPassThroughCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces);
+		if(protectionDetails.imageOpts[i].archives.length==0) {
+		    if(protectionDetails.imageOpts[i].hostFS.equals("") || protectionDetails.imageOpts[i].contFS.equals("")){
+			contNCRs=startPassThroughCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces);
 		    } else {
-			contNCRs=startPassThroughCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces, devPolicy.imageOpts[i].hostFS, devPolicy.imageOpts[i].contFS);
+			contNCRs=startPassThroughCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces, protectionDetails.imageOpts[i].hostFS, protectionDetails.imageOpts[i].contFS);
 		    }
 		}else{
-		    if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){
-			createPassThroughCont(devPolicy.imageOpts[i].contName, devPolicy.images[i]);
+		    if(protectionDetails.imageOpts[i].hostFS.equals("") || protectionDetails.imageOpts[i].contFS.equals("")){
+			createPassThroughCont(protectionDetails.imageOpts[i].contName, protectionDetails.images[i]);
 		    } else {
-			createPassThroughCont(devPolicy.imageOpts[i].contName, devPolicy.images[i], devPolicy.imageOpts[i].hostFS, devPolicy.imageOpts[i].contFS);
+			createPassThroughCont(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], protectionDetails.imageOpts[i].hostFS, protectionDetails.imageOpts[i].contFS);
 		    }
-		    for(int j=0; j<devPolicy.imageOpts[i].archives.length; j++) {
-			attachArchiveToPassThroughCont(devPolicy.imageOpts[i].contName, devPolicy.imageOpts[i].archives[j].tar, devPolicy.imageOpts[i].archives[j].path);
+		    for(int j=0; j<protectionDetails.imageOpts[i].archives.length; j++) {
+			attachArchiveToPassThroughCont(protectionDetails.imageOpts[i].contName, protectionDetails.imageOpts[i].archives[j].tar, protectionDetails.imageOpts[i].archives[j].path);
 		    }
-		    contNCRs=startCreatedPassThroughCont(devPolicy.imageOpts[i].contName, ifaces);
+		    contNCRs=startCreatedPassThroughCont(protectionDetails.imageOpts[i].contName, ifaces);
 		}
 		for(NodeConnectorRef newNode:contNCRs){
 		    nodes.add(newNode);
@@ -217,18 +222,18 @@ public class ServiceChain {
 		groups.remove(groups.size()-1);
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
-		if(devPolicy.imageOpts[i].hostFS.equals("") || devPolicy.imageOpts[i].contFS.equals("")){
-		    contNCRs = startAccessibleCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces, devPolicy.imageOpts[i].ip);
+		if(protectionDetails.imageOpts[i].hostFS.equals("") || protectionDetails.imageOpts[i].contFS.equals("")){
+		    contNCRs = startAccessibleCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces, protectionDetails.imageOpts[i].ip);
 		} else {
-		    contNCRs = startAccessibleCont_getNCR(devPolicy.imageOpts[i].contName, devPolicy.images[i], ifaces, devPolicy.imageOpts[i].ip, devPolicy.imageOpts[i].hostFS, devPolicy.imageOpts[i].contFS);
+		    contNCRs = startAccessibleCont_getNCR(protectionDetails.imageOpts[i].contName, protectionDetails.images[i], ifaces, protectionDetails.imageOpts[i].ip, protectionDetails.imageOpts[i].hostFS, protectionDetails.imageOpts[i].contFS);
 		}
 		for(NodeConnectorRef newNode:contNCRs){
 		    nodes.add(newNode);
 		    // Intentionally adding 2x to match number of outputs from passthrough containers
 		    nodes.add(newNode);		    
 		}
-		enableARPs(devPolicy.imageOpts[i].contName, ifaces, inNCR, outNCR);
-		contMac = getContMacAddress(devPolicy.imageOpts[i].contName, ifaces[0]);
+		enableARPs(protectionDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
+		contMac = getContMacAddress(protectionDetails.imageOpts[i].contName, ifaces[0]);
 		MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
 		MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
 		groups.add(newGroupA);
@@ -259,13 +264,16 @@ public class ServiceChain {
 	return updates;
     }
 
-    private int getChainLength() {
-	int len = devPolicy.chain.split("-").length;
+    private 
+
+    private int getFirstChainLength() {
+	int len = protectionDetails.chain.split("-").length; // devPolicy.chain.split("-").length;
 	return len;
     }
 
-    private String[] getChain() {
-	String[] chainElements = devPolicy.chain.split("-");
+    private String[] getFirstChain() {
+	String[] chainElements = protectDetails.chain.split("-"); //	    devPolicy.chain.split("-");
+
 	return chainElements;
     }
 }

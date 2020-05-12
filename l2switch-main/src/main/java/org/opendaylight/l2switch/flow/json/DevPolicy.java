@@ -43,6 +43,10 @@ public class DevPolicy {
 	return this.states;
     }
 
+    public String getFirstState(){
+	return this.states[0];
+    }
+
     public String getTransition(){
 	return this.transition;
     }
