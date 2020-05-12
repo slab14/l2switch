@@ -40,15 +40,15 @@ public class PolicyStatus {
 	this.setup=newSetupVal;
     }
 
-    public String getCurState(void){
+    public String getCurState(){
 	return this.curState;
     }
 
-    public boolean getCanTransition(void) {
+    public boolean getCanTransition() {
 	return this.canTransition;
     }
 
-    public void transitionState(void){
+    public void transitionState(){
 	if (this.canTransition){
 	    this.stateNum++;
 	    this.curState=this.states[stateNum];
