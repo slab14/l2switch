@@ -30,6 +30,7 @@ import java.util.HashMap;
 import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
+import org.opendaylight.l2switch.flow.middlebox.AlertReceiver;
 
 public class L2SwitchMainProvider {
     private static final Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
@@ -45,8 +46,10 @@ public class L2SwitchMainProvider {
     private String ovsPort;//="6677";
     private String remote_ovs_port;//="6634";
     private String OFversion;//="13";
+    private String alertPort; //"6969"
     private PolicyParser policy;
     private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
+    private AlertReceiver mboxAlertServer = new AlertReceiver;
 
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
@@ -61,6 +64,7 @@ public class L2SwitchMainProvider {
 	this.ovsPort=config.getOvsPort();
 	this.remote_ovs_port=config.getRemoteOvsPort();
 	this.OFversion=config.getOFversion();
+	this.alertPort=config.getAlertPort();
     }
 
     public void init() {
@@ -83,6 +87,10 @@ public class L2SwitchMainProvider {
         flowWriterService.setFlowIdleTimeout(mainConfig.getReactiveFlowIdleTimeout());
         flowWriterService.setFlowHardTimeout(mainConfig.getReactiveFlowHardTimeout());
 
+	// Start up listening socket to receive middlebox alters
+	mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
+	mboxAlertServer.startServer();
+	
         // Setup InventoryReader
         InventoryReader inventoryReader = new InventoryReader(dataService);
 
@@ -125,6 +133,7 @@ public class L2SwitchMainProvider {
         if (topoNodeListherReg != null) {
             topoNodeListherReg.close();
         }
+	mboxAlertServer.stopServer();	
 	DockerCalls docker = new DockerCalls();
 	String output = docker.remoteFindExistingContainers(dataplaneIP, dockerPort);
 	Iterable<String> sc = () -> new Scanner(output).useDelimiter("\n");

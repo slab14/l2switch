@@ -76,6 +76,9 @@ module l2switch-config {
 	     type string;
 	     default "13";
 	}
-	     
+	leaf alert-port {
+	     type string;
+	     default "9696";
+	}
     }
 }
