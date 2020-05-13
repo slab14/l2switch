@@ -15,10 +15,27 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+package org.opendaylight.l2switch.flow.chain.ServiceChain;
+import org.opendaylight.l2switch.flow.chain.NewFlows;
+import org.opendaylight.l2switch.flow.json.DevPolicy;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
+import org.opendaylight.l2switch.flow.json.PolicyParser;
+import java.util.Map;
+import java.util.HashMap;
+
 public class AlertHandler extends Thread {
 
     private Socket socket;
-    AlertHandler( Socket socket )
+    
+    AlertHandler(Socket socket)
+    {
+        this.socket = socket;
+    }
+
+    AlertHandler(Socket socket, String dataplaneIP, String dockerPort, String ovsPort,
+		 String OFversion, String[] routes, NodeConnectorRef ncr,
+		 String ovsBridge_remotePort, DevPolicy devPolicy,
+		 NodeConnectorRef inNCR, NodeConnectorRef outNCR)
     {
         this.socket = socket;
     }
@@ -52,19 +69,20 @@ public class AlertHandler extends Thread {
                 //out.flush();
 		if (line.contains("Policy ID:")) {
 		    policyID=line.substring(10);
-		} else {
-		    alert=line;
+		}
+		if (line.contains("Alert:")) {
+		    alert=line.substring(line.indexOf("Alert:")+6);
 		}
                 line = in.readLine();
             }
 
             // Close our connection
             in.close();
-            out.close();
+            //out.close();
             socket.close();
 
-	    System.out.println("From: ", policyID);
-	    System.out.println("alert: ", alert);
+	    System.out.println("From: " + policyID);
+	    System.out.println("alert: " + alert);
 
         }
         catch( Exception e )

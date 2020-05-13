@@ -29,21 +29,19 @@ import org.opendaylight.l2switch.flow.chain.MacGroup;
 
 public class ServiceChain {
 
-    public ServiceChain() {}
-
-    String remoteIP;
-    String remoteDockerPort;
-    String remoteOvsPort;
-    String OpenFlowVersion;
-    Containers containerCalls;
-    String[] routes;
-    String nodeStr;
-    String ovsBridge_remotePort;
-    DevPolicy devPolicy;
-    ProtectionDetails protectDetails;
-    String curState;
-    NodeConnectorRef inNCR;
-    NodeConnectorRef outNCR;    
+    private String remoteIP;
+    private String remoteDockerPort;
+    private String remoteOvsPort;
+    private String OpenFlowVersion;
+    private Containers containerCalls;
+    private String[] routes;
+    private String nodeStr;
+    private String ovsBridge_remotePort;
+    private DevPolicy devPolicy;
+    private ProtectionDetails protectDetails;
+    private String curState;
+    private NodeConnectorRef inNCR;
+    private NodeConnectorRef outNCR;    
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion, String[] routes, NodeConnectorRef ncr,
@@ -62,7 +60,25 @@ public class ServiceChain {
 	this.curState=devPolicy.getFirstState();
 	this.inNCR=inNCR;
 	this.outNCR=outNCR;
-    }    
+    }
+
+    public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
+			String OFversion,  NodeConnectorRef ncr,
+			String ovsBridge_remotePort, DevPolicy devPolicy,
+			NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
+	this.remoteIP = dataplaneIP;
+	this.remoteDockerPort=dockerPort;
+	this.remoteOvsPort=ovsPort;
+	this.OpenFlowVersion=OFversion;
+	this.containerCalls=new Containers(dataplaneIP, dockerPort, ovsPort, OFversion);
+	this.nodeStr=this.containerCalls.getNodeString(ncr);
+	this.ovsBridge_remotePort=ovsBridge_remotePort;
+	this.devPolicy=devPolicy;
+	this.protectDetails=devPolicy.getProtections()[0];
+	this.curState=devPolicy.getFirstState();
+	this.inNCR=inNCR;
+	this.outNCR=outNCR;
+    }        
 
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces) {
 	this.containerCalls.startContainer(contName, contImage);
@@ -72,9 +88,9 @@ public class ServiceChain {
 	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName, ifaces[i], this.ovsBridge_remotePort);
 	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(contName, ifaces[i]);
-	    for(String route:this.routes) {
-		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
-	    }
+	    //for(String route:this.routes) {
+	    //	this.containerCalls.addRouteinCont(contName, ifaces[i], route);
+	    //}
 	}
 	this.containerCalls.setDefaultRouteinCont(contName, "eth0");
 	return ncrs;
@@ -92,9 +108,9 @@ public class ServiceChain {
 	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName, ifaces[i], this.ovsBridge_remotePort);
 	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(contName, ifaces[i]);
-	    for(String route:this.routes) {
-		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
-	    }
+	    //for(String route:this.routes) {
+	    //	this.containerCalls.addRouteinCont(contName, ifaces[i], route);
+	    //}
 	}
 	this.containerCalls.setDefaultRouteinCont(contName, "eth0");	
 	return ncrs;
