@@ -15,7 +15,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-package org.opendaylight.l2switch.flow.chain.ServiceChain;
+import org.opendaylight.l2switch.flow.chain.ServiceChain;
 import org.opendaylight.l2switch.flow.chain.NewFlows;
 import org.opendaylight.l2switch.flow.json.DevPolicy;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
