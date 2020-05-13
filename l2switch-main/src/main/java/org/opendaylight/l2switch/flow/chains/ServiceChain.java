@@ -76,6 +76,7 @@ public class ServiceChain {
 		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
 	    }
 	}
+	this.containerCalls.setDefaultRouteinCont(contName, "eth0");
 	return ncrs;
     }
 
@@ -95,6 +96,7 @@ public class ServiceChain {
 		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
 	    }
 	}
+	this.containerCalls.setDefaultRouteinCont(contName, "eth0");	
 	return ncrs;
     }    
 
@@ -118,6 +120,7 @@ public class ServiceChain {
 		this.containerCalls.addRouteinCont(contName, ifaces[i], route);
 	    }
 	}
+	this.containerCalls.setDefaultRouteinCont(contName, "eth0");	
 	return ncrs;
     }
     
@@ -134,6 +137,7 @@ public class ServiceChain {
 		this.containerCalls.addRouteinCont(contName, ifaces[i], route, ip);
 	    }
 	}
+	this.containerCalls.setDefaultRouteinCont(contName, "eth0");	
 	return ncrs;
     }
 
@@ -150,6 +154,7 @@ public class ServiceChain {
 		this.containerCalls.addRouteinCont(contName, ifaces[i], route, ip);
 	    }
 	}
+	this.containerCalls.setDefaultRouteinCont(contName, "eth0");	
 	return ncrs;
     }                
 

@@ -267,7 +267,12 @@ public class Containers {
     public void addRouteinCont(String container_name, String cont_iface, String route, String contIP) {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteAddRoute(this.remoteIP, this.remoteDockerPort, container_name, route, cont_iface, contIP);
-    }    
+    }
+
+    public void setDefaultRouteinCont(String container_name, String cont_iface) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteSetDefault(this.remoteIP, this.remoteDockerPort, container_name, cont_iface);
+    }
 
     public void disableContGRO(String container_name, String cont_iface) {
 	DockerCalls docker = new DockerCalls();

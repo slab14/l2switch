@@ -513,6 +513,26 @@ public class DockerCalls {
 	String output=obj.exeCmd(newCmd2);
     }    
 
+    public void remoteSetDefault(String ip, String dockerPort, String contName, String device) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ip\", \"route\", \"del\", \"default\"]}\' | jq -r '.Id'", ip, dockerPort, contName);
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();	
+	String execID=obj.exeCmd(newCmd);
+
+	String secondCmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/exec/%s/start -d \'{\"Detach\": false, \"Tty\": true }\'", ip, dockerPort, execID);
+	String[] newCmd2 = {"/bin/bash", "-c", secondCmd};
+	String output=obj.exeCmd(newCmd2);
+
+	String thirdCmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ip\", \"route\", \"add\", \"default\", \"dev\", \"%s\"]}\' | jq -r '.Id'", ip, dockerPort, contName, device);
+	String[] newCmd3 = {"/bin/bash", "-c", thirdCmd};
+	String execID2=obj.exeCmd(newCmd3);
+
+	String fourthCmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/exec/%s/start -d \'{\"Detach\": false, \"Tty\": true }\'", ip, dockerPort, execID2);
+	String[] newCmd4 = {"/bin/bash", "-c", fourthCmd};
+	String output2=obj.exeCmd(newCmd4);	
+    }    
+
+    
     public void remoteDisableGRO(String ip, String dockerPort, String contName, String iface) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ethtool\", \"--offload\", \"%s\", \"tx\", \"off\", \"rx\", \"off\"]}\' | jq -r '.Id'", ip, dockerPort, contName, iface);
 	String[] newCmd = {"/bin/bash", "-c", cmd};
