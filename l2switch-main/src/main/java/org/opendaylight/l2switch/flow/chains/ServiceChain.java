@@ -398,5 +398,17 @@ public class ServiceChain {
 	NewFlows updates=new NewFlows(newRules);
 	return updates;
 	*/
-    }    
+    }
+
+    private int getNextChainLength(){
+	//need to update to get next chain
+	int len = protectDetails.chain.split("-").length; 
+	return len;
+    }
+
+    private String[] getNextChain(){
+	//need to update to get next chain
+	String[] chainElements = protectDetails.chain.split("-"); 
+	return chainElements;
+    }
 }
