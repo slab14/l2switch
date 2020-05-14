@@ -118,12 +118,13 @@ public class L2SwitchMainProvider {
 									   ovsPort, remote_ovs_port,
 									   OFversion, policy, policyMap);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
+
+	    // Start up listening socket to receive middlebox alters
+	    mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
+	    setupAlertReceiver(reactiveFlowWriter);
+	    mboxAlertServer.startServer();
+		    
         }
-	
-	// Start up listening socket to receive middlebox alters
-	mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
-	setupAlertReceiver(reactiveFlowWriter);
-	mboxAlertServer.startServer();
 	
         LOG.info("L2SwitchMain initialized.");
     }
