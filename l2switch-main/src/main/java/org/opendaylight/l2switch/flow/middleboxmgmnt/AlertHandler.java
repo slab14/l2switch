@@ -59,7 +59,7 @@ public class AlertHandler extends Thread {
 	this.devPolicy=devPolicy;
 	this.policyMap=policyMap;
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
-	this.flowWriter=flowWriter
+	this.flowWriter=flowWriter;
     }
 
     @Override

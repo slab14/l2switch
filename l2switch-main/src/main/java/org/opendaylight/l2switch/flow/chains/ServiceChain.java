@@ -319,13 +319,13 @@ public class ServiceChain {
 	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
 	ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
 	HashMap<Integer, Integer> macMap = new HashMap<>();
+	ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
+	MacAddress contMac;
+	NodeConnectorRef[] contNCRs;	
 	int groupCnt=0;
 	MacGroup group0 = new MacGroup(inMac, outMac);
 	groups.add(group0);
 	nodes.add(inNCR);
-	MacAddress contMac;
-	ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
-	NodeConnectorRef[] contNCRs;
 	for (int i=0; i<chainLength; i++) {
 	    if(chainLinks[i].equals("P")){
 		//assumes that all passthrough middleboxes will utilize 2 interfaces
@@ -374,7 +374,6 @@ public class ServiceChain {
 		macMap.put(groupCnt, i);
 		groupCnt++;
 	    }
-	    */
 	}
 	macMap.put(groupCnt,chainLength);
 	nodes.add(outNCR);

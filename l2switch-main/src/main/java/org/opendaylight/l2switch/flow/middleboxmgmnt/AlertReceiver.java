@@ -106,7 +106,8 @@ public class AlertReceiver extends Thread {
 		AlertHandler requestHandler = new AlertHandler(socket, this.dataplaneIP,
 							       this.dockerPort, this.ovsPort,
 							       this.OFversion, this.ovsBridge_remotePort,
-							       this.devPolicy, this.policyMap);
+							       this.devPolicy, this.policyMap,
+							       this.reactiveFlowWriter);
                 requestHandler.start();
             } catch (IOException e) {
                 e.printStackTrace();

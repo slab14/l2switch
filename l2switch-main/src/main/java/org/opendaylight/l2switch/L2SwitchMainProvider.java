@@ -122,7 +122,7 @@ public class L2SwitchMainProvider {
 	
 	// Start up listening socket to receive middlebox alters
 	mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
-	setupAlertReceiver();
+	setupAlertReceiver(reactiveFlowWriter);
 	mboxAlertServer.startServer();
 	
         LOG.info("L2SwitchMain initialized.");
