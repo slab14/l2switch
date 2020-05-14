@@ -167,11 +167,11 @@ public class AlertHandler extends Thread {
 
     private String[] getContNames(String policyID, String key){
 	int IDnum=Integer.parseInt(policyID);
+	ContOpts[] contOpts = this.devPolicy[IDnum].getProtections()[this.policyMap.get(key).getStateNum()].getImageOpts();
 	if (IDnum>contOpts.length) {
 	    IDnum=contOpts.length;
 	}
 	String[] out = new String[contOpts.length];
-	ContOpts[] contOpts = this.devPolicy[IDnum].getProtections()[this.policyMap.get(key).getStateNum()].getImageOpts();
 	int i=0;
 	for (i=0; i<contOpts.length; i++) {
 	    out[i]=contOpts[i].getContName();

@@ -52,19 +52,15 @@ public class PolicyStatus {
 	return this.canTransition;
     }
 
-    public void transitionState(){
-	if (this.canTransition){
+    public void transitionState() {
+	if (this.canTransition) {
 	    this.canTransition=false;
-	    if (this.stateNum<this.stateMax){
+	    if (this.stateNum<this.stateMax) {
 		this.stateNum++;
 	    }
 	    this.curState=this.states[stateNum];
-	    if (this.stateNum>=this.stateMax){
-		this.canTransition=false;
-		if (this.stateNum>this.stateMax) {
-		    this.stateNum=this.stateMax;
-		}
-	    }
+	    if (this.stateNum>=this.stateMax) {
+		this.stateNum=this.stateMax;
 	    } else {
 		this.canTransition=true;
 	    }
