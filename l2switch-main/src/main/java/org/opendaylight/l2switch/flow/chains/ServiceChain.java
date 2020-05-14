@@ -374,7 +374,9 @@ public class ServiceChain {
 		macMap.put(groupCnt, i);
 		groupCnt++;
 	    }
+	    */
 	}
+	/*
 	macMap.put(groupCnt,chainLength);
 	nodes.add(outNCR);
 	groupCnt=0;
@@ -395,6 +397,6 @@ public class ServiceChain {
 	newRules.add(lastRule);
 	NewFlows updates=new NewFlows(newRules);
 	return updates;
-	    */
+	*/
     }    
 }
