@@ -26,25 +26,33 @@ import java.util.HashMap;
 public class AlertHandler extends Thread {
 
     private Socket socket;
+    private String dataplaneIP;
+    private String dockerPort;
+    private String ovsPort;
+    private String OFversion;
+    private DevPolicy devPolicy;
+    private String ovsBridge_remotePort;
     
-    AlertHandler(Socket socket)
-    {
+    AlertHandler(Socket socket) {
         this.socket = socket;
     }
 
-    AlertHandler(Socket socket, String dataplaneIP, String dockerPort, String ovsPort,
-		 String OFversion, String[] routes, NodeConnectorRef ncr,
+    AlertHandler(Socket socket, String dataplaneIP, String dockerPort,
+		 String ovsPort, String OFversion, NodeConnectorRef ncr,
 		 String ovsBridge_remotePort, DevPolicy devPolicy,
-		 NodeConnectorRef inNCR, NodeConnectorRef outNCR)
-    {
+		 NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
         this.socket = socket;
+	this.dataplaneIP=dataplaneIP;
+	this.dockerPort=dockerPort;
+	this.ovsPort=ovsPort;
+	this.OFversion=OFversion;
+	this.devPolicy=devPolicy;
+	this.ovsBridge_remotePort=ovsBridge_remotePort;
     }
 
     @Override
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        try {
             System.out.println( "Received a connection" );
 
             // Get input and output streams
@@ -60,8 +68,7 @@ public class AlertHandler extends Thread {
 
             // Read lines from client until the client closes the connection or we receive an empty line
             String line = in.readLine();
-            while( line != null && line.length() > 0 )
-            {
+            while( line != null && line.length() > 0 ) {
 		//Perform actions based upon received message
 		System.out.println("Got Data: "+ line);
 		// send message back.
@@ -84,9 +91,7 @@ public class AlertHandler extends Thread {
 	    System.out.println("From: " + policyID);
 	    System.out.println("alert: " + alert);
 
-        }
-        catch( Exception e )
-        {
+        } catch( Exception e ) {
             e.printStackTrace();
         }
     }

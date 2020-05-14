@@ -90,6 +90,7 @@ public class L2SwitchMainProvider {
 
 	// Start up listening socket to receive middlebox alters
 	mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
+	setupAlertReceiver();
 	mboxAlertServer.startServer();
 	
         // Setup InventoryReader
@@ -148,4 +149,14 @@ public class L2SwitchMainProvider {
 	docker.remoteDeleteFlows(dataplaneIP, remote_ovs_port, "13");
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
     }
+
+    private void setupAlertReceiver(){
+	mboxAlertServer.setDataplanIP(dataplaneIP);
+	mboxAlertServer.setDockerPort(dockerPort);
+	mboxAlertServer.setOvsPort(ovsPort);
+	mboxAlertServer.setOFversion(OFversion);
+	mboxAlertServer.setOvsBridgeRemotePort(remote_ovs_port);
+	mboxAlertServer.setPolicy(policy);
+    }
 }
+

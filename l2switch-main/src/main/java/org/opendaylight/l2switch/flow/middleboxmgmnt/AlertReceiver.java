@@ -16,57 +16,82 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import org.opendaylight.l2switch.flow.middlebox.AlertHandler;
 
+import org.opendaylight.l2switch.flow.chain.ServiceChain;
+import org.opendaylight.l2switch.flow.chain.NewFlows;
+import org.opendaylight.l2switch.flow.json.DevPolicy;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
+import org.opendaylight.l2switch.flow.json.PolicyParser;
+import java.util.Map;
+import java.util.HashMap;
+
 public class AlertReceiver extends Thread {
 
     private ServerSocket serverSocket;
     private int port;
     private boolean running = false;
+    private String dataplaneIP;
+    private String dockerPort;
+    private String ovsPort;
+    private String OFversion;
+    private DevPolicy devPolicy;
+    private String ovsBridge_remotePort;
 
     public AlertReceiver() {}
 
-    public void setPort(int port)
-    {
+    public void setPort(int port) {
         this.port = port;
     }
 
-    public void startServer()
-    {
-        try
-        {
+    public void setDataplaneIP(String dataplaneIP){
+	this.dataplaneIP=dataplaneIP;
+    }
+
+    public void setDockerPort(String dockerPort){
+	this.dockerPort=dockerPort;
+    }
+
+    public void setOvsPort(String ovsPort){
+	this.ovsPort=ovsPort;
+    }
+
+    public void setOFversion(String OFversion){
+	this.OFversion=OFversion;
+    }
+
+    public void setOvsBridgeRemotePort(String ovsBridge_remotePort){
+	this.ovsBridge_remotePort=ovsBridge_remotePort;
+    }
+
+    public void setDevPolicy(DevPolicy devPolicy){
+	this.devPolicy=devPolicy;
+    }    	
+    
+
+    public void startServer() {
+        try {
             serverSocket = new ServerSocket( port );
             this.start();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void stopServer()
-    {
+    public void stopServer() {
         running = false;
         this.interrupt();
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         running = true;
-        while( running )
-        {
-            try
-            {
-                System.out.println( "Listening for a connection" );
-
+        while(running) {
+            try {
                 // Call accept() to receive the next connection
                 Socket socket = serverSocket.accept();
-
                 // Pass the socket to the RequestHandler thread for processing
-                AlertHandler requestHandler = new AlertHandler( socket );
+                AlertHandler requestHandler = new AlertHandler(socket);
                 requestHandler.start();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
