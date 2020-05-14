@@ -526,6 +526,21 @@ public class DockerCalls {
 	String output=obj.exeCmd(cmd);
     }
 
+    public void remoteDeleteContFlows(String ip, String remote_bridge_port, String OF_version, String mac) {
+	String cmd;
+	String cmd2;
+	if(OF_version.equals("13")){
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 dl_src=%s", ip, remote_bridge_port,mac);
+	    cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 dl_dst=%s", ip, remote_bridge_port,mac);	    
+	} else {
+	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s dl_src=%s", ip, remote_bridge_port,mac);
+	    cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s dl_dst=%s", ip, remote_bridge_port,mac);	    
+	}
+	ExecShellCmd obj = new ExecShellCmd();
+	String output=obj.exeCmd(cmd);
+	output=obj.exeCmd(cmd2);
+    }    
+
     public void remoteAddRoute(String ip, String dockerPort, String contName, String route, String device) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/%s/exec -d \'{\"AttachStdout\": true, \"Tty\": true, \"Privileged\": true, \"Cmd\": [\"ip\", \"route\", \"add\", \"%s\", \"dev\", \"%s\"]}\' | jq -r '.Id'", ip, dockerPort, contName, route, device);
 	String[] newCmd = {"/bin/bash", "-c", cmd};

@@ -24,6 +24,7 @@ import org.opendaylight.l2switch.flow.json.PolicyParser;
 import java.util.Map;
 import java.util.HashMap;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
+import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
 
 
 public class AlertReceiver extends Thread {
@@ -38,6 +39,7 @@ public class AlertReceiver extends Thread {
     private DevPolicy[] devPolicy;
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
+    private ReactiveFlowWriter reactiveFlowWriter;
 
     public AlertReceiver() {}
 
@@ -71,6 +73,10 @@ public class AlertReceiver extends Thread {
 
     public void setPolicyMap(HashMap<String, PolicyStatus> policyMap){
 	this.policyMap=policyMap;
+    }
+
+    public void setFlowWriter(ReactiveFlowWriter reactiveFlowWriter){
+	this.reactiveFlowWriter=reactiveFlowWriter;
     }
     
 

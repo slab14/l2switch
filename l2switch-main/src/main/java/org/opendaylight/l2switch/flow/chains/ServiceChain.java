@@ -308,20 +308,14 @@ public class ServiceChain {
     }
 
 
-    //public NewFlows setupNextChain() {
-    public void setupNextChain(){
-	/*
+    public NewFlows setupNextChain() {
 	//MacAddress inMac=new MacAddress(devPolicy.inMAC);
 	String inMac= devPolicy.inMAC;
 	//MacAddress outMac=new MacAddress(devPolicy.outMAC);
 	String outMac=devPolicy.outMAC;	
-	*/
-	// Logic to see if there is another chain?
-
 	//find out about chain
 	int chainLength = getChainLength();
 	String[] chainLinks = getChain();
-	/*
 	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
 	ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
 	HashMap<Integer, Integer> macMap = new HashMap<>();
@@ -330,7 +324,6 @@ public class ServiceChain {
 	groups.add(group0);
 	nodes.add(inNCR);
 	MacAddress contMac;
-	*/
 	ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
 	NodeConnectorRef[] contNCRs;
 	for (int i=0; i<chainLength; i++) {
@@ -358,7 +351,6 @@ public class ServiceChain {
 		    nodes.add(newNode);
 		}
 	    }
-	    /*
 	    else if(chainLinks[i].equals("A")){
 		groups.remove(groups.size()-1);
 		//assumes that all accessible middleboxes will utilize only 1 interface
@@ -384,7 +376,6 @@ public class ServiceChain {
 	    }
 	    */
 	}
-	/*
 	macMap.put(groupCnt,chainLength);
 	nodes.add(outNCR);
 	groupCnt=0;
@@ -405,7 +396,6 @@ public class ServiceChain {
 	newRules.add(lastRule);
 	NewFlows updates=new NewFlows(newRules);
 	return updates;
-	*/
     }
 
 }

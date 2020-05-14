@@ -69,7 +69,7 @@ public class L2SwitchMainProvider {
     }
 
     public void init() {
-	System.out.println("Ready");
+	System.out.println("\nReady");
 	GetFile policyReader=new GetFile();
 	String jsonString=new String();
 	try {
@@ -89,11 +89,6 @@ public class L2SwitchMainProvider {
         flowWriterService.setFlowIdleTimeout(mainConfig.getReactiveFlowIdleTimeout());
         flowWriterService.setFlowHardTimeout(mainConfig.getReactiveFlowHardTimeout());
 
-	// Start up listening socket to receive middlebox alters
-	mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
-	setupAlertReceiver();
-	mboxAlertServer.startServer();
-	
         // Setup InventoryReader
         InventoryReader inventoryReader = new InventoryReader(dataService);
 
@@ -124,7 +119,12 @@ public class L2SwitchMainProvider {
 									   OFversion, policy, policyMap);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
         }
-
+	
+	// Start up listening socket to receive middlebox alters
+	mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
+	setupAlertReceiver();
+	mboxAlertServer.startServer();
+	
         LOG.info("L2SwitchMain initialized.");
     }
 
@@ -151,7 +151,7 @@ public class L2SwitchMainProvider {
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
     }
 
-    private void setupAlertReceiver(){
+    private void setupAlertReceiver(ReactiveFlowWriter flowWriter){
 	mboxAlertServer.setDataplaneIP(dataplaneIP);
 	mboxAlertServer.setDockerPort(dockerPort);
 	mboxAlertServer.setOvsPort(ovsPort);
@@ -159,6 +159,7 @@ public class L2SwitchMainProvider {
 	mboxAlertServer.setOvsBridgeRemotePort(remote_ovs_port);
 	mboxAlertServer.setPolicy(policy.parsed.devices);
 	mboxAlertServer.setPolicyMap(policyMap);
+	mboxAlertServer.setFlowWriter(flowWriter);
     }
 }
 

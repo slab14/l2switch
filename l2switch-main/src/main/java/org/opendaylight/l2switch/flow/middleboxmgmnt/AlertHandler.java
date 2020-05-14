@@ -26,7 +26,8 @@ import java.util.Iterator;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.l2switch.flow.json.ContOpts;
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
-
+import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
+import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
 
 
 public class AlertHandler extends Thread {
@@ -39,6 +40,7 @@ public class AlertHandler extends Thread {
     private DevPolicy[] devPolicy;
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
+    private ReactiveFlowWriter flowWriter;
     
     AlertHandler(Socket socket) {
         this.socket = socket;
@@ -47,7 +49,8 @@ public class AlertHandler extends Thread {
     AlertHandler(Socket socket, String dataplaneIP, String dockerPort,
 		 String ovsPort, String OFversion, 
 		 String ovsBridge_remotePort, DevPolicy[] devPolicy,
-		 HashMap<String, PolicyStatus> policyMap) {
+		 HashMap<String, PolicyStatus> policyMap,
+		 ReactiveFlowWriter flowWriter) {
         this.socket = socket;
 	this.dataplaneIP=dataplaneIP;
 	this.dockerPort=dockerPort;
@@ -56,6 +59,7 @@ public class AlertHandler extends Thread {
 	this.devPolicy=devPolicy;
 	this.policyMap=policyMap;
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
+	this.flowWriter=flowWriter
     }
 
     @Override
@@ -112,7 +116,7 @@ public class AlertHandler extends Thread {
 							 this.policyMap.get(srcMac).getNCR(),
 							 this.policyMap.get(srcMac).getInNCR(),
 							 this.policyMap.get(srcMac).getOutNCR());
-		scWorker.setupNextChain();
+		NewFlows updates = scWorker.setupNextChain();
 		//remove old containers (and ovs-ports)
 		DockerCalls docker = new DockerCalls();
 		String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
@@ -120,7 +124,12 @@ public class AlertHandler extends Thread {
 		    docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort, name,
 						   ovsBridge, this.ovsPort);
 		}
-		//TODO: add routing rules
+		//delete old flows that have the host's mac (good for pass-through, breaks when using container macs)
+		docker.remoteDeleteContFlows(this.dataplaneIP, this.ovsPort, this.OFversion, srcMac);
+		//Write routing rules
+		for(RuleDescriptor rule:updates.rules){
+		    this.flowWriter.writeFlows(rule);
+		}
 		this.policyMap.get(srcMac).updateSetup(true);
 	    }
 
