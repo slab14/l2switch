@@ -298,4 +298,103 @@ public class ServiceChain {
 
 	return chainElements;
     }
+
+
+    //public NewFlows setupNextChain() {
+    public void setupNextChain(){
+	/*
+	//MacAddress inMac=new MacAddress(devPolicy.inMAC);
+	String inMac= devPolicy.inMAC;
+	//MacAddress outMac=new MacAddress(devPolicy.outMAC);
+	String outMac=devPolicy.outMAC;	
+	*/
+	// Logic to see if there is another chain?
+
+	//find out about chain
+	int chainLength = getNextChainLength();
+	String[] chainLinks = getNextChain();
+	/*
+	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
+	ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
+	HashMap<Integer, Integer> macMap = new HashMap<>();
+	int groupCnt=0;
+	MacGroup group0 = new MacGroup(inMac, outMac);
+	groups.add(group0);
+	nodes.add(inNCR);
+	MacAddress contMac;
+	*/
+	ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
+	NodeConnectorRef[] contNCRs;
+	for (int i=0; i<chainLength; i++) {
+	    if(chainLinks[i].equals("P")){
+		//assumes that all passthrough middleboxes will utilize 2 interfaces
+		String[] ifaces={"eth1", "eth2"};
+		if(protectDetails.imageOpts[i].archives.length==0) {
+		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces);
+		    } else {
+			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
+		    }
+		}else{
+		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i]);
+		    } else {
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
+		    }
+		    for(int j=0; j<protectDetails.imageOpts[i].archives.length; j++) {
+			attachArchiveToPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
+		    }
+		    contNCRs=startCreatedPassThroughCont(protectDetails.imageOpts[i].contName, ifaces);
+		}
+		for(NodeConnectorRef newNode:contNCRs){
+		    nodes.add(newNode);
+		}
+	    }
+	    /*
+	    else if(chainLinks[i].equals("A")){
+		groups.remove(groups.size()-1);
+		//assumes that all accessible middleboxes will utilize only 1 interface
+		String[] ifaces={"eth1"};
+		if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip);
+		} else {
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
+		}
+		for(NodeConnectorRef newNode:contNCRs){
+		    nodes.add(newNode);
+		    // Intentionally adding 2x to match number of outputs from passthrough containers
+		    nodes.add(newNode);		    
+		}
+		enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
+		contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
+		MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
+		MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
+		groups.add(newGroupA);
+		groups.add(newGroupB);
+		macMap.put(groupCnt, i);
+		groupCnt++;
+	    }
+	}
+	macMap.put(groupCnt,chainLength);
+	nodes.add(outNCR);
+	groupCnt=0;
+	String ruleInMac;
+	String ruleOutMac;
+	for (int i=0; i<chainLength; i++) {
+	    ruleInMac = groups.get(groupCnt).inMac;
+	    ruleOutMac = groups.get(groupCnt).outMac;
+	    RuleDescriptor newRule=new RuleDescriptor(nodes.get(2*i), ruleInMac, nodes.get((2*i)+1), ruleOutMac);
+	    newRules.add(newRule);
+	    if(macMap.get(groupCnt)<=i){
+		groupCnt++;
+	    }
+	}
+	ruleInMac = groups.get(groupCnt).inMac;
+	ruleOutMac = groups.get(groupCnt).outMac;
+	RuleDescriptor lastRule=new RuleDescriptor(nodes.get(nodes.size()-2), ruleInMac, nodes.get(nodes.size()-1), ruleOutMac);
+	newRules.add(lastRule);
+	NewFlows updates=new NewFlows(newRules);
+	return updates;
+	/*
+    }    
 }
