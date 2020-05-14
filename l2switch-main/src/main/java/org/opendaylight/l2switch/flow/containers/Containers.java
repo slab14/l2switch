@@ -66,8 +66,13 @@ public class Containers {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteStartContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, hostPath, contPath);
     }
+
+    public void startContainer_bind(String container_name, String containerImage, String devNum, String hostPath, String contPath) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteStartContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum, hostPath, contPath);
+    }
     
-    public void startContainer_bind(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
+    public void startContainer_bind_wCmd(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd, hostPath, contPath);
     }        
@@ -77,10 +82,21 @@ public class Containers {
 	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
     }
 
-    public void createContainer_bind(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
+    public void createContainer(String container_name, String containerImage, String devNum) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    }    
+
+    public void createContainer_bind_wCmd(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
 	DockerCalls docker = new DockerCalls();
 	docker.remoteCreateContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd, hostPath, contPath);
     }
+
+    public void createContainer_bind(String container_name, String containerImage, String devNum, String hostPath, String contPath) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteCreateContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum, hostPath, contPath);
+    }
+
     
     public void createContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
 	DockerCalls docker = new DockerCalls();

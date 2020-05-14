@@ -125,7 +125,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
 		    String[] routes={sourceRange, destRange};
 		    NodeConnectorRef inNCR=rawPacket.getIngress();
-		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], devNum, inNCR, destNodeConnector);
+		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector);
 		    NewFlows updates = scWorker.setupChain();
 		    for(RuleDescriptor rule:updates.rules){
 			writeFlows(rule);

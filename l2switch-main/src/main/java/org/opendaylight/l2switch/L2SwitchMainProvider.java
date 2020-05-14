@@ -151,7 +151,7 @@ public class L2SwitchMainProvider {
     }
 
     private void setupAlertReceiver(){
-	mboxAlertServer.setDataplanIP(dataplaneIP);
+	mboxAlertServer.setDataplaneIP(dataplaneIP);
 	mboxAlertServer.setDockerPort(dockerPort);
 	mboxAlertServer.setOvsPort(ovsPort);
 	mboxAlertServer.setOFversion(OFversion);

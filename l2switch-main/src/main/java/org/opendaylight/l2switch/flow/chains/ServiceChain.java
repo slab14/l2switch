@@ -83,8 +83,8 @@ public class ServiceChain {
 	this.outNCR=outNCR;
     }        
 
-    public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces, String devNum) {
-	this.containerCalls.startContainer(contName, contImage, devNum);
+    public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces) {
+	this.containerCalls.startContainer(contName, contImage, this.devNum);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){
@@ -104,7 +104,7 @@ public class ServiceChain {
     }    
 
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces, String hostFS, String contFS) {
-	this.containerCalls.startContainer_bind(contName, contImage, hostFS, contFS);
+	this.containerCalls.startContainer_bind(contName, contImage, this.devNum, hostFS, contFS);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){
@@ -120,7 +120,7 @@ public class ServiceChain {
     }    
 
     public void createPassThroughCont(String contName, String contImage, String hostFS, String contFS) {
-	this.containerCalls.createContainer_bind(contName, contImage, hostFS, contFS);
+	this.containerCalls.createContainer_bind(contName, contImage, this.devNum, hostFS, contFS);
     }
 
     public void attachArchiveToPassThroughCont(String contName, String archiveFile, String contPath) {
@@ -144,7 +144,7 @@ public class ServiceChain {
     }
     
     public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip) {
-	this.containerCalls.startContainer(contName, contImage);
+	this.containerCalls.startContainer(contName, contImage, this.devNum);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){
@@ -161,7 +161,7 @@ public class ServiceChain {
     }
 
     public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip, String hostFS, String contFS) {
-	this.containerCalls.startContainer_bind(contName, contImage, hostFS, contFS);
+	this.containerCalls.startContainer_bind(contName, contImage, this.devNum, hostFS, contFS);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){
