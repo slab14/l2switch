@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
+import org.opendaylight.l2switch.flow.json.ContOpts;
+import org.opendaylight.l2switch.flow.docker.DockerCalls;
+
 
 
 public class AlertHandler extends Thread {
@@ -96,7 +99,7 @@ public class AlertHandler extends Thread {
 	    if (checkForTransitions(policyID)) {
 		String srcMac=findKey(Integer.parseInt(policyID));
 		//get old container names
-		
+		String[] oldContNames=getContNames(policyID, srcMac);
 		//transition to next state
 		this.policyMap.get(srcMac).transitionState();
 		// perform actions
@@ -113,10 +116,10 @@ public class AlertHandler extends Thread {
 		//remove old containers (and ovs-ports)
 		DockerCalls docker = new DockerCalls();
 		String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
-		/*
-		docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort, name,
-					       ovsBridge, this.ovsPort);
-		*/		
+		for (String name: oldContNames){
+		    docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort, name,
+						   ovsBridge, this.ovsPort);
+		}
 		//TODO: add routing rules
 		this.policyMap.get(srcMac).updateSetup(true);
 	    }
@@ -152,7 +155,18 @@ public class AlertHandler extends Thread {
 	}
 	return out;
     }
-    
+
+    private String[] getContNames(String policyID, String key){
+	int IDnum=Integer.parseInt(policyID);
+	ContOpts[] contOpts = this.devPolicy[IDnum].getProtections()[this.policyMap.get(key).getStateNum()].getImageOpts().entrySet().iterator();
+	String[] out = new String[contOpts.length];
+	int i=0;
+	for (i=0; i<=contOpts.length; i++) {
+	    out[i]=contOpts[i].getContName();
+	}
+	return out;
+    }
+	
      
 }
 

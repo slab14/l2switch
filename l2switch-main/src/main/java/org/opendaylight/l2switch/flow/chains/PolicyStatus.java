@@ -63,6 +63,10 @@ public class PolicyStatus {
 	}
     }
 
+    public int getStateNum(){
+	return this.stateNum;
+    }
+
     public void setNCR(NodeConnectorRef ncr) {
 	this.ncr=ncr;
     }
