@@ -121,10 +121,13 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
 		    System.out.println("Got Mac source from policy file");
 		    int devNum = policyMap.get(srcMac).devNum;
+		    NodeConnectorRef inNCR=rawPacket.getIngress();
+		    policyMap.get(srcMac).setNCR(rawPacket.getIngress());
+		    policyMap.get(srcMac).setInNCR(inNCR);
+		    policyMap.get(srcMac).setInNCR(destNodeConnector);
 		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
 		    String[] routes={sourceRange, destRange};
-		    NodeConnectorRef inNCR=rawPacket.getIngress();
 		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector);
 		    NewFlows updates = scWorker.setupChain();
 		    for(RuleDescriptor rule:updates.rules){

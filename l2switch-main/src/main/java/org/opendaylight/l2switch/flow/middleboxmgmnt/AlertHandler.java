@@ -101,7 +101,11 @@ public class AlertHandler extends Thread {
 		ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort,
 							 this.OFversion, this.ovsBridge_remotePort,
 							 this.devPolicy[Integer.parseInt(policyID)], policyID,
-							 this.policyMap.get(srcMac).getCurState());
+							 this.policyMap.get(srcMac).getCurState(),
+							 this.policyMap.get(srcMac).getNCR(),
+							 this.policyMap.get(srcMac).getInNCR(),
+							 this.policyMap.get(srcMac).getOutNCR(),
+							 );
 		scWorker.setupNextChain();
 		//TODO: add routing rules
 		this.policyMap.get(srcMac).updateSetup(true);

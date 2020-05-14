@@ -9,6 +9,7 @@
 package org.opendaylight.l2switch.flow.chain;
 
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
 
 public class PolicyStatus {
     //    public MacAddress destMac;
@@ -20,6 +21,9 @@ public class PolicyStatus {
     public int devNum;
     private int stateNum;
     private int stateMax;
+    private NodeConnectorRef ncr;
+    private NodeConnectorRef inNCR;
+    private NodeConnectorRef outNCR;    
 
     public PolicyStatus(String destMac, String[] states, int devNum) {
 	this.destMac=destMac;
@@ -58,4 +62,29 @@ public class PolicyStatus {
 	    this.setup=false;
 	}
     }
+
+    public void setNCR(NodeConnectorRef ncr) {
+	this.ncr=ncr;
+    }
+
+    public NodeConnectorRef getNCR() {
+	return this.ncr;
+    }    
+
+    public void setInNCR(NodeConnectorRef inNCR) {
+	this.inNCR=inNCR;
+    }
+
+    public NodeConnectorRef getInNCR() {
+	return this.inNCR;
+    }        
+
+    public void setOutNCR(NodeConnectorRef outNCR) {
+	this.outNCR=outNCR;
+    }
+
+    public NodeConnectorRef getOutNCR() {
+	return this.outNCR;
+    }        
+
 }

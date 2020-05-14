@@ -66,7 +66,8 @@ public class ServiceChain {
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion, String ovsBridge_remotePort,
-			DevPolicy devPolicy, String devNum, String state) {
+			DevPolicy devPolicy, String devNum, String state, NodeConnectorRef ncr,
+			NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
 	this.remoteIP = dataplaneIP;
 	this.remoteDockerPort=dockerPort;
 	this.remoteOvsPort=ovsPort;
@@ -83,6 +84,9 @@ public class ServiceChain {
 	this.protectDetails=devPolicy.getProtections()[i];
 	this.curState=devPolicy.getStates()[i];
 	this.devNum=devNum;
+	this.nodeStr=this.containerCalls.getNodeString(ncr);
+	this.inNCR=inNCR;
+	this.outNCR=outNCR;
     }        
 
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces) {
