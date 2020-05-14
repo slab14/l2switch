@@ -395,6 +395,6 @@ public class ServiceChain {
 	newRules.add(lastRule);
 	NewFlows updates=new NewFlows(newRules);
 	return updates;
-	/*
+	    */
     }    
 }
