@@ -35,7 +35,7 @@ public class AlertReceiver extends Thread {
     private String dockerPort;
     private String ovsPort;
     private String OFversion;
-    private PolicyParser devPolicy;
+    private DevPolicy[] devPolicy;
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
 
@@ -65,7 +65,7 @@ public class AlertReceiver extends Thread {
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
     }
 
-    public void setPolicy(PolicyParser devPolicy){
+    public void setPolicy(DevPolicy devPolicy){
 	this.devPolicy=devPolicy;
     }
 
