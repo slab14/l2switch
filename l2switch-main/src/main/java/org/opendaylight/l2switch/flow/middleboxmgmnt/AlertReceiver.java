@@ -65,7 +65,7 @@ public class AlertReceiver extends Thread {
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
     }
 
-    public void setPolicy(DevPolicy devPolicy){
+    public void setPolicy(DevPolicy[] devPolicy){
 	this.devPolicy=devPolicy;
     }
 

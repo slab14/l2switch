@@ -31,6 +31,7 @@ import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.l2switch.flow.middlebox.AlertReceiver;
+import org.opendaylight.l2switch.flow.json.DevPolicy;
 
 public class L2SwitchMainProvider {
     private static final Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
@@ -146,7 +147,7 @@ public class L2SwitchMainProvider {
 		docker.remoteShutdownContainer(dataplaneIP, dockerPort, name, ovsBridge, ovsPort);
 	    }
 	}
-	docker.remoteDeleteFlows(dataplaneIP, remote_ovs_port, "13");
+	docker.remoteDeleteFlows(dataplaneIP, remote_ovs_port, OFversion);
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
     }
 
@@ -156,7 +157,7 @@ public class L2SwitchMainProvider {
 	mboxAlertServer.setOvsPort(ovsPort);
 	mboxAlertServer.setOFversion(OFversion);
 	mboxAlertServer.setOvsBridgeRemotePort(remote_ovs_port);
-	mboxAlertServer.setPolicy(policy);
+	mboxAlertServer.setPolicy(policy.parsed.devices);
 	mboxAlertServer.setPolicyMap(policyMap);
     }
 }
