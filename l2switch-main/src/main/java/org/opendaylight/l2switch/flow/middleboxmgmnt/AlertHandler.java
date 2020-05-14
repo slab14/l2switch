@@ -95,9 +95,16 @@ public class AlertHandler extends Thread {
 
 	    if (checkForTransitions(policyID)) {
 		String srcMac=findKey(Integer.parseInt(policyID));
-		System.out.println("Checking for transitions, current state is " + this.policyMap.get(srcMac).getCurState());
+		//transition to next state
 		this.policyMap.get(srcMac).transitionState();
-		System.out.println("Transitioned, new state is " + this.policyMap.get(srcMac).getCurState());
+		// perform actions
+		ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort,
+							 this.OFversion, this.ovsBridge_remotePort,
+							 this.devPolicy, policyID,
+							 this.policyMap.get(srcMac).getCurState());
+		scWorker.setupNextChain();
+		//TODO: add routing rules
+		this.policyMap.get(srcMac).updateSetup(true);
 	    }
 
         } catch( Exception e ) {

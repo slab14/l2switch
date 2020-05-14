@@ -65,22 +65,23 @@ public class ServiceChain {
     }
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
-			String OFversion,  NodeConnectorRef ncr,
-			String ovsBridge_remotePort, DevPolicy devPolicy, String devNum,
-			NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
+			String OFversion, String ovsBridge_remotePort,
+			DevPolicy devPolicy, String devNum, String state) {
 	this.remoteIP = dataplaneIP;
 	this.remoteDockerPort=dockerPort;
 	this.remoteOvsPort=ovsPort;
 	this.OpenFlowVersion=OFversion;
 	this.containerCalls=new Containers(dataplaneIP, dockerPort, ovsPort, OFversion);
-	this.nodeStr=this.containerCalls.getNodeString(ncr);
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
 	this.devPolicy=devPolicy;
-	this.protectDetails=devPolicy.getProtections()[0];
-	this.curState=devPolicy.getFirstState();
+	for (int i=0; i<devPolicy.states.length; i++){
+	    if (state.equals(devPolicy.states[i])) {
+		break;
+	    }
+	}
+	this.protectDetails=devPolicy.getProtections()[i];
+	this.curState=devPolicy.getStates()[i];
 	this.devNum=devNum;
-	this.inNCR=inNCR;
-	this.outNCR=outNCR;
     }        
 
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces) {
@@ -88,7 +89,9 @@ public class ServiceChain {
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){
-	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName, ifaces[i], this.ovsBridge_remotePort);
+	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName,
+								  ifaces[i],
+								  this.ovsBridge_remotePort);
 	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 	    this.containerCalls.disableContGRO(contName, ifaces[i]);
 	    //for(String route:this.routes) {
@@ -205,8 +208,8 @@ public class ServiceChain {
 	String inMac= devPolicy.inMAC;
 	//MacAddress outMac=new MacAddress(devPolicy.outMAC);
 	String outMac=devPolicy.outMAC;	
-	int chainLength = getFirstChainLength();
-	String[] chainLinks = getFirstChain();
+	int chainLength = getChainLength();
+	String[] chainLinks = getChain();
 	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
 	ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
 	ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
@@ -288,12 +291,12 @@ public class ServiceChain {
 	return updates;
     }
 
-    private int getFirstChainLength() {
+    private int getChainLength() {
 	int len = protectDetails.chain.split("-").length; // devPolicy.chain.split("-").length;
 	return len;
     }
 
-    private String[] getFirstChain() {
+    private String[] getChain() {
 	String[] chainElements = protectDetails.chain.split("-"); //	    devPolicy.chain.split("-");
 
 	return chainElements;
@@ -311,8 +314,8 @@ public class ServiceChain {
 	// Logic to see if there is another chain?
 
 	//find out about chain
-	int chainLength = getNextChainLength();
-	String[] chainLinks = getNextChain();
+	int chainLength = getChainLength();
+	String[] chainLinks = getChain();
 	/*
 	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
 	ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
@@ -400,15 +403,4 @@ public class ServiceChain {
 	*/
     }
 
-    private int getNextChainLength(){
-	//need to update to get next chain
-	int len = protectDetails.chain.split("-").length; 
-	return len;
-    }
-
-    private String[] getNextChain(){
-	//need to update to get next chain
-	String[] chainElements = protectDetails.chain.split("-"); 
-	return chainElements;
-    }
 }
