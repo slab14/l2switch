@@ -23,6 +23,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeCon
 import org.opendaylight.l2switch.flow.json.PolicyParser;
 import java.util.Map;
 import java.util.HashMap;
+import org.opendaylight.l2switch.flow.chain.PolicyStatus;
+
 
 public class AlertReceiver extends Thread {
 
@@ -34,6 +36,7 @@ public class AlertReceiver extends Thread {
     private String ovsPort;
     private String OFversion;
     private PolicyParser devPolicy;
+    private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
 
     public AlertReceiver() {}
@@ -64,7 +67,11 @@ public class AlertReceiver extends Thread {
 
     public void setPolicy(PolicyParser devPolicy){
 	this.devPolicy=devPolicy;
-    }    	
+    }
+
+    public void setPolicyMap(HashMap<String, PolicyStatus> policyMap){
+	this.policyMap=policyMap;
+    }
     
 
     public void startServer() {
@@ -89,7 +96,11 @@ public class AlertReceiver extends Thread {
                 // Call accept() to receive the next connection
                 Socket socket = serverSocket.accept();
                 // Pass the socket to the RequestHandler thread for processing
-                AlertHandler requestHandler = new AlertHandler(socket);
+                //AlertHandler requestHandler = new AlertHandler(socket);
+		AlertHandler requestHandler = new AlertHandler(socket, this.dataplaneIP,
+							       this.dockerPort, this.ovsPort,
+							       this.OFversion, this.devPolicy,
+							       this.policyMap, this.ovsBridge_remotePort);
                 requestHandler.start();
             } catch (IOException e) {
                 e.printStackTrace();

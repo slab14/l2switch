@@ -157,6 +157,7 @@ public class L2SwitchMainProvider {
 	mboxAlertServer.setOFversion(OFversion);
 	mboxAlertServer.setOvsBridgeRemotePort(remote_ovs_port);
 	mboxAlertServer.setPolicy(policy);
+	mboxAlertServer.setPolicyMap(policyMap);
     }
 }
 
