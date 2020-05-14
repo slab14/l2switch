@@ -41,11 +41,12 @@ public class ServiceChain {
     private ProtectionDetails protectDetails;
     private String curState;
     private NodeConnectorRef inNCR;
-    private NodeConnectorRef outNCR;    
+    private NodeConnectorRef outNCR;
+    private String devNum;
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion, String[] routes, NodeConnectorRef ncr,
-			String ovsBridge_remotePort, DevPolicy devPolicy,
+			String ovsBridge_remotePort, DevPolicy devPolicy, String devNum,
 			NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
 	this.remoteIP = dataplaneIP;
 	this.remoteDockerPort=dockerPort;
@@ -58,13 +59,14 @@ public class ServiceChain {
 	this.devPolicy=devPolicy;
 	this.protectDetails=devPolicy.getProtections()[0];
 	this.curState=devPolicy.getFirstState();
+	this.devNum=devNum;
 	this.inNCR=inNCR;
 	this.outNCR=outNCR;
     }
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion,  NodeConnectorRef ncr,
-			String ovsBridge_remotePort, DevPolicy devPolicy,
+			String ovsBridge_remotePort, DevPolicy devPolicy, String devNum,
 			NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
 	this.remoteIP = dataplaneIP;
 	this.remoteDockerPort=dockerPort;
@@ -76,12 +78,13 @@ public class ServiceChain {
 	this.devPolicy=devPolicy;
 	this.protectDetails=devPolicy.getProtections()[0];
 	this.curState=devPolicy.getFirstState();
+	this.devNum=devNum;
 	this.inNCR=inNCR;
 	this.outNCR=outNCR;
     }        
 
-    public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces) {
-	this.containerCalls.startContainer(contName, contImage);
+    public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces, String devNum) {
+	this.containerCalls.startContainer(contName, contImage, devNum);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){

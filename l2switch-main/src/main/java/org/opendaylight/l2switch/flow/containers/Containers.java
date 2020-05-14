@@ -52,10 +52,15 @@ public class Containers {
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
     }    
 
-    public void startContainer(String container_name, String containerImage, String containerCmd) {
+    public void startContainer(String container_name, String containerImage, String devNum) {
 	DockerCalls docker = new DockerCalls();
-	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd);
-    }        
+	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    }
+
+    public void startContainer_wCmd(String container_name, String containerImage, String containerCmd) {
+	DockerCalls docker = new DockerCalls();
+	docker.remoteStartContainer_wCmd(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd);
+    }            
 
     public void startContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
 	DockerCalls docker = new DockerCalls();
