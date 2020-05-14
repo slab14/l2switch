@@ -74,7 +74,8 @@ public class ServiceChain {
 	this.containerCalls=new Containers(dataplaneIP, dockerPort, ovsPort, OFversion);
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
 	this.devPolicy=devPolicy;
-	for (int i=0; i<devPolicy.states.length; i++){
+	int i=0;
+	for (i=0; i<devPolicy.states.length; i++){
 	    if (state.equals(devPolicy.states[i])) {
 		break;
 	    }
