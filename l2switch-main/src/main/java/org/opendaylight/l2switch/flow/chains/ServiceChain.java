@@ -100,7 +100,7 @@ public class ServiceChain {
     }
 
     public void createPassThroughCont(String contName, String contImage) {
-	this.containerCalls.createContainer(contName, contImage);
+	this.containerCalls.createContainer(contName, contImage, this.devNum);
     }    
 
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces, String hostFS, String contFS) {
