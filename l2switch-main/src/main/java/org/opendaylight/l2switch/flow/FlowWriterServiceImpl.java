@@ -190,8 +190,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      * @param destNodeConnectorRef
      */
     @Override
-    public void addBidirectionalMacToMacFlows(MacAddress sourceMac, NodeConnectorRef sourceNodeConnectorRef,
-            MacAddress destMac, NodeConnectorRef destNodeConnectorRef) {
+    public void addBidirectionalMacToMacFlows(MacAddress sourceMac,
+					      NodeConnectorRef sourceNodeConnectorRef,
+					      MacAddress destMac,
+					      NodeConnectorRef destNodeConnectorRef) {
         Preconditions.checkNotNull(sourceMac, "Source mac address should not be null.");
         Preconditions.checkNotNull(sourceNodeConnectorRef, "Source port should not be null.");
         Preconditions.checkNotNull(destMac, "Destination mac address should not be null.");
@@ -211,8 +213,9 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     }
 
     @Override
-    public void addBidirectionalMacFlows(MacAddress sourceMac, NodeConnectorRef sourceNodeConnectorRef,
-            NodeConnectorRef destNodeConnectorRef) {
+    public void addBidirectionalMacFlows(MacAddress sourceMac,
+					 NodeConnectorRef sourceNodeConnectorRef,
+					 NodeConnectorRef destNodeConnectorRef) {
         Preconditions.checkNotNull(sourceMac, "Source mac address should not be null.");
         Preconditions.checkNotNull(sourceNodeConnectorRef, "Source port should not be null.");
         Preconditions.checkNotNull(destNodeConnectorRef, "Destination port should not be null.");
