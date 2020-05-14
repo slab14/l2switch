@@ -42,10 +42,9 @@ public class AlertHandler extends Thread {
     }
 
     AlertHandler(Socket socket, String dataplaneIP, String dockerPort,
-		 String ovsPort, String OFversion, NodeConnectorRef ncr,
+		 String ovsPort, String OFversion, 
 		 String ovsBridge_remotePort, DevPolicy devPolicy,
-		 HashMap<String, PolicyStatus> policyMap,
-		 NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
+		 HashMap<String, PolicyStatus> policyMap) {
         this.socket = socket;
 	this.dataplaneIP=dataplaneIP;
 	this.dockerPort=dockerPort;
