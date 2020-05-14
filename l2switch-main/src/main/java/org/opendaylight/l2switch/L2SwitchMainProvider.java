@@ -69,7 +69,7 @@ public class L2SwitchMainProvider {
     }
 
     public void init() {
-	System.out.println("Starting ODL");
+	System.out.println("Ready");
 	GetFile policyReader=new GetFile();
 	String jsonString=new String();
 	try {

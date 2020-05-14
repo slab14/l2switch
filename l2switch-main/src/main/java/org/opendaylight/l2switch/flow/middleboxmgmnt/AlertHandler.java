@@ -161,7 +161,7 @@ public class AlertHandler extends Thread {
 	ContOpts[] contOpts = this.devPolicy[IDnum].getProtections()[this.policyMap.get(key).getStateNum()].getImageOpts();
 	String[] out = new String[contOpts.length];
 	int i=0;
-	for (i=0; i<=contOpts.length; i++) {
+	for (i=0; i<contOpts.length; i++) {
 	    out[i]=contOpts[i].getContName();
 	}
 	return out;
