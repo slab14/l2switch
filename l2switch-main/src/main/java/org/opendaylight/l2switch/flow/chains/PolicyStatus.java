@@ -20,7 +20,7 @@ public class PolicyStatus {
     public boolean canTransition;
     public int devNum;
     private int stateNum;
-    private int stateMax;
+    private int maxStates;
     private NodeConnectorRef ncr;
     private NodeConnectorRef inNCR;
     private NodeConnectorRef outNCR;    
@@ -29,11 +29,11 @@ public class PolicyStatus {
 	this.destMac=destMac;
 	this.states=states;
 	this.devNum=devNum;
-	this.stateMax=this.states.length;		
+	this.maxStates=this.states.length -1;
 	this.setup=false;
 	this.stateNum=0;
 	curState=states[stateNum];
-	if (this.stateMax >1){
+	if (this.maxStates>1){
 	    this.canTransition=true;
 	}else{
 	    this.canTransition=false;
@@ -55,11 +55,11 @@ public class PolicyStatus {
     public void transitionState() {
 	if (this.canTransition) {
 	    this.canTransition=false;
-	    if (this.stateNum<this.stateMax) {
+	    if (this.maxStates > this.stateNum) {	    
 		this.stateNum++;
 	    }
-	    if (this.stateNum>=this.stateMax) {
-		this.stateNum=this.stateMax;
+	    if (this.stateNum>=this.maxStates) {
+		this.stateNum=this.maxStates;
 	    } else {
 		this.canTransition=true;
 	    }
