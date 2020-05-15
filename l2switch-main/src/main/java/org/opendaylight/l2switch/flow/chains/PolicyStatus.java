@@ -58,12 +58,12 @@ public class PolicyStatus {
 	    if (this.stateNum<this.stateMax) {
 		this.stateNum++;
 	    }
-	    this.curState=this.states[stateNum];
 	    if (this.stateNum>=this.stateMax) {
 		this.stateNum=this.stateMax;
 	    } else {
 		this.canTransition=true;
 	    }
+	    this.curState=this.states[this.stateNum];
 	    this.setup=false;
 	}
     }

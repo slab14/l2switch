@@ -41,6 +41,7 @@ public class AlertHandler extends Thread {
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
     private ReactiveFlowWriter flowWriter;
+    private HashMap<String,boolean> processing= new HashMap<String,boolean>();
     
     AlertHandler(Socket socket) {
         this.socket = socket;
@@ -70,7 +71,11 @@ public class AlertHandler extends Thread {
             // Get input and output streams
             BufferedReader in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
             //PrintWriter out = new PrintWriter( socket.getOutputStream() );
-
+	    
+	    if (this.processing.containsKey(this.socket.getRemoteSocketAddress().toString())) {
+		this.processing.put(this.socket.getRemoteSocketAddress().toString(), false);
+	    }
+	    
             // Write out our header to the client
             //out.println( "Controller Alert Handler" );
             //out.flush();
@@ -100,39 +105,43 @@ public class AlertHandler extends Thread {
             //out.close();
             socket.close();
 
-	    if (checkForTransitions(policyID)) {
-		String srcMac=findKey(Integer.parseInt(policyID));
-		//get old container names
-		String[] oldContNames=getContNames(policyID, srcMac);
-		//transition to next state
-		this.policyMap.get(srcMac).transitionState();
-		// perform actions
-		ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
-							 this.ovsPort, this.OFversion,
-							 this.ovsBridge_remotePort,
-							 this.devPolicy[Integer.parseInt(policyID)],
-							 policyID,
-							 this.policyMap.get(srcMac).getCurState(),
-							 this.policyMap.get(srcMac).getNCR(),
-							 this.policyMap.get(srcMac).getInNCR(),
-							 this.policyMap.get(srcMac).getOutNCR());
-		NewFlows updates = scWorker.setupNextChain();
-		//remove old containers (and ovs-ports)
-		DockerCalls docker = new DockerCalls();
-		String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
-		for (String name: oldContNames){
-		    docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort, name,
-						   ovsBridge, this.ovsPort);
+	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString())) {
+		if (!alert.equals("")) {
+		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
+		    if (checkForTransitions(policyID)) {
+			String srcMac=findKey(Integer.parseInt(policyID));
+			//get old container names
+			String[] oldContNames=getContNames(policyID, srcMac);
+			//transition to next state
+			this.policyMap.get(srcMac).transitionState();
+			// perform actions
+			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
+								 this.ovsPort, this.OFversion,
+								 this.ovsBridge_remotePort,
+								 this.devPolicy[Integer.parseInt(policyID)],
+								 policyID,
+								 this.policyMap.get(srcMac).getCurState(),
+								 this.policyMap.get(srcMac).getNCR(),
+								 this.policyMap.get(srcMac).getInNCR(),
+								 this.policyMap.get(srcMac).getOutNCR());
+			NewFlows updates = scWorker.setupNextChain();
+			//remove old containers (and ovs-ports)
+			DockerCalls docker = new DockerCalls();
+			String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
+			for (String name: oldContNames){
+			    docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort, name,
+							   ovsBridge, this.ovsPort);
+			}
+			//delete old flows that have the host's mac (good for pass-through, breaks when using container macs)
+			docker.remoteDeleteContFlows(this.dataplaneIP, this.ovsPort, this.OFversion, srcMac);
+			//Write routing rules
+			for(RuleDescriptor rule:updates.rules){
+			    this.flowWriter.writeFlows(rule);
+			}
+			this.policyMap.get(srcMac).updateSetup(true);
+		    }
 		}
-		//delete old flows that have the host's mac (good for pass-through, breaks when using container macs)
-		docker.remoteDeleteContFlows(this.dataplaneIP, this.ovsPort, this.OFversion, srcMac);
-		//Write routing rules
-		for(RuleDescriptor rule:updates.rules){
-		    this.flowWriter.writeFlows(rule);
-		}
-		this.policyMap.get(srcMac).updateSetup(true);
 	    }
-
         } catch( Exception e ) {
             e.printStackTrace();
         }

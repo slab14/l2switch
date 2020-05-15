@@ -124,7 +124,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    NodeConnectorRef inNCR=rawPacket.getIngress();
 		    policyMap.get(srcMac).setNCR(rawPacket.getIngress());
 		    policyMap.get(srcMac).setInNCR(inNCR);
-		    policyMap.get(srcMac).setInNCR(destNodeConnector);
+		    policyMap.get(srcMac).setOutNCR(destNodeConnector);
 		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
 		    String[] routes={sourceRange, destRange};
