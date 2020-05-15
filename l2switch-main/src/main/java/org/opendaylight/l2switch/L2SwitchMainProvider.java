@@ -69,7 +69,6 @@ public class L2SwitchMainProvider {
     }
 
     public void init() {
-	System.out.println("\nReady");
 	GetFile policyReader=new GetFile();
 	String jsonString=new String();
 	try {
@@ -125,7 +124,7 @@ public class L2SwitchMainProvider {
 	    mboxAlertServer.startServer();
 		    
         }
-	
+	System.out.println("\nReady");
         LOG.info("L2SwitchMain initialized.");
     }
 
