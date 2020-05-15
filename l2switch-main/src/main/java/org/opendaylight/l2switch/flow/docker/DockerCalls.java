@@ -361,8 +361,10 @@ public class DockerCalls {
 
     public String remoteFindContOfPort(String ip, String ovs_port, String bridge_remote_port, String name, String iface, String OF_version) {
 	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-vsctl --db=tcp:%s:%s --data=bare --no-heading --columns=name find interface external_ids:container_id=%s external_ids:container_iface=%s", ip, ovs_port, name, iface);
+	System.out.println("Finding Cont OF port: "+cmd);
 	ExecShellCmd obj = new ExecShellCmd();
 	String ovsPort=obj.exeCmd(cmd);
+	System.out.println("found: "+ovsPort);
 	ovsPort=ovsPort.replaceAll("\n","");
 	if (ovsPort.equals("")){
 	    return ovsPort;
@@ -549,9 +551,9 @@ public class DockerCalls {
 		} else {
 		    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s in_port=%s", ip, remote_bridge_port,OFPort);
 		}
-		System.out.println(cmd);
+		System.out.println("cmd= "+cmd);
 		output=obj.exeCmd(cmd);
-		System.out.println(output);
+		System.out.println("output= "+output);
 	    }
 	}
     }    
