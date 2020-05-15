@@ -349,27 +349,25 @@ public class DockerCalls {
 	if (ovsPort.equals("")){
 	    return ovsPort;
 	}
-	System.out.println("OVS Port: "+ovsPort);
+	//System.out.println("OVS Port: "+ovsPort);
 
 	cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl show tcp:%s:%s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", ip, bridge_remote_port, ovsPort);
 	String[] pipeCmd={"/bin/sh", "-c", cmd};
 	String ofPort=obj.exeCmd(pipeCmd);
 	ofPort=ofPort.replaceAll("\n","");
-	System.out.println("OF Port: "+ofPort);
+	//System.out.println("OF Port: "+ofPort);
 	return ofPort;
     }
 
     public String remoteFindContOfPort(String ip, String ovs_port, String bridge_remote_port, String name, String iface, String OF_version) {
 	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-vsctl --db=tcp:%s:%s --data=bare --no-heading --columns=name find interface external_ids:container_id=%s external_ids:container_iface=%s", ip, ovs_port, name, iface);
-	System.out.println("Finding Cont OF port: "+cmd);
 	ExecShellCmd obj = new ExecShellCmd();
 	String ovsPort=obj.exeCmd(cmd);
-	System.out.println("found: "+ovsPort);
 	ovsPort=ovsPort.replaceAll("\n","");
 	if (ovsPort.equals("")){
 	    return ovsPort;
 	}	
-	System.out.println("OVS Port: "+ovsPort);
+	//System.out.println("OVS Port: "+ovsPort);
 
 	if(OF_version.equals("13")){
 	    cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl -O Openflow13 show tcp:%s:%s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", ip, bridge_remote_port, ovsPort);
@@ -379,7 +377,7 @@ public class DockerCalls {
 	String[] pipeCmd={"/bin/sh", "-c", cmd};
 	String ofPort=obj.exeCmd(pipeCmd);
 	ofPort=ofPort.replaceAll("\n","");
-	System.out.println("OF Port: "+ofPort);
+	//System.out.println("OF Port: "+ofPort);
 	return ofPort;
     }    
     
@@ -468,20 +466,19 @@ public class DockerCalls {
 	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port, name);
 	String[] newCmd = {"/bin/bash", "-c", cmd};
 	String output=obj.exeCmd(newCmd);
-	/*
-	try {
-	    ProcessBuilder pb = new ProcessBuilder("/users/slab/IoT_Sec_Gateway/ovs_remote/ovs-docker-remote", "del-ports", bridge, name, ip, ovs_port, docker_port);
-	    Process p = pb.start();
-	    int errCode=p.waitFor();
-	} catch (InterruptedException e) {
-	    e.printStackTrace();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-	*/
 	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote del-ports %s %s %s %s %s", bridge, name, ip, ovs_port, docker_port);
 	output=obj.exeCmd(cmd);	
-    } 
+    }
+
+    public void remoteShutdownContainer(String ip, String docker_port, String name, String bridge, String ovs_port, String remote_bridge_port, String OF_version) {
+	ExecShellCmd obj = new ExecShellCmd();
+	remoteDeleteContFlows(ip, ovs_port, remote_bridge_port, OF_version, name);	
+	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port, name);
+	String[] newCmd = {"/bin/bash", "-c", cmd};
+	String output=obj.exeCmd(newCmd);
+	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote del-ports %s %s %s %s %s", bridge, name, ip, ovs_port, docker_port);
+	output=obj.exeCmd(cmd);	
+    }     
 
     public void remoteShutdownContainer(String ip, String docker_port, String name) {
 	ExecShellCmd obj = new ExecShellCmd();
@@ -534,9 +531,33 @@ public class DockerCalls {
 	String output=obj.exeCmd(cmd);
     }
 
+    public void remoteDeleteContFlows(String ip, String ovs_port, String remote_bridge_port, String OF_version, String name) {
+	String OFPort;
+	String cmd;
+	String cmd2;	
+	String[] ifaces={"eth1", "eth2"};
+	ExecShellCmd obj = new ExecShellCmd();
+	String output;
+	for (String iface:ifaces) {
+	    OFPort = remoteFindContOfPort(ip, ovs_port, remote_bridge_port, name, iface, OF_version);
+	    if (OFPort.equals("")) {
+		continue;
+	    }
+	    if(OF_version.equals("13")){
+		cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 in_port=%s", ip, remote_bridge_port,OFPort);
+		cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 out_port=%s", ip, remote_bridge_port,OFPort);		    
+	    } else {
+		cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s in_port=%s", ip, remote_bridge_port,OFPort);
+		cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s out_port=%s", ip, remote_bridge_port,OFPort);		    
+	    }
+	    output=obj.exeCmd(cmd);
+	}
+    }
+    
     public void remoteDeleteContFlows(String ip, String ovs_port, String remote_bridge_port, String OF_version, String[] names) {
 	String OFPort;
 	String cmd;
+	String cmd2;	
 	String[] ifaces={"eth1", "eth2"};
 	ExecShellCmd obj = new ExecShellCmd();
 	String output;
@@ -548,12 +569,12 @@ public class DockerCalls {
 		}
 		if(OF_version.equals("13")){
 		    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 in_port=%s", ip, remote_bridge_port,OFPort);
+		    cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 out_port=%s", ip, remote_bridge_port,OFPort);		    
 		} else {
 		    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s in_port=%s", ip, remote_bridge_port,OFPort);
+		    cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s out_port=%s", ip, remote_bridge_port,OFPort);		    
 		}
-		System.out.println("cmd= "+cmd);
 		output=obj.exeCmd(cmd);
-		System.out.println("output= "+output);
 	    }
 	}
     }    
