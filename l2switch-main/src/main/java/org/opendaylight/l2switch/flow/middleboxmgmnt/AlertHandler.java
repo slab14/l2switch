@@ -105,7 +105,7 @@ public class AlertHandler extends Thread {
             //out.close();
             socket.close();
 
-	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString())) {
+	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (!alert.equals("")) {
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
 		    if (checkForTransitions(policyID)) {
@@ -139,6 +139,7 @@ public class AlertHandler extends Thread {
 			    this.flowWriter.writeFlows(rule);
 			}
 			this.policyMap.get(srcMac).updateSetup(true);
+			this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);			
 		    }
 		}
 	    }
