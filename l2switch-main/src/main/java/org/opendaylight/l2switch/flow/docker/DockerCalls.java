@@ -535,12 +535,12 @@ public class DockerCalls {
     public void remoteDeleteContFlows(String ip, String ovs_port, String remote_bridge_port, String OF_version, String[] names) {
 	String OFPort;
 	String cmd;
-	String[] ifaces=["eth1", "eth2"];
+	String[] ifaces={"eth1", "eth2"};
 	ExecShellCmd obj = new ExecShellCmd();
 	String output;
 	for(String name:names) {
 	    for (String iface:ifaces) {
-		OFPort = remoteFindContOfPort(ip, ovs_port, bridge_remote_port, name, iface, OF_version);
+		OFPort = remoteFindContOfPort(ip, ovs_port, remote_bridge_port, name, iface, OF_version);
 		if (OFPort.equals("")) {
 		    continue;
 		}
