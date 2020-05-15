@@ -41,7 +41,7 @@ public class AlertHandler extends Thread {
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
     private ReactiveFlowWriter flowWriter;
-    private HashMap<String,boolean> processing= new HashMap<String,boolean>();
+    private HashMap<String,Boolean> processing= new HashMap<String,Boolean>();
     
     AlertHandler(Socket socket) {
         this.socket = socket;
