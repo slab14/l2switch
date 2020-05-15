@@ -104,9 +104,11 @@ public class AlertHandler extends Thread {
             socket.close();
 
 	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
-		if (!alert.equals("")) {
+		if (checkForTransitions(policyID) && !alert.equals("")) {
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
-		    if (checkForTransitions(policyID)) {
+		    System.out.println("changing processing field value -- should block other attempts");
+		    //		    if (checkForTransitions(policyID)) {
+			System.out.println("updating");
 			String srcMac=findKey(Integer.parseInt(policyID));
 			//get old container names
 			String[] oldContNames=getContNames(policyID, srcMac);
@@ -137,8 +139,9 @@ public class AlertHandler extends Thread {
 			    this.flowWriter.writeFlows(rule);
 			}
 			this.policyMap.get(srcMac).updateSetup(true);
-			this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);			
-		    }
+			this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);
+			System.out.println("Changing processing back, operations complete");
+			//		    }
 		}
 	    }
         } catch( Exception e ) {
@@ -149,12 +152,14 @@ public class AlertHandler extends Thread {
     private boolean checkForTransitions(String policyID){
 	int IDnum=Integer.parseInt(policyID);
 	boolean out=false;
+	System.out.println("ID: "+policyID+"Num Policies: "+Integer.toString(this.policyMap.size()));
 	// ensure ID is valid
-	if (IDnum<=this.policyMap.size()) {
+	if (IDnum<this.policyMap.size()) {
 	    // get Key for hashmap
 	    String key=findKey(IDnum);
 	    out=this.policyMap.get(key).getCanTransition();
 	}
+	System.out.println(out);
 	return out;
     }
 

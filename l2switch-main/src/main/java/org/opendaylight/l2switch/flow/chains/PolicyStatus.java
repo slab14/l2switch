@@ -33,7 +33,7 @@ public class PolicyStatus {
 	this.setup=false;
 	this.stateNum=0;
 	curState=states[stateNum];
-	if (this.maxStates>1){
+	if (this.maxStates>0){
 	    this.canTransition=true;
 	}else{
 	    this.canTransition=false;

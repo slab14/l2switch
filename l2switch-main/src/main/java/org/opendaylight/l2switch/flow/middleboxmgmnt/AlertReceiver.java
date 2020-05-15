@@ -108,6 +108,7 @@ public class AlertReceiver extends Thread {
 		    this.processing.put(socket.getRemoteSocketAddress().toString(), false);
 		}
 		if (!this.processing.get(socket.getRemoteSocketAddress().toString()).booleanValue()) {
+		    System.out.println("Got new Connection");
 		    AlertHandler requestHandler = new AlertHandler(socket, this.dataplaneIP,
 								   this.dockerPort, this.ovsPort,
 								   this.OFversion, this.ovsBridge_remotePort,
