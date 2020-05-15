@@ -40,6 +40,7 @@ public class AlertReceiver extends Thread {
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
     private ReactiveFlowWriter reactiveFlowWriter;
+    private HashMap<String,Boolean> processing = new HashMap<String,Boolean>();
 
     public AlertReceiver() {}
 
@@ -103,12 +104,19 @@ public class AlertReceiver extends Thread {
                 Socket socket = serverSocket.accept();
                 // Pass the socket to the RequestHandler thread for processing
                 //AlertHandler requestHandler = new AlertHandler(socket);
-		AlertHandler requestHandler = new AlertHandler(socket, this.dataplaneIP,
-							       this.dockerPort, this.ovsPort,
-							       this.OFversion, this.ovsBridge_remotePort,
-							       this.devPolicy, this.policyMap,
-							       this.reactiveFlowWriter);
-                requestHandler.start();
+		if (!this.processing.containsKey(socket.getRemoteSocketAddress().toString())) {
+		    this.processing.put(socket.getRemoteSocketAddress().toString(), false);
+		}
+		if (!this.processing.get(socket.getRemoteSocketAddress().toString()).booleanValue()) {
+		    AlertHandler requestHandler = new AlertHandler(socket, this.dataplaneIP,
+								   this.dockerPort, this.ovsPort,
+								   this.OFversion, this.ovsBridge_remotePort,
+								   this.devPolicy, this.policyMap,
+								   this.reactiveFlowWriter, this.processing);
+		    requestHandler.start();
+		} else {
+		    socket.close();
+		}
             } catch (IOException e) {
                 e.printStackTrace();
             }

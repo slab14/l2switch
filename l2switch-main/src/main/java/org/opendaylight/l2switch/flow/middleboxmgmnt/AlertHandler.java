@@ -41,7 +41,6 @@ public class AlertHandler extends Thread {
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
     private ReactiveFlowWriter flowWriter;
-    private HashMap<String,Boolean> processing= new HashMap<String,Boolean>();
     
     AlertHandler(Socket socket) {
         this.socket = socket;
@@ -51,7 +50,8 @@ public class AlertHandler extends Thread {
 		 String ovsPort, String OFversion, 
 		 String ovsBridge_remotePort, DevPolicy[] devPolicy,
 		 HashMap<String, PolicyStatus> policyMap,
-		 ReactiveFlowWriter flowWriter) {
+		 ReactiveFlowWriter flowWriter,
+		 HashMap<String,Boolean> processing) {
         this.socket = socket;
 	this.dataplaneIP=dataplaneIP;
 	this.dockerPort=dockerPort;
@@ -71,10 +71,6 @@ public class AlertHandler extends Thread {
             // Get input and output streams
             BufferedReader in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
             //PrintWriter out = new PrintWriter( socket.getOutputStream() );
-	    
-	    if (this.processing.containsKey(this.socket.getRemoteSocketAddress().toString())) {
-		this.processing.put(this.socket.getRemoteSocketAddress().toString(), false);
-	    }
 	    
             // Write out our header to the client
             //out.println( "Controller Alert Handler" );
@@ -105,9 +101,9 @@ public class AlertHandler extends Thread {
             //out.close();
             socket.close();
 
-	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
+	    if (!processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (!alert.equals("")) {
-		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
+		    processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
 		    if (checkForTransitions(policyID)) {
 			String srcMac=findKey(Integer.parseInt(policyID));
 			//get old container names
@@ -139,7 +135,7 @@ public class AlertHandler extends Thread {
 			    this.flowWriter.writeFlows(rule);
 			}
 			this.policyMap.get(srcMac).updateSetup(true);
-			this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);			
+			processing.replace(this.socket.getRemoteSocketAddress().toString(), false);			
 		    }
 		}
 	    }
