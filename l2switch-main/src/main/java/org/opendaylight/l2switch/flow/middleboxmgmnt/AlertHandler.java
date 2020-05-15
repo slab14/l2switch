@@ -41,6 +41,7 @@ public class AlertHandler extends Thread {
     private HashMap<String, PolicyStatus> policyMap;
     private String ovsBridge_remotePort;
     private ReactiveFlowWriter flowWriter;
+    private HashMap<String,Boolean> processing;
     
     AlertHandler(Socket socket) {
         this.socket = socket;
@@ -61,6 +62,7 @@ public class AlertHandler extends Thread {
 	this.policyMap=policyMap;
 	this.ovsBridge_remotePort=ovsBridge_remotePort;
 	this.flowWriter=flowWriter;
+	this.processing=processing;
     }
 
     @Override
@@ -101,9 +103,9 @@ public class AlertHandler extends Thread {
             //out.close();
             socket.close();
 
-	    if (!processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
+	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (!alert.equals("")) {
-		    processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
+		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
 		    if (checkForTransitions(policyID)) {
 			String srcMac=findKey(Integer.parseInt(policyID));
 			//get old container names
@@ -135,7 +137,7 @@ public class AlertHandler extends Thread {
 			    this.flowWriter.writeFlows(rule);
 			}
 			this.policyMap.get(srcMac).updateSetup(true);
-			processing.replace(this.socket.getRemoteSocketAddress().toString(), false);			
+			this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);			
 		    }
 		}
 	    }
