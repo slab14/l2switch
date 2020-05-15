@@ -124,17 +124,17 @@ public class AlertHandler extends Thread {
 		    NewFlows updates = scWorker.setupNextChain();
 		    //remove old containers (and ovs-ports)
 		    DockerCalls docker = new DockerCalls();
-		    String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
+		    String ovsBridge = docker.remoteFindBridge(this.dataplaneIP, this.ovsPort);
 		    for (String name: oldContNames){
 			docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort, name,
 						       ovsBridge, this.ovsPort);
 		    }
-		    //delete old flows that have the host's mac (good for pass-through, breaks when using container macs)
-		    docker.remoteDeleteContFlows(this.dataplaneIP, this.ovsPort, this.OFversion, srcMac);
 		    //Write routing rules
 		    for(RuleDescriptor rule:updates.rules){
 			this.flowWriter.writeFlows(rule);
 		    }
+		    //delete old flows for removed containers
+		    docker.remoteDeleteContFlows(this.dataplaneIP, this.ovsPort, this.ovsBridge_remotePort, this.OFversion, oldContNames);
 		    this.policyMap.get(srcMac).updateSetup(true);
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);
 		}

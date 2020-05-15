@@ -346,6 +346,9 @@ public class DockerCalls {
 	ExecShellCmd obj = new ExecShellCmd();
 	String ovsPort=obj.exeCmd(cmd);
 	ovsPort=ovsPort.replaceAll("\n","");
+	if (ovsPort.equals("")){
+	    return ovsPort;
+	}
 	System.out.println("OVS Port: "+ovsPort);
 
 	cmd=String.format("/usr/bin/sudo /usr/bin/ovs-ofctl show tcp:%s:%s | grep %s | awk -F '(' '{ print $1 }' | sed 's/ //g'", ip, bridge_remote_port, ovsPort);
@@ -361,6 +364,9 @@ public class DockerCalls {
 	ExecShellCmd obj = new ExecShellCmd();
 	String ovsPort=obj.exeCmd(cmd);
 	ovsPort=ovsPort.replaceAll("\n","");
+	if (ovsPort.equals("")){
+	    return ovsPort;
+	}	
 	System.out.println("OVS Port: "+ovsPort);
 
 	if(OF_version.equals("13")){
@@ -526,19 +532,26 @@ public class DockerCalls {
 	String output=obj.exeCmd(cmd);
     }
 
-    public void remoteDeleteContFlows(String ip, String remote_bridge_port, String OF_version, String mac) {
+    public void remoteDeleteContFlows(String ip, String ovs_port, String remote_bridge_port, String OF_version, String[] names) {
+	String OFPort;
 	String cmd;
-	String cmd2;
-	if(OF_version.equals("13")){
-	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 dl_src=%s", ip, remote_bridge_port,mac);
-	    cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 dl_dst=%s", ip, remote_bridge_port,mac);	    
-	} else {
-	    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s dl_src=%s", ip, remote_bridge_port,mac);
-	    cmd2 = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s dl_dst=%s", ip, remote_bridge_port,mac);	    
-	}
+	String[] ifaces=["eth1", "eth2"];
 	ExecShellCmd obj = new ExecShellCmd();
-	String output=obj.exeCmd(cmd);
-	output=obj.exeCmd(cmd2);
+	String output;
+	for(String name:names) {
+	    for (String iface:ifaces) {
+		OFPort = remoteFindContOfPort(ip, ovs_port, bridge_remote_port, name, iface, OF_version);
+		if (OFPort.equals("")) {
+		    continue;
+		}
+		if(OF_version.equals("13")){
+		    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s -OOpenflow13 in_port=%s", ip, remote_bridge_port,OFPort);
+		} else {
+		    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s in_port=%s", ip, remote_bridge_port,OFPort);
+		}
+		output=obj.exeCmd(cmd);		
+	    }
+	}
     }    
 
     public void remoteAddRoute(String ip, String dockerPort, String contName, String route, String device) {
