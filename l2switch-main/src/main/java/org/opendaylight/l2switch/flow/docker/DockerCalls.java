@@ -549,7 +549,9 @@ public class DockerCalls {
 		} else {
 		    cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl del-flows tcp:%s:%s in_port=%s", ip, remote_bridge_port,OFPort);
 		}
-		output=obj.exeCmd(cmd);		
+		System.out.println(cmd);
+		output=obj.exeCmd(cmd);
+		System.out.println(output);
 	    }
 	}
     }    
