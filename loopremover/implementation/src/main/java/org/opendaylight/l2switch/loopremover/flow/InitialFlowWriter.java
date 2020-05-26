@@ -16,12 +16,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.DataObjectModification;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeChangeListener;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeIdentifier;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeModification;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.DataObjectModification;
+import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
+import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.openflowplugin.api.OFConstants;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
@@ -61,6 +61,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.EthernetMatchBuilder;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.yang.binding.Identifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +111,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
         InstanceIdentifier<Node> nodeInstanceIdentifier = InstanceIdentifier.builder(Nodes.class)
                 .child(Node.class).build();
 
-        return dataBroker.registerDataTreeChangeListener(new DataTreeIdentifier<>(LogicalDatastoreType.OPERATIONAL,
-                nodeInstanceIdentifier), this);
+        return dataBroker.registerDataTreeChangeListener(DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, nodeInstanceIdentifier), this);
     }
 
     @Override
@@ -157,7 +157,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
             for (InstanceIdentifier<?> nodeId : nodeIds) {
                 if (Node.class.isAssignableFrom(nodeId.getTargetType())) {
                     InstanceIdentifier<Node> topoNodeId = (InstanceIdentifier<Node>)nodeId;
-                    if (topoNodeId.firstKeyOf(Node.class,NodeKey.class).getId().getValue().contains("openflow:")) {
+                    if (topoNodeId.firstKeyOf(Node.class).getId().getValue().contains("openflow:")) {
                         addInitialFlows(topoNodeId);
                     }
                 }
@@ -244,8 +244,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
 
         private Action getSendToControllerAction() {
             Action sendToController = new ActionBuilder()
-                    .setOrder(0)
-                    .setKey(new ActionKey(0))
+                    .setOrder(0).withKey(new ActionKey(0))
                     .setAction(new OutputActionCaseBuilder()
                             .setOutputAction(new OutputActionBuilder()
                                     .setMaxLength(0xffff)
@@ -261,7 +260,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                                                                        InstanceIdentifier<Table> tableInstanceId,
                                                                        InstanceIdentifier<Flow> flowPath,
                                                                        Flow flow) {
-            LOG.trace("Adding flow to node {}",nodeInstanceId.firstKeyOf(Node.class, NodeKey.class).getId().getValue());
+            LOG.trace("Adding flow to node {}",nodeInstanceId.firstKeyOf(Node.class).getId().getValue());
             final AddFlowInputBuilder builder = new AddFlowInputBuilder(flow);
             builder.setNode(new NodeRef(nodeInstanceId));
             builder.setFlowRef(new FlowRef(flowPath));

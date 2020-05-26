@@ -50,7 +50,7 @@ public class PacketDispatcherTest {
         packetDispatcher.setPacketProcessingService(packetProcessingService);
         packetDispatcher.setInventoryReader(inventoryReader);
 
-        doReturn(RpcResultBuilder.success().buildFuture()).when(packetProcessingService).transmitPacket(any());
+        //doReturn(RpcResultBuilder.success().buildFuture()).when(packetProcessingService).transmitPacket(any());
     }
 
     @Test

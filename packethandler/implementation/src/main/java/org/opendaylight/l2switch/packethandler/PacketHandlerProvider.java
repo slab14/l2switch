@@ -8,7 +8,9 @@
 package org.opendaylight.l2switch.packethandler;
 
 import com.google.common.collect.ImmutableSet;
-import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
+//import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.packethandler.decoders.AbstractPacketDecoder;
 import org.opendaylight.l2switch.packethandler.decoders.ArpDecoder;
 import org.opendaylight.l2switch.packethandler.decoders.EthernetDecoder;
@@ -23,9 +25,9 @@ public class PacketHandlerProvider {
     private static final Logger LOG = LoggerFactory.getLogger(PacketHandlerProvider.class);
     ImmutableSet<AbstractPacketDecoder> decoders;
 
-    private final NotificationProviderService notificationService;
+    private final NotificationPublishService notificationService;
 
-    public PacketHandlerProvider(final NotificationProviderService notificationService) {
+    public PacketHandlerProvider(final NotificationPublishService notificationService) {
         this.notificationService = notificationService;
     }
 

@@ -7,8 +7,8 @@
  */
 package org.opendaylight.l2switch;
 
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.flow.FlowWriterServiceImpl;
 import org.opendaylight.l2switch.flow.InitialFlowWriter;
 import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
@@ -32,6 +32,8 @@ import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.l2switch.flow.middlebox.AlertReceiver;
 import org.opendaylight.l2switch.flow.json.DevPolicy;
+import org.opendaylight.yangtools.yang.common.Uint8;
+import org.opendaylight.yangtools.yang.common.Uint16;
 
 public class L2SwitchMainProvider {
     private static final Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
@@ -39,7 +41,7 @@ public class L2SwitchMainProvider {
     private Registration reactFlowWriterReg;
 
     private final DataBroker dataService;
-    private final NotificationProviderService notificationService;
+    private final NotificationService notificationService;
     private final SalFlowService salFlowService;
     private final L2switchConfig mainConfig;
     private String dataplaneIP;//"127.0.0.1";
@@ -54,7 +56,7 @@ public class L2SwitchMainProvider {
 
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
-            final NotificationProviderService notificationService,
+            final NotificationService notificationService,
             final SalFlowService salFlowService, final L2switchConfig config) {
         this.dataService = dataBroker;
         this.notificationService = notificationService;
@@ -83,10 +85,10 @@ public class L2SwitchMainProvider {
 	policyMap=mapBuilder.build();
         // Setup FlowWrtierService
         FlowWriterServiceImpl flowWriterService = new FlowWriterServiceImpl(salFlowService);
-        flowWriterService.setFlowTableId(mainConfig.getReactiveFlowTableId());
-        flowWriterService.setFlowPriority(mainConfig.getReactiveFlowPriority());
-        flowWriterService.setFlowIdleTimeout(mainConfig.getReactiveFlowIdleTimeout());
-        flowWriterService.setFlowHardTimeout(mainConfig.getReactiveFlowHardTimeout());
+        flowWriterService.setFlowTableId(Uint16.valueOf(mainConfig.getReactiveFlowTableId()).shortValue());
+        flowWriterService.setFlowPriority(mainConfig.getReactiveFlowPriority().intValue());
+        flowWriterService.setFlowIdleTimeout(mainConfig.getReactiveFlowIdleTimeout().intValue());
+        flowWriterService.setFlowHardTimeout(mainConfig.getReactiveFlowHardTimeout().intValue());
 
         // Setup InventoryReader
         InventoryReader inventoryReader = new InventoryReader(dataService);
@@ -95,10 +97,10 @@ public class L2SwitchMainProvider {
         if (mainConfig.isIsInstallDropallFlow()) {
             LOG.info("L2Switch will install a dropall flow on each switch");
             InitialFlowWriter initialFlowWriter = new InitialFlowWriter(salFlowService);
-            initialFlowWriter.setFlowTableId(mainConfig.getDropallFlowTableId());
-            initialFlowWriter.setFlowPriority(mainConfig.getDropallFlowPriority());
-            initialFlowWriter.setFlowIdleTimeout(mainConfig.getDropallFlowIdleTimeout());
-            initialFlowWriter.setFlowHardTimeout(mainConfig.getDropallFlowHardTimeout());
+            initialFlowWriter.setFlowTableId(Uint16.valueOf(mainConfig.getDropallFlowTableId()).shortValue());
+            initialFlowWriter.setFlowPriority(mainConfig.getDropallFlowPriority().intValue());
+            initialFlowWriter.setFlowIdleTimeout(mainConfig.getDropallFlowIdleTimeout().intValue());
+            initialFlowWriter.setFlowHardTimeout(mainConfig.getDropallFlowHardTimeout().intValue());
             topoNodeListherReg = initialFlowWriter.registerAsDataChangeListener(dataService);
         }
         else {

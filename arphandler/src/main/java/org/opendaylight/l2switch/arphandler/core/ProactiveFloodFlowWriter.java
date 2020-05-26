@@ -7,7 +7,7 @@
  */
 package org.opendaylight.l2switch.arphandler.core;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -19,12 +19,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeChangeListener;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeIdentifier;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeModification;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
+import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.openflowplugin.api.OFConstants;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
@@ -71,8 +71,6 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.loopremover.rev140
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ProactiveFloodFlowWriter is used for the proactive mode of L2Switch. In this
@@ -81,8 +79,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatusAwareNodeConnector>,
         OpendaylightInventoryListener {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ProactiveFloodFlowWriter.class);
 
     private static final String FLOW_ID_PREFIX = "L2switch-";
 
@@ -153,11 +149,9 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                     stpStatusDataChangeEventProcessor.schedule(new StpStatusDataChangeEventProcessor(),
                             flowInstallationDelay, TimeUnit.MILLISECONDS);
                     flowRefreshScheduled = true;
-                    LOG.debug("Scheduled Flows for refresh.");
                 }
             }
         } else {
-            LOG.debug("Already scheduled for flow refresh.");
             threadReschedule = true;
         }
     }
@@ -169,8 +163,8 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
         InstanceIdentifier<StpStatusAwareNodeConnector> path = InstanceIdentifier.<Nodes>builder(Nodes.class)
                 .<Node>child(Node.class).<NodeConnector>child(NodeConnector.class)
                 .<StpStatusAwareNodeConnector>augmentation(StpStatusAwareNodeConnector.class).build();
-        return dataBroker.registerDataTreeChangeListener(new DataTreeIdentifier<>(
-                LogicalDatastoreType.OPERATIONAL, path), this);
+        return dataBroker.registerDataTreeChangeListener(
+	        DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, path), this);
     }
 
     /**
@@ -184,11 +178,9 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                     stpStatusDataChangeEventProcessor.schedule(new StpStatusDataChangeEventProcessor(),
                             flowInstallationDelay, TimeUnit.MILLISECONDS);
                     flowRefreshScheduled = true;
-                    LOG.debug("Scheduled Flows for refresh.");
                 }
             }
         } else {
-            LOG.debug("Already scheduled for flow refresh.");
             threadReschedule = true;
         }
     }
@@ -196,9 +188,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
     private class StpStatusDataChangeEventProcessor implements Runnable {
         @Override
         public void run() {
-            LOG.debug("In flow refresh thread.");
             if (threadReschedule) {
-                LOG.debug("Rescheduling thread");
                 stpStatusDataChangeEventProcessor.schedule(this, flowInstallationDelay, TimeUnit.MILLISECONDS);
                 threadReschedule = false;
                 return;
@@ -216,7 +206,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
             try {
                 InstanceIdentifier.InstanceIdentifierBuilder<Nodes> nodesInsIdBuilder = InstanceIdentifier
                         .<Nodes>builder(Nodes.class);
-                ReadOnlyTransaction readOnlyTransaction = dataBroker.newReadOnlyTransaction();
+                ReadTransaction readOnlyTransaction = dataBroker.newReadOnlyTransaction();
                 Optional<Nodes> dataObjectOptional = null;
                 dataObjectOptional = readOnlyTransaction
                         .read(LogicalDatastoreType.OPERATIONAL, nodesInsIdBuilder.build()).get();
@@ -225,16 +215,13 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                 }
                 readOnlyTransaction.close();
             } catch (InterruptedException e) {
-                LOG.error("Failed to read nodes from Operation data store.");
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
             } catch (ExecutionException e) {
-                LOG.error("Failed to read nodes from Operation data store.");
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
             }
 
             if (nodes == null) {
                 // Reschedule thread when the data store read had errors
-                LOG.debug("Rescheduling flow refresh thread because datastore read failed.");
                 if (!flowRefreshScheduled) {
                     flowRefreshScheduled = true;
                     stpStatusDataChangeEventProcessor.schedule(this, flowInstallationDelay, TimeUnit.MILLISECONDS);
@@ -246,7 +233,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                     if (nodeConnectors != null) {
                         for (NodeConnector outerNodeConnector : nodeConnectors) {
                             StpStatusAwareNodeConnector outerSaNodeConnector = outerNodeConnector
-                                    .getAugmentation(StpStatusAwareNodeConnector.class);
+                                    .augmentation(StpStatusAwareNodeConnector.class);
                             if (outerSaNodeConnector != null
                                     && StpStatus.Discarding.equals(outerSaNodeConnector.getStatus())) {
                                 continue;
@@ -261,7 +248,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                                         // that are "forwarding" will be flooded
                                         // on
                                         StpStatusAwareNodeConnector saNodeConnector = nodeConnector
-                                                .getAugmentation(StpStatusAwareNodeConnector.class);
+                                                .augmentation(StpStatusAwareNodeConnector.class);
                                         if (saNodeConnector == null
                                                 || StpStatus.Forwarding.equals(saNodeConnector.getStatus())) {
                                             outputActions.add(new ActionBuilder() //
@@ -283,8 +270,8 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                                 // Add controller port to outputActions for
                                 // external ports only
                                 if (outerSaNodeConnector == null) {
-                                    outputActions.add(new ActionBuilder().setOrder(0).setKey(new ActionKey(0))
-                                            .setAction(
+                                    outputActions.add(new ActionBuilder().setOrder(0).withKey(new ActionKey(0))
+					     .setAction(
                                                     new OutputActionCaseBuilder()
                                                             .setOutputAction(new OutputActionBuilder()
                                                                     .setMaxLength(0xffff)
@@ -294,7 +281,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                                                             .build())
                                             .build());
                                 }
-
+				
                                 // Create an Apply Action
                                 ApplyActions applyActions = new ApplyActionsBuilder() //
                                         .setAction(ImmutableList.copyOf(outputActions)).build();

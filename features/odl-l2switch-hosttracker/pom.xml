@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>single-feature-parent</artifactId>
-        <version>3.1.6</version>
+        <version>7.0.1</version>
         <relativePath/>
     </parent>
 
@@ -24,6 +24,21 @@
     <name>OpenDaylight :: L2Switch :: HostTracker</name>
 
     <dependencies>
+
+      <dependency>
+	<groupId>org.opendaylight.yangtools</groupId>
+	<artifactId>yang-model-api</artifactId>
+	<version>5.0.1</version>
+      </dependency>
+
+      <dependency>
+	<groupId>org.opendaylight.yangtools</groupId>
+	<artifactId>rfc7952-data-api</artifactId>
+	<version>5.0.1</version>
+      </dependency>
+
+
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>odl-l2switch-addresstracker</artifactId>

@@ -7,9 +7,10 @@
  */
 package org.opendaylight.l2switch.hosttracker.plugin.internal;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.FluentFuture;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,14 +18,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.DataObjectModification;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeChangeListener;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeIdentifier;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeModification;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.DataObjectModification;
+import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
+import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.l2switch.hosttracker.plugin.inventory.Host;
 import org.opendaylight.l2switch.hosttracker.plugin.util.Utilities;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.address.tracker.rev140617.AddressCapableNodeConnector;
@@ -45,8 +45,6 @@ import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
 public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
@@ -54,8 +52,6 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
     private static final int CPUS = Runtime.getRuntime().availableProcessors();
 
     private static final String TOPOLOGY_NAME = "flow:1";
-
-    private static final Logger LOG = LoggerFactory.getLogger(HostTrackerImpl.class);
 
     private final DataBroker dataService;
     private final String topologyId;
@@ -113,22 +109,24 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
                         .child(NodeConnector.class) //
                         .augmentation(AddressCapableNodeConnector.class)//
                         .child(Addresses.class).build();
-        this.addrsNodeListenerRegistration = dataService.registerDataTreeChangeListener(new DataTreeIdentifier<>(
-                LogicalDatastoreType.OPERATIONAL, addrCapableNodeConnectors), (DataTreeChangeListener)this);
+        this.addrsNodeListenerRegistration = dataService.registerDataTreeChangeListener(
+			DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, addrCapableNodeConnectors),
+			(DataTreeChangeListener)this);
 
         InstanceIdentifier<HostNode> hostNodes = InstanceIdentifier.builder(NetworkTopology.class)//
                 .child(Topology.class, new TopologyKey(new TopologyId(topologyId)))//
                 .child(Node.class)
                 .augmentation(HostNode.class).build();
-        this.hostNodeListenerRegistration = dataService.registerDataTreeChangeListener(new DataTreeIdentifier<>(
-                LogicalDatastoreType.OPERATIONAL, hostNodes), (DataTreeChangeListener)this);
+        this.hostNodeListenerRegistration = dataService.registerDataTreeChangeListener(
+			DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, hostNodes),
+			(DataTreeChangeListener)this);
 
         InstanceIdentifier<Link> linkIID = InstanceIdentifier.builder(NetworkTopology.class)//
                 .child(Topology.class, new TopologyKey(new TopologyId(topologyId)))
                 .child(Link.class).build();
 
-        this.linkNodeListenerRegistration = dataService.registerDataTreeChangeListener(new DataTreeIdentifier<>(
-                LogicalDatastoreType.OPERATIONAL, linkIID), (DataTreeChangeListener)this);
+        this.linkNodeListenerRegistration = dataService.registerDataTreeChangeListener(
+		DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, linkIID), (DataTreeChangeListener)this);
 
         //Processing addresses that existed before we register as a data change listener.
 //        ReadOnlyTransaction newReadOnlyTransaction = dataService.newReadOnlyTransaction();
@@ -197,7 +195,7 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         if (iid.getTargetType().equals(Node.class)) {
             Node node = (Node) rootNode.getDataBefore();
             InstanceIdentifier<Node> iiN = (InstanceIdentifier<Node>) iid;
-            HostNode hostNode = node.getAugmentation(HostNode.class);
+            HostNode hostNode = node.augmentation(HostNode.class);
             if (hostNode != null) {
                 hosts.removeLocally(iiN);
             }
@@ -215,10 +213,10 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         InstanceIdentifier<org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node> iin =
             ii.firstIdentifierOf(org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node.class);
 
-        ListenableFuture<Optional<NodeConnector>> futureNodeConnector;
-        ListenableFuture<Optional<
+        FluentFuture<Optional<NodeConnector>> futureNodeConnector;
+        FluentFuture<Optional<
             org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node>> futureNode;
-        try (ReadOnlyTransaction readTx = dataService.newReadOnlyTransaction()) {
+        try (ReadTransaction readTx = dataService.newReadOnlyTransaction()) {
             futureNodeConnector = readTx.read(LogicalDatastoreType.OPERATIONAL, iinc);
             futureNode = readTx.read(LogicalDatastoreType.OPERATIONAL, iin);
             readTx.close();
@@ -229,7 +227,7 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
             opNodeConnector = futureNodeConnector.get();
             opNode = futureNode.get();
         } catch (ExecutionException | InterruptedException ex) {
-            LOG.warn(ex.getLocalizedMessage());
+            //LOG.warn(ex.getLocalizedMessage());
         }
         if (opNode != null && opNode.isPresent()
                 && opNodeConnector != null && opNodeConnector.isPresent()) {
@@ -245,17 +243,13 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         List<Link> linksToRem = new ArrayList<>();
         List<Link> linksToAdd = new ArrayList<>();
         synchronized (hosts) {
-            LOG.trace("Processing nodeConnector: {} ", nodeConnector.getId().toString());
             HostId hostId = Host.createHostId(addrs);
             if (hostId != null) {
                 if (isNodeConnectorInternal(nodeConnector)) {
-                    LOG.trace("NodeConnector is internal: {} ", nodeConnector.getId().toString());
-
                     removeNodeConnectorFromHost(hostsToMod, hostsToRem, nodeConnector);
                     hosts.removeAll(hostsToRem);
                     hosts.putAll(hostsToMod);
                 } else {
-                    LOG.trace("NodeConnector is NOT internal {} ", nodeConnector.getId().toString());
                     Host host = new Host(addrs, nodeConnector);
                     if (hosts.containsKey(host.getId())) {
                         hosts.get(host.getId()).mergeHostWith(host);
@@ -283,18 +277,17 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
      *     if it was not found a network topology or it was not found a host connected to this nodeConnetor.
      */
     private boolean isNodeConnectorInternal(NodeConnector nodeConnector) {
-        TpId tpId = new TpId(nodeConnector.getKey().getId().getValue());
+        TpId tpId = new TpId(nodeConnector.key().getId().getValue());
         InstanceIdentifier<NetworkTopology> ntII
                 = InstanceIdentifier.builder(NetworkTopology.class).build();
-        ListenableFuture<Optional<NetworkTopology>> lfONT;
-        try (ReadOnlyTransaction rot = dataService.newReadOnlyTransaction()) {
+        FluentFuture<Optional<NetworkTopology>> lfONT;
+        try (ReadTransaction rot = dataService.newReadOnlyTransaction()) {
             lfONT = rot.read(LogicalDatastoreType.OPERATIONAL, ntII);
         }
         Optional<NetworkTopology> optionalNT;
         try {
             optionalNT = lfONT.get();
         } catch (InterruptedException | ExecutionException ex) {
-            LOG.warn(ex.getLocalizedMessage());
             return false;
         }
         if (optionalNT.isPresent()) {
@@ -340,7 +333,6 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
     }
 
     private void linkRemoved(InstanceIdentifier<Link> iiLink, Link linkRemoved) {
-        LOG.trace("linkRemoved");
         List<Host> hostsToMod = new ArrayList<>();
         List<Host> hostsToRem = new ArrayList<>();
         synchronized (hosts) {
@@ -353,16 +345,14 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
     private void writeDataToDataStore(List<Link> linksToAdd, List<Link> linksToRemove) {
         if (linksToAdd != null) {
             for (final Link l : linksToAdd) {
-                final InstanceIdentifier<Link> lIID = Utilities.buildLinkIID(l.getKey(), topologyId);
-                LOG.trace("Writing link from MD_SAL: {}", lIID.toString());
-                opProcessor.enqueueOperation(tx -> tx.merge(LogicalDatastoreType.OPERATIONAL, lIID, l, true));
+                final InstanceIdentifier<Link> lIID = Utilities.buildLinkIID(l.key(), topologyId);
+                opProcessor.enqueueOperation(tx -> tx.merge(LogicalDatastoreType.OPERATIONAL, lIID, l));
             }
         }
         if (linksToRemove != null) {
             for (Link l : linksToRemove) {
-                final InstanceIdentifier<Link> lIID = Utilities.buildLinkIID(l.getKey(), topologyId);
-                LOG.trace("Removing link from MD_SAL: {}", lIID.toString());
-                opProcessor.enqueueOperation(tx -> tx.delete(LogicalDatastoreType.OPERATIONAL,  lIID));
+                final InstanceIdentifier<Link> lIID = Utilities.buildLinkIID(l.key(), topologyId);
+		opProcessor.enqueueOperation(tx -> tx.delete(LogicalDatastoreType.OPERATIONAL,  lIID));
             }
         }
     }
@@ -380,21 +370,19 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         final long nowInSeconds = TimeUnit.MILLISECONDS.toSeconds(nowInMillis);
         // iterate through all hosts in the local cache
         for (Host h : hosts.values()) {
-            final HostNode hn = h.getHostNode().getAugmentation(HostNode.class);
-            if (hn == null) {
-                LOG.warn("Encountered non-host node {} in hosts during purge", h);
-            } else if (hn.getAddresses() != null) {
+            final HostNode hn = h.getHostNode().augmentation(HostNode.class);
+            //if (hn == null) {
+                //LOG.warn("Encountered non-host node {} in hosts during purge", h);
+            //} else 	    if (hn.getAddresses() != null) {
+	    if (hn.getAddresses() != null) {
                 boolean purgeHosts = false;
                 // if the node is a host and has addresses, check to see if it's been seen recently
                 purgeHosts = hostReadyForPurge(hn, nowInSeconds,hostsPurgeAgeInSeconds);
                 if (purgeHosts) {
                     numHostsPurged = removeHosts(h, numHostsPurged);
                 }
-            } else {
-                LOG.warn("Encountered host node {} with no address in hosts during purge", hn);
             }
         }
-        LOG.debug("Number of purged hosts during current purge interval - {}. ", numHostsPurged);
     }
 
     /**
@@ -408,14 +396,13 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
     private boolean hostReadyForPurge(final HostNode hostNode, final long currentTimeInSeconds,
             final long expirationPeriod) {
         // checks if hosts need to be purged
-        for (Addresses addrs : hostNode.getAddresses()) {
+	List<Addresses> hostAddrs = new ArrayList<Addresses>(hostNode.getAddresses().values());
+        for (Addresses addrs : hostAddrs) {
             long lastSeenTimeInSeconds = addrs.getLastSeen() / 1000;
             if (lastSeenTimeInSeconds > currentTimeInSeconds - expirationPeriod) {
-                LOG.debug("Host node {} NOT ready for purge", hostNode);
                 return false;
             }
         }
-        LOG.debug("Host node {} ready for purge", hostNode);
         return true;
     }
 
@@ -424,15 +411,12 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
      *
      * @param host  reference to Host node
      */
-    private int removeHosts(@Nonnull final Host host, int numHostsPurged) {
+    private int removeHosts(final Host host, int numHostsPurged) {
         // remove associated links with the host before removing hosts
         removeAssociatedLinksFromHosts(host);
         // purge hosts from local & MD-SAL database
         if (hosts.remove(host.getId()) != null) {
             numHostsPurged++;
-            LOG.debug("Removed host with id {} during purge.", host.getId());
-        } else {
-            LOG.warn("Unexpected error encountered - Failed to remove host {} during purge", host);
         }
 
         return numHostsPurged;
@@ -444,7 +428,7 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
      *
      * @param host  reference to Host node
      */
-    private void removeAssociatedLinksFromHosts(@Nonnull final Host host) {
+    private void removeAssociatedLinksFromHosts(final Host host) {
         if (host.getId() != null) {
             List<Link> linksToRemove = new ArrayList<>();
             for (Link link: links.values()) {
@@ -453,8 +437,6 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
                 }
             }
             links.removeAll(linksToRemove);
-        } else {
-            LOG.warn("Encountered host with no id , Unexpected host id {}. ", host);
         }
     }
 

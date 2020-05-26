@@ -3,22 +3,12 @@ module arp-packet {
   namespace "urn:opendaylight:packet:arp";
   prefix arp;
 
-  import ietf-inet-types {
-    prefix inet;
-    revision-date 2013-07-15;
-  }
-  import base-packet {
-    prefix bpacket;
-    revision-date 2014-05-28;
-  }
-  import ethernet-packet {
-    prefix ethernet;
-    revision-date 2014-05-28;
-  }
+  import ietf-inet-types { prefix inet; revision-date 2013-07-15; }
+  import base-packet { prefix bpacket; revision-date 2014-05-28; }
+  import ethernet-packet { prefix ethernet; revision-date 2014-05-28; }
 
   revision 2014-05-28 {
-    description
-      "ARP packet module draft.";
+    description "ARP packet module draft.";
   }
 
   typedef known-hardware-type {
@@ -63,7 +53,7 @@ module arp-packet {
       type ethernet:known-ether-type;
       description "Higher layer protocol for which the ARP request is intended.  This corresponds to EtherType.";
     }
-
+    
     leaf hardware-length {
       type uint8;
       description "Length (in octets) of a hardware address.  Ethernet address size is 6.";
@@ -99,7 +89,12 @@ module arp-packet {
       description "Internet address of the destination/target.";
     }
 
-    uses bpacket:packet-fields;
+    leaf arp-payload-offset {
+      type int32;
+    }
+    leaf arp-payload-length {
+      type int32;
+    }
   }
 
   notification arp-packet-received {

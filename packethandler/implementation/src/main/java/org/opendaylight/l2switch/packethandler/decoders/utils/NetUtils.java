@@ -15,15 +15,12 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Utility class containing the common utility functions needed for operating on
  * networking data structures.
  */
 public final class NetUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(NetUtils.class);
     /**
      * Constant holding the number of bits in a byte.
      */
@@ -126,7 +123,7 @@ public final class NetUtils {
         try {
             ip = InetAddress.getByAddress(NetUtils.intToByteArray4(address));
         } catch (UnknownHostException e) {
-            LOG.error("", e);
+            //LOG.error("", e);
         }
         return ip;
     }
@@ -166,7 +163,7 @@ public final class NetUtils {
         try {
             return InetAddress.getByAddress(address);
         } catch (UnknownHostException e) {
-            LOG.error("", e);
+            //LOG.error("", e);
         }
         return null;
     }
@@ -380,7 +377,7 @@ public final class NetUtils {
         try {
             address = InetAddress.getByName(addressString);
         } catch (UnknownHostException e) {
-            LOG.error("", e);
+            //LOG.error("", e);
         }
         return address;
     }

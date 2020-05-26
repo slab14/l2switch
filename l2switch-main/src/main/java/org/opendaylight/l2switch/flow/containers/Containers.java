@@ -204,14 +204,14 @@ public class Containers {
 
     public String getNodeString(NodeConnectorRef ncr) {
 	Pattern pattern = Pattern.compile(":");
-	Uri uri = ncr.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	Uri uri = ncr.getValue().firstKeyOf(NodeConnector.class).getId();
 	String[] nodeName = pattern.split(uri.getValue());
 	return String.format("%s:%s", nodeName[0], nodeName[1]);
     }
 
     public String getPortFromNodeConnectorRef(NodeConnectorRef ncr) {
 	Pattern pattern = Pattern.compile(":");
-	Uri uri = ncr.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	Uri uri = ncr.getValue().firstKeyOf(NodeConnector.class).getId();
 	String[] outPort = pattern.split(uri.getValue());
 	return outPort[2];
     }

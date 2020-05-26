@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Mock;
 import org.opendaylight.l2switch.inventory.InventoryReader;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
@@ -33,9 +34,9 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 
 public class ReactiveFlowWriterTest {
 
-    @MockitoAnnotations.Mock private InventoryReader inventoryReader;
-    @MockitoAnnotations.Mock private FlowWriterService flowWriterService;
-    @MockitoAnnotations.Mock private NodeConnectorRef destNodeConnectorRef;
+    @Mock private InventoryReader inventoryReader;
+    @Mock private FlowWriterService flowWriterService;
+    @Mock private NodeConnectorRef destNodeConnectorRef;
     private ReactiveFlowWriter reactiveFlowWriter;
     private InstanceIdentifier<Node> nodeInstanceIdentifier;
     private NodeConnectorRef nodeConnectorRef;

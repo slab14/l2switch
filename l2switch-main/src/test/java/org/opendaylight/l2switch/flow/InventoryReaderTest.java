@@ -12,16 +12,18 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-import com.google.common.util.concurrent.CheckedFuture;
+//import com.google.common.util.concurrent.CheckedFuture;
+import com.google.common.util.concurrent.FluentFuture;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.mockito.Mock;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.l2switch.inventory.InventoryReader;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Ipv4Address;
@@ -46,15 +48,15 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 
 public class InventoryReaderTest {
 
-    @MockitoAnnotations.Mock
+    @Mock
     private DataBroker dataService;
-    @MockitoAnnotations.Mock
-    private ReadOnlyTransaction readOnlyTransaction;
-    @MockitoAnnotations.Mock
+    @Mock
+    private ReadTransaction readOnlyTransaction;
+    @Mock
     private Optional<Node> dataObjectOptional;
-    @MockitoAnnotations.Mock
-    private CheckedFuture checkedFuture;
-    @MockitoAnnotations.Mock
+    @Mock
+    private FluentFuture checkedFuture;
+    @Mock
     private Node node;
 
     private InventoryReader inventoryReader;
@@ -98,13 +100,13 @@ public class InventoryReaderTest {
         StpStatusAwareNodeConnector stpStatusAwareNodeConnector = new StpStatusAwareNodeConnectorBuilder()
                 .setStatus(StpStatus.Discarding).build();
 
-        NodeConnector nc1 = new NodeConnectorBuilder().setKey(new NodeConnectorKey(new NodeConnectorId("1"))).build();
-        NodeConnector nc2 = new NodeConnectorBuilder().setKey(new NodeConnectorKey(new NodeConnectorId("2")))
+        NodeConnector nc1 = new NodeConnectorBuilder().withKey(new NodeConnectorKey(new NodeConnectorId("1"))).build();
+        NodeConnector nc2 = new NodeConnectorBuilder().withKey(new NodeConnectorKey(new NodeConnectorId("2")))
                 .addAugmentation(AddressCapableNodeConnector.class, addressCapableNodeConnector).build();
-        NodeConnector nc3 = new NodeConnectorBuilder().setKey(new NodeConnectorKey(new NodeConnectorId("3")))
+        NodeConnector nc3 = new NodeConnectorBuilder().withKey(new NodeConnectorKey(new NodeConnectorId("3")))
                 .addAugmentation(StpStatusAwareNodeConnector.class, stpStatusAwareNodeConnector)
                 .addAugmentation(AddressCapableNodeConnector.class, addressCapableNodeConnector).build();
-        NodeConnector ncLocal = new NodeConnectorBuilder().setKey(new NodeConnectorKey(new NodeConnectorId("LOCAL")))
+        NodeConnector ncLocal = new NodeConnectorBuilder().withKey(new NodeConnectorKey(new NodeConnectorId("LOCAL")))
                 .addAugmentation(StpStatusAwareNodeConnector.class, stpStatusAwareNodeConnector)
                 .addAugmentation(AddressCapableNodeConnector.class, addressCapableNodeConnector).build();
 

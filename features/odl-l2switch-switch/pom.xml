@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>single-feature-parent</artifactId>
-        <version>3.1.6</version>
+        <version>7.0.1</version>
         <relativePath/>
     </parent>
 
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.opendaylight.l2switch.main</groupId>
             <artifactId>main-impl</artifactId>
-            <version>0.7.5-SNAPSHOT</version>
+            <version>${project.version}</version>	    
         </dependency>
     </dependencies>
 </project>

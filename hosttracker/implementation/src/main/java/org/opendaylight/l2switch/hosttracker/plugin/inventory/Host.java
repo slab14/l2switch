@@ -10,10 +10,13 @@ package org.opendaylight.l2switch.hosttracker.plugin.inventory;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ListIterator;
 import org.opendaylight.l2switch.hosttracker.plugin.util.Compare;
 import org.opendaylight.l2switch.hosttracker.plugin.util.Utilities;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.address.tracker.rev140617.address.node.connector.Addresses;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.address.tracker.rev140617.address.node.connector.AddressesKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.host.tracker.rev140624.HostId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.host.tracker.rev140624.HostNode;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.host.tracker.rev140624.HostNodeBuilder;
@@ -44,8 +47,10 @@ public class Host {
     private final NodeBuilder nodeBuilder;
 
     public static Host createHost(Node node) {
-        HostNode hostNode = node.getAugmentation(HostNode.class);
-        return new Host(hostNode.getId(), hostNode.getAddresses(), hostNode.getAttachmentPoints());
+        HostNode hostNode = node.augmentation(HostNode.class);
+	List<Addresses> hostAddresses = new ArrayList<Addresses>(hostNode.getAddresses().values());
+	List<AttachmentPoints> hostAPs = new ArrayList<AttachmentPoints>(hostNode.getAttachmentPoints().values());
+        return new Host(hostNode.getId(), hostAddresses, hostAPs);
     }
 
     public Host(HostId hostId, List<Addresses> addrs, List<AttachmentPoints> aps) throws InvalidParameterException {
@@ -85,7 +90,7 @@ public class Host {
         for (AttachmentPointsBuilder apb : attachmentPointsBuilders) {
             attachmentPoints.add(apb.build());
         }
-        hostNodeBuilder.setAttachmentPoints(attachmentPoints);
+	hostNodeBuilder.setAttachmentPoints(attachmentPoints);
         return nodeBuilder.addAugmentation(HostNode.class, hostNodeBuilder.build()).build();
     }
 
@@ -105,7 +110,7 @@ public class Host {
         }
         NodeBuilder node = new NodeBuilder().setNodeId(createNodeId(hostNode))
                 .setTerminationPoint(tps);
-        node.setKey(new NodeKey(node.getNodeId()));
+        node.withKey(new NodeKey(node.getNodeId()));
 
         return node;
     }
@@ -191,8 +196,11 @@ public class Host {
      */
     public synchronized void mergeHostWith(Host newHost) {
         ListIterator<Addresses> oldLIAddrs;
-        for (Addresses newAddrs : newHost.hostNodeBuilder.getAddresses()) {
-            oldLIAddrs = this.hostNodeBuilder.getAddresses().listIterator();
+	List<Addresses> hostAddrs = new ArrayList<Addresses>(newHost.hostNodeBuilder.getAddresses().values());
+        for (Addresses newAddrs : hostAddrs) {
+	    List<Addresses> oldAddrsList = new ArrayList<Addresses>(this.hostNodeBuilder.getAddresses().values());
+	    
+            oldLIAddrs = oldAddrsList.listIterator();
             while (oldLIAddrs.hasNext()) {
                 Addresses oldAddrs = oldLIAddrs.next();
                 if (Compare.addresses(oldAddrs, newAddrs)) {
@@ -200,7 +208,11 @@ public class Host {
                     break;
                 }
             }
-            this.hostNodeBuilder.getAddresses().add(newAddrs);
+	    Map<AddressesKey, Addresses> newAddrsMap = new HashMap<AddressesKey, Addresses>();	    
+	    for (AddressesKey key : this.hostNodeBuilder.getAddresses().keySet()){
+		newAddrsMap.put(key, newAddrs);
+	    }
+	    this.hostNodeBuilder.setAddresses(newAddrsMap);
         }
 
         ListIterator<AttachmentPointsBuilder> oldLIAPs;
@@ -226,7 +238,7 @@ public class Host {
     public synchronized void removeAttachmentPoints(AttachmentPointsBuilder apb) {
         LOG.debug("Setting attachment points {} to inactive state", apb);
         for (AttachmentPointsBuilder apbi : attachmentPointsBuilders) {
-            if (apbi.getKey().equals(apb.getKey())) {
+            if (apbi.key().equals(apb.key())) {
                 apbi.setActive(Boolean.FALSE);
             }
         }

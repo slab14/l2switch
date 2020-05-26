@@ -8,7 +8,9 @@
 package org.opendaylight.l2switch.packethandler.decoders;
 
 import java.util.ArrayList;
-import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
+//import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.packethandler.decoders.utils.BitBufferHelper;
 import org.opendaylight.l2switch.packethandler.decoders.utils.BufferException;
 import org.opendaylight.l2switch.packethandler.decoders.utils.HexEncode;
@@ -30,21 +32,18 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.e
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketProcessingListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketReceived;
 import org.opendaylight.yangtools.yang.binding.NotificationListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Ethernet Packet Decoder.
  */
 public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, EthernetPacketReceived>
         implements PacketProcessingListener {
-    private static final Logger LOG = LoggerFactory.getLogger(EthernetDecoder.class);
     public static final Integer LENGTH_MAX = 1500;
     public static final Integer ETHERTYPE_MIN = 1536;
     public static final Integer ETHERTYPE_8021Q = 0x8100;
     public static final Integer ETHERTYPE_QINQ = 0x9100;
 
-    public EthernetDecoder(NotificationProviderService notificationProviderService) {
+    public EthernetDecoder(NotificationPublishService notificationProviderService) {
         super(EthernetPacketReceived.class, notificationProviderService);
     }
 
@@ -129,15 +128,13 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
                 epBuilder.setEthertype(KnownEtherType.forValue(nextField));
             } else if (nextField <= LENGTH_MAX) {
                 epBuilder.setEthernetLength(nextField);
-            } else {
-                LOG.debug("Undefined header, value is not valid EtherType or length.  Value is {}", nextField);
             }
 
             // Determine start & end of payload
             int payloadStart = (112 + extraHeaderBits) / NetUtils.NUM_BITS_IN_A_BYTE;
             int payloadEnd = data.length - 4;
-            epBuilder.setPayloadOffset(payloadStart);
-            epBuilder.setPayloadLength(payloadEnd - payloadStart);
+            epBuilder.setEthPayloadOffset(payloadStart);
+            epBuilder.setEthPayloadLength(payloadEnd - payloadStart);
 
             // Deserialize the CRC
             epBuilder.setCrc(BitBufferHelper
@@ -149,7 +146,7 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
             // Set Payload field
             builder.setPayload(data);
         } catch (BufferException be) {
-            LOG.info("Exception during decoding raw packet to ethernet.");
+            //LOG.info("Exception during decoding raw packet to ethernet.");
         }
 
         // ToDo: Possibly log these values

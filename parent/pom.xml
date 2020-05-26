@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.opendaylight.mdsal</groupId>
     <artifactId>binding-parent</artifactId>
-    <version>0.12.4</version>
+    <version>6.0.0</version>
     <relativePath/>
   </parent>
   <groupId>org.opendaylight.l2switch</groupId>
@@ -15,15 +15,20 @@
 
   <properties>
     <jung2.version>2.1.1</jung2.version>
-    <openflow.plugin.version>0.6.4</openflow.plugin.version>
+    <openflow.plugin.version>0.10.1</openflow.plugin.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.opendaylight.controller</groupId>
+	<groupId>org.opendaylight.controller</groupId>
+	<artifactId>controller-artifacts</artifactId>
+	<version>2.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opendaylight.mdsal</groupId>
         <artifactId>mdsal-artifacts</artifactId>
-        <version>1.7.4</version>
+        <version>6.0.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -57,6 +62,7 @@
         <artifactId>jung-graph-impl</artifactId>
         <version>${jung2.version}</version>
       </dependency>
+  
     </dependencies>
   </dependencyManagement>
 
@@ -83,10 +89,11 @@
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-compiler-plugin</artifactId>
-                  <version>${maven.compile.plugin.version}</version>
+                  <version>3.8.1</version>
                   <configuration>
-                      <source>${java.version.source}</source>
-                      <target>${java.version.target}</target>
+                      <source>11</source>
+                      <target>11</target>
+		      <forceJavacCompilerUse>true</forceJavacCompilerUse>
                   </configuration>
               </plugin>
 
@@ -145,7 +152,7 @@
                                   <pluginExecutionFilter>
                                       <groupId>org.opendaylight.yangtools</groupId>
                                       <artifactId>yang-maven-plugin</artifactId>
-                                      <versionRange>[0.5,)</versionRange>
+                                      <versionRange>[0.7,)</versionRange>
                                       <goals>
                                           <goal>generate-sources</goal>
                                       </goals>
@@ -190,13 +197,6 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-          </plugin>
-          <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>findbugs-maven-plugin</artifactId>
-              <configuration>
-                  <failOnError>false</failOnError>
-              </configuration>
           </plugin>
       </plugins>
   </build>

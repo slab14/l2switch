@@ -38,28 +38,30 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.controller</groupId>
-            <artifactId>sal-binding-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.controller</groupId>
-            <artifactId>sal-common-util</artifactId>
+	    <version>6.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.opendaylight.yangtools</groupId>
             <artifactId>yang-common</artifactId>
+	    <version>5.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.opendaylight.mdsal</groupId>
             <artifactId>yang-binding</artifactId>
+	    <version>6.0.0</version>
         </dependency>
+	<dependency>
+	  <groupId>org.opendaylight.mdsal</groupId>
+	  <artifactId>mdsal-binding-api</artifactId>
+	  <version>6.0.0</version>
+	</dependency>
+
         <dependency>
             <groupId>org.opendaylight.controller.model</groupId>
             <artifactId>model-inventory</artifactId>
-            <type>jar</type>
+	    <version>1.11.1</version>
         </dependency>
+
         <dependency>
             <groupId>org.opendaylight.l2switch.addresstracker</groupId>
             <artifactId>addresstracker-model</artifactId>
@@ -73,6 +75,20 @@
         <dependency>
             <groupId>org.opendaylight.mdsal.model</groupId>
             <artifactId>ietf-topology</artifactId>
+	    <version>2013.10.21.17.9</version>
         </dependency>
+
+        <dependency>
+          <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
+          <artifactId>rfc6991-ietf-inet-types</artifactId>
+          <version>6.0.0</version>
+        </dependency>
+
+        <dependency>
+          <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
+          <artifactId>rfc6991-ietf-yang-types</artifactId>
+          <version>6.0.0</version>
+        </dependency>
+	
     </dependencies>
 </project>

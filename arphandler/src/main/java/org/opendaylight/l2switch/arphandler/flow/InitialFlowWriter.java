@@ -19,12 +19,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.DataObjectModification;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeChangeListener;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeIdentifier;
-import org.opendaylight.controller.md.sal.binding.api.DataTreeModification;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.DataObjectModification;
+import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
+import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.openflowplugin.api.OFConstants;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
@@ -66,15 +66,12 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.K
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Adds a flow, which sends all ARP packets to the controller, on all switches.
  * Registers as ODL Inventory listener so that it can add flows once a new node i.e. switch is added
  */
 public class InitialFlowWriter implements DataTreeChangeListener<Node> {
-    private static final Logger LOG = LoggerFactory.getLogger(InitialFlowWriter.class);
 
     private static final String FLOW_ID_PREFIX = "L2switch-";
 
@@ -117,8 +114,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
     public ListenerRegistration<InitialFlowWriter> registerAsDataChangeListener(DataBroker dataBroker) {
         InstanceIdentifier<Node> nodeInstanceIdentifier = InstanceIdentifier.builder(Nodes.class)
                 .child(Node.class).build();
-        return dataBroker.registerDataTreeChangeListener(new DataTreeIdentifier<>(LogicalDatastoreType.OPERATIONAL,
-                nodeInstanceIdentifier), this);
+        return dataBroker.registerDataTreeChangeListener(DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, nodeInstanceIdentifier), this);
     }
 
     @Override
@@ -163,7 +159,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
             for (InstanceIdentifier<?> nodeId : nodeIds) {
                 if (Node.class.isAssignableFrom(nodeId.getTargetType())) {
                     InstanceIdentifier<Node> invNodeId = (InstanceIdentifier<Node>)nodeId;
-                    if (invNodeId.firstKeyOf(Node.class,NodeKey.class).getId().getValue().contains("openflow:")) {
+                    if (invNodeId.firstKeyOf(Node.class).getId().getValue().contains("openflow:")) {
                         addInitialFlows(invNodeId);
                     }
                 }
@@ -176,14 +172,12 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
          * @param nodeId The node to write the flow on.
          */
         public void addInitialFlows(InstanceIdentifier<Node> nodeId) {
-            LOG.debug("adding initial flows for node {} ", nodeId);
 
             InstanceIdentifier<Table> tableId = getTableInstanceId(nodeId);
             InstanceIdentifier<Flow> flowId = getFlowInstanceId(tableId);
 
             //add arpToController flow
             writeFlowToController(nodeId, tableId, flowId, createArpToControllerFlow(flowTableId, flowPriority));
-            LOG.debug("Added initial flows for node {} ", nodeId);
         }
 
         private InstanceIdentifier<Table> getTableInstanceId(InstanceIdentifier<Node> nodeId) {
@@ -257,8 +251,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
 
         private Action getSendToControllerAction() {
             Action sendToController = new ActionBuilder()
-                    .setOrder(0)
-                    .setKey(new ActionKey(0))
+                    .setOrder(0).withKey(new ActionKey(0))
                     .setAction(new OutputActionCaseBuilder()
                             .setOutputAction(new OutputActionBuilder()
                                     .setMaxLength(0xffff)
@@ -271,8 +264,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
 
         private Action getNormalAction() {
             Action normal = new ActionBuilder()
-                    .setOrder(0)
-                    .setKey(new ActionKey(0))
+                    .setOrder(0).withKey(new ActionKey(0))
                     .setAction(new OutputActionCaseBuilder()
                             .setOutputAction(new OutputActionBuilder()
                                     .setMaxLength(0xffff)
@@ -287,7 +279,6 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                                                                        InstanceIdentifier<Table> tableInstanceId,
                                                                        InstanceIdentifier<Flow> flowPath,
                                                                        Flow flow) {
-            LOG.trace("Adding flow to node {}",nodeInstanceId.firstKeyOf(Node.class, NodeKey.class).getId().getValue());
             final AddFlowInputBuilder builder = new AddFlowInputBuilder(flow);
             builder.setNode(new NodeRef(nodeInstanceId));
             builder.setFlowRef(new FlowRef(flowPath));

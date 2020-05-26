@@ -12,7 +12,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
+//import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.packethandler.decoders.utils.BitBufferHelper;
 import org.opendaylight.l2switch.packethandler.decoders.utils.BufferException;
 import org.opendaylight.l2switch.packethandler.decoders.utils.NetUtils;
@@ -32,8 +34,6 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ipv6.rev140528.ipv6.
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ipv6.rev140528.ipv6.packet.fields.ExtensionHeadersBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ipv6.rev140528.ipv6.packet.received.packet.chain.packet.Ipv6PacketBuilder;
 import org.opendaylight.yangtools.yang.binding.NotificationListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * IPv6 Packet Decoder.
@@ -41,9 +41,7 @@ import org.slf4j.LoggerFactory;
 public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, Ipv6PacketReceived>
         implements EthernetPacketListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Ipv6Decoder.class);
-
-    public Ipv6Decoder(NotificationProviderService notificationProviderService) {
+    public Ipv6Decoder(NotificationPublishService notificationProviderService) {
         super(Ipv6PacketReceived.class, notificationProviderService);
     }
 
@@ -58,15 +56,15 @@ public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, I
         // EthernetPacket
         List<PacketChain> packetChainList = ethernetPacketReceived.getPacketChain();
         EthernetPacket ethernetPacket = (EthernetPacket) packetChainList.get(packetChainList.size() - 1).getPacket();
-        int bitOffset = ethernetPacket.getPayloadOffset() * NetUtils.NUM_BITS_IN_A_BYTE;
+        int bitOffset = ethernetPacket.getEthPayloadOffset() * NetUtils.NUM_BITS_IN_A_BYTE;
         byte[] data = ethernetPacketReceived.getPayload();
 
         Ipv6PacketBuilder builder = new Ipv6PacketBuilder();
         try {
             builder.setVersion(BitBufferHelper.getShort(BitBufferHelper.getBits(data, bitOffset, 4)));
-            if (builder.getVersion().intValue() != 6) {
-                LOG.debug("Version should be 6, but is {}", builder.getVersion());
-            }
+            //if (builder.getVersion().intValue() != 6) {
+	    //LOG.debug("Version should be 6, but is {}", builder.getVersion());
+            //}
 
             builder.setDscp(new Dscp(BitBufferHelper.getShort(BitBufferHelper.getBits(data, bitOffset + 4, 6))));
             builder.setEcn(BitBufferHelper.getShort(BitBufferHelper.getBits(data, bitOffset + 10, 2)));
@@ -79,8 +77,8 @@ public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, I
                     InetAddress.getByAddress(BitBufferHelper.getBits(data, bitOffset + 64, 128)).getHostAddress()));
             builder.setDestinationIpv6(Ipv6Address.getDefaultInstance(
                     InetAddress.getByAddress(BitBufferHelper.getBits(data, bitOffset + 192, 128)).getHostAddress()));
-            builder.setPayloadOffset((320 + bitOffset) / NetUtils.NUM_BITS_IN_A_BYTE);
-            builder.setPayloadLength(builder.getIpv6Length());
+            builder.setIpv6PayloadOffset((320 + bitOffset) / NetUtils.NUM_BITS_IN_A_BYTE);
+            builder.setIpv6PayloadLength(builder.getIpv6Length().intValue());
 
             // Decode the optional "extension headers"
             List<ExtensionHeaders> extensionHeaders = new ArrayList<>();
@@ -107,7 +105,7 @@ public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, I
                 builder.setExtensionHeaders(extensionHeaders);
             }
         } catch (BufferException | UnknownHostException e) {
-            LOG.debug("Exception while decoding IPv4 packet", e.getMessage());
+            //LOG.debug("Exception while decoding IPv4 packet", e.getMessage());
         }
 
         // build ipv6

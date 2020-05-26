@@ -26,15 +26,12 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.Tr
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.TransmitPacketInputBuilder;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * PacketDispatcher sends packets out to the network.
  */
 public class PacketDispatcher {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PacketDispatcher.class);
     private InventoryReader inventoryReader;
     private PacketProcessingService packetProcessingService;
 
@@ -61,7 +58,7 @@ public class PacketDispatcher {
     public void dispatchPacket(byte[] payload, NodeConnectorRef ingress, MacAddress srcMac, MacAddress destMac) {
         inventoryReader.readInventory();
 
-        String nodeId = ingress.getValue().firstIdentifierOf(Node.class).firstKeyOf(Node.class, NodeKey.class).getId()
+        String nodeId = ingress.getValue().firstIdentifierOf(Node.class).firstKeyOf(Node.class).getId()
                 .getValue();
         NodeConnectorRef srcConnectorRef = inventoryReader.getControllerSwitchConnectors().get(nodeId);
 
@@ -77,9 +74,6 @@ public class PacketDispatcher {
             } else {
                 floodPacket(nodeId, payload, ingress, srcConnectorRef);
             }
-        } else {
-            LOG.info("Cannot send packet out or flood as controller node connector is not available for node {}.",
-                    nodeId);
         }
     }
 
@@ -102,16 +96,16 @@ public class PacketDispatcher {
             refreshInventoryReader();
             nodeConnectors = inventoryReader.getSwitchNodeConnectors().get(nodeId);
             if (nodeConnectors == null) {
-                LOG.info("Cannot flood packets, as inventory doesn't have any node connectors for node {}", nodeId);
+                //LOG.info("Cannot flood packets, as inventory doesn't have any node connectors for node {}", nodeId);
                 return;
             }
         }
         for (NodeConnectorRef ncRef : nodeConnectors) {
             String ncId = ncRef.getValue().firstIdentifierOf(NodeConnector.class)
-                    .firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId().getValue();
+                    .firstKeyOf(NodeConnector.class).getId().getValue();
             // Don't flood on discarding node connectors & origIngress
             if (!ncId.equals(origIngress.getValue().firstIdentifierOf(NodeConnector.class)
-                    .firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId().getValue())) {
+                    .firstKeyOf(NodeConnector.class).getId().getValue())) {
                 sendPacketOut(payload, origIngress, ncRef);
             }
         }
@@ -139,18 +133,20 @@ public class PacketDispatcher {
                 .setIngress(ingress) //
                 .build();
 
+	/*
         Futures.addCallback(JdkFutureAdapters.listenInPoolThread(packetProcessingService.transmitPacket(input)),
             new FutureCallback<RpcResult<Void>>() {
                 @Override
                 public void onSuccess(RpcResult<Void> result) {
-                    LOG.debug("transmitPacket was successful");
+                    //LOG.debug("transmitPacket was successful");
                 }
 
                 @Override
                 public void onFailure(Throwable failure) {
-                    LOG.debug("transmitPacket for {} failed", input, failure);
+                    //LOG.debug("transmitPacket for {} failed", input, failure);
                 }
             }, MoreExecutors.directExecutor());
+	*/
     }
 
     private void refreshInventoryReader() {

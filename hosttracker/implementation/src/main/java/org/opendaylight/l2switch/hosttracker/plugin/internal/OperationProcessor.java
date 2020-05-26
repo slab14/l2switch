@@ -14,17 +14,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
-import org.opendaylight.controller.md.sal.binding.api.BindingTransactionChain;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.AsyncTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.OptimisticLockFailedException;
-import org.opendaylight.controller.md.sal.common.api.data.TransactionChain;
-import org.opendaylight.controller.md.sal.common.api.data.TransactionChainListener;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.ReadWriteTransaction;
+import org.opendaylight.mdsal.common.api.OptimisticLockFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OperationProcessor implements AutoCloseable, Runnable, TransactionChainListener {
+public class OperationProcessor implements Runnable {
     private static final int NUM_RETRY_SUBMIT = 2;
     private static final int OPS_PER_CHAIN = 256;
     private static final int QUEUE_DEPTH = 512;
@@ -32,22 +28,10 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
     private static final Logger LOG = LoggerFactory.getLogger(OperationProcessor.class);
     private final DataBroker dataBroker;
     private final BlockingQueue<HostTrackerOperation> queue;
-    private final AtomicReference<BindingTransactionChain> transactionChain = new AtomicReference<>();
 
     OperationProcessor(final DataBroker dataBroker) {
         this.dataBroker = Preconditions.checkNotNull(dataBroker);
         this.queue = new LinkedBlockingQueue<>(QUEUE_DEPTH);
-        this.transactionChain.set(dataBroker.createTransactionChain(this));
-    }
-
-    @Override
-    public void onTransactionChainFailed(TransactionChain<?, ?> chain, AsyncTransaction<?, ?> transaction,
-            Throwable cause) {
-        chainFailure();
-    }
-
-    @Override
-    public void onTransactionChainSuccessful(TransactionChain<?, ?> chain) {
     }
 
     @Override
@@ -56,12 +40,8 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
         while (!done) {
             try {
                 HostTrackerOperation op = queue.take();
-                final BindingTransactionChain txChain = transactionChain.get();
-                if (txChain == null) {
-                    break;
-                }
 
-                ReadWriteTransaction tx = txChain.newReadWriteTransaction();
+                ReadWriteTransaction tx = dataBroker.newReadWriteTransaction();
 
                 int ops = 0;
                 while (op != null && ops < OPS_PER_CHAIN) {
@@ -78,21 +58,8 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
         clearQueue();
     }
 
-    @Override
-    public void close() {
-        final BindingTransactionChain txChain = transactionChain.getAndSet(null);
-        if (txChain != null) {
-            txChain.close();
-        }
-    }
-
     private void chainFailure() {
         try {
-            final BindingTransactionChain prevChain = transactionChain.getAndSet(
-                    dataBroker.createTransactionChain(this));
-            if (prevChain != null) {
-                prevChain.close();
-            }
             clearQueue();
         } catch (IllegalStateException e) {
             LOG.warn(e.getLocalizedMessage());
@@ -108,7 +75,7 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
     }
 
     public void submitTransaction(final ReadWriteTransaction tx, final int tries) {
-        Futures.addCallback(tx.submit(), new FutureCallback<Object>() {
+        Futures.addCallback(tx.commit(), new FutureCallback<Object>() {
             @Override
             public void onSuccess(Object obj) {
                 LOG.trace("tx {} succeeded", tx.getIdentifier());

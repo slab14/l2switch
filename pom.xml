@@ -6,9 +6,7 @@
   <version>0.7.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>l2switch</name> <!-- Used by Sonar to set project name -->
-  <prerequisites>
-    <maven>3.0</maven>
-  </prerequisites>
+
   <modules>
     <module>parent</module>
     <module>packethandler</module>
@@ -33,6 +31,7 @@
       <id>opendaylight-release</id>
       <url>${nexusproxy}/repositories/opendaylight.release/</url>
     </repository>
+
     <!-- OpenDayLight Snapshot artifact -->
     <snapshotRepository>
       <id>opendaylight-snapshot</id>

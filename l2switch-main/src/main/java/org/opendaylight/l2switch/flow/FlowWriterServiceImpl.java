@@ -56,12 +56,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
+import org.opendaylight.yangtools.yang.common.Uint8;
+import org.opendaylight.yangtools.yang.common.Uint16;
+
 
 /**
  * Implementation of
  * FlowWriterService{@link org.opendaylight.l2switch.flow.FlowWriterService},
  * that builds required flow and writes to configuration data store using
- * provided {@link org.opendaylight.controller.md.sal.binding.api.DataBroker}.
+ * provided {@link org.opendaylight.mdsal.binding.api.DataBroker}.
  */
 public class FlowWriterServiceImpl implements FlowWriterService {
     private static final Logger LOG = LoggerFactory.getLogger(FlowWriterServiceImpl.class);
@@ -123,7 +126,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 							  flowTableKey);
 
         // build a flow that target given mac id
-        Flow flowBody = createMacToMacFlow(flowTableKey.getId(),
+        Flow flowBody = createMacToMacFlow(Uint16.valueOf(flowTableKey.getId()).shortValue(),
 					   flowPriority, sourceMac, destMac,
 					   destNodeConnectorRef, sourceNodeConnectorRef);
 
@@ -144,7 +147,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 							  flowTableKey);
 
         // build a flow that target given mac id
-        Flow flowBody = createMacFlow(flowTableKey.getId(),
+        Flow flowBody = createMacFlow(Uint16.valueOf(flowTableKey.getId()).shortValue(),
 				      flowPriority, sourceMac,
 				      destNodeConnectorRef, sourceNodeConnectorRef);
 
@@ -167,7 +170,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 							  flowTableKey);
 
         // build a flow that target given mac id
-        Flow flowBody = createToMacFlow(flowTableKey.getId(),
+        Flow flowBody = createToMacFlow(Uint16.valueOf(flowTableKey.getId()).shortValue(),
 					   flowPriority, destMac,
 					   destNodeConnectorRef, sourceNodeConnectorRef);
 
@@ -277,11 +280,11 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	
         //Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
 	MatchBuilder matchBuilder = new MatchBuilder().setEthernetMatch(ethernetMatch);
-	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class).getId();
 	matchBuilder.setInPort(srcPort);
 	Match match = matchBuilder.build();
 	
-        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
 
 
         Action outputToControllerAction = new ActionBuilder() //
@@ -344,11 +347,11 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	
         //Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
 	MatchBuilder matchBuilder = new MatchBuilder().setEthernetMatch(ethernetMatch);
-	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class).getId();
 	matchBuilder.setInPort(srcPort);
 	Match match = matchBuilder.build();
 	
-        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
 
 
         Action outputToControllerAction = new ActionBuilder() //
@@ -409,11 +412,11 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	
         //Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
 	MatchBuilder matchBuilder = new MatchBuilder().setEthernetMatch(ethernetMatch);
-	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class).getId();
 	matchBuilder.setInPort(srcPort);
 	Match match = matchBuilder.build();
 	
-        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class, NodeConnectorKey.class).getId();
+        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
 
 
         Action outputToControllerAction = new ActionBuilder() //
