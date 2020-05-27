@@ -15,6 +15,7 @@ import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.binding.Notification;
 import org.opendaylight.yangtools.yang.binding.NotificationListener;
+import org.slf4j.Logger;
 
 /**
  * A base class for all decoders. Each extended decoder should also implement a

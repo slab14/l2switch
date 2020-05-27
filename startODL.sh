@@ -33,4 +33,4 @@ addFiles(){
 # start ODL
 cd $DIR/l2switch/distribution/karaf/target/assembly
 #sudo -E ./bin/karaf
-./bin/karaf -Xmx4096m
+./bin/karaf -Xmx4096m 

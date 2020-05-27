@@ -90,7 +90,7 @@ public final class InstanceIdentifierUtils {
      * @return the table id
      */
     public static Short getTableId(final InstanceIdentifier<Table> tablePath) {
-        return Short.valueOf(Uint16.valueOf(tablePath.firstKeyOf(Table.class).getId()).shortValue());
+        return Uint16.valueOf(tablePath.firstKeyOf(Table.class).getId()).shortValue();
     }
 
     /**

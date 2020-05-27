@@ -50,7 +50,7 @@ public class Host {
         HostNode hostNode = node.augmentation(HostNode.class);
 	List<Addresses> hostAddresses = new ArrayList<Addresses>(hostNode.getAddresses().values());
 	List<AttachmentPoints> hostAPs = new ArrayList<AttachmentPoints>(hostNode.getAttachmentPoints().values());
-        return new Host(hostNode.getId(), hostAddresses, hostAPs);
+	return new Host(hostNode.getId(), hostAddresses, hostAPs);
     }
 
     public Host(HostId hostId, List<Addresses> addrs, List<AttachmentPoints> aps) throws InvalidParameterException {

@@ -15,7 +15,7 @@
 
   <properties>
     <jung2.version>2.1.1</jung2.version>
-    <openflow.plugin.version>0.10.1</openflow.plugin.version>
+    <openflow.plugin.version>0.11.0-SNAPSHOT</openflow.plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -152,7 +152,7 @@
                                   <pluginExecutionFilter>
                                       <groupId>org.opendaylight.yangtools</groupId>
                                       <artifactId>yang-maven-plugin</artifactId>
-                                      <versionRange>[0.7,)</versionRange>
+                                      <versionRange>[5.0,)</versionRange>
                                       <goals>
                                           <goal>generate-sources</goal>
                                       </goals>

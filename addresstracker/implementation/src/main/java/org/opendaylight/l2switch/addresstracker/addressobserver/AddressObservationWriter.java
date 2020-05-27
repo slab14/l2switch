@@ -56,7 +56,7 @@ public class AddressObservationWriter {
     private long timestampUpdateInterval;
     private final DataBroker dataService;
     private final Map<NodeConnectorRef, NodeConnectorLock> lockMap = new ConcurrentHashMap<>();
-    private final Map<NodeConnectorLock, ListenableFuture<Void>> futureMap = new ConcurrentHashMap<>();
+    private final Map<NodeConnectorLock, FluentFuture<?>> futureMap = new ConcurrentHashMap<>();
 
     /**
      * Construct an AddressTracker with the specified inputs.
@@ -91,7 +91,7 @@ public class AddressObservationWriter {
 
         synchronized (nodeConnectorLock) {
             // Ensure previous transaction finished writing to the db
-            ListenableFuture<Void> future = futureMap.get(nodeConnectorLock);
+            FluentFuture<?> future = futureMap.get(nodeConnectorLock);
             if (future != null) {
                 try {
                     future.get();
@@ -133,6 +133,7 @@ public class AddressObservationWriter {
             if (acnc != null && acnc.getAddresses() != null) {
                 // Search for this mac-ip pair in the existing address
                 // observations & update last-seen timestamp
+		//                addresses = new ArrayList<Addresses>(acnc.getAddresses().values());
                 addresses = new ArrayList<Addresses>(acnc.getAddresses().values());
                 for (int i = 0; i < addresses.size(); i++) {
                     if (addresses.get(i).getIp().equals(ipAddress) && addresses.get(i).getMac().equals(macAddress)) {
@@ -167,8 +168,7 @@ public class AddressObservationWriter {
             final WriteTransaction writeTransaction = dataService.newWriteOnlyTransaction();
             // Update this AddressCapableNodeConnector in the MD-SAL data tree
             writeTransaction.merge(LogicalDatastoreType.OPERATIONAL, addressCapableNcInstanceId, acncBuilder.build());
-            //final ListenableFuture<CommitInfo> writeTxResultFuture = writeTransaction.commit();
-            //Futures.addCallback(writeTxResultFuture, new FutureCallback<CommitInfo>() {
+	    final FluentFuture<?> writeTxResultFuture = writeTransaction.commit();
 	    Futures.addCallback(writeTransaction.commit(), new FutureCallback<CommitInfo>() {
                 @Override
                 public void onSuccess(final CommitInfo notUsed) {
@@ -182,7 +182,7 @@ public class AddressObservationWriter {
                             writeTransaction.getIdentifier(), throwable.getCause());
                 }
             }, MoreExecutors.directExecutor());
-            //futureMap.put(nodeConnectorLock, writeTxResultFuture);
+            futureMap.put(nodeConnectorLock, writeTxResultFuture);
         }
     }
 }

@@ -32,12 +32,15 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.e
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketProcessingListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketReceived;
 import org.opendaylight.yangtools.yang.binding.NotificationListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Ethernet Packet Decoder.
  */
 public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, EthernetPacketReceived>
         implements PacketProcessingListener {
+    private static final Logger LOG = LoggerFactory.getLogger(EthernetDecoder.class);
     public static final Integer LENGTH_MAX = 1500;
     public static final Integer ETHERTYPE_MIN = 1536;
     public static final Integer ETHERTYPE_8021Q = 0x8100;
@@ -128,6 +131,8 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
                 epBuilder.setEthertype(KnownEtherType.forValue(nextField));
             } else if (nextField <= LENGTH_MAX) {
                 epBuilder.setEthernetLength(nextField);
+	    } else {
+                LOG.debug("Undefined header, value is not valid EtherType or length.  Value is {}", nextField);
             }
 
             // Determine start & end of payload
@@ -146,7 +151,7 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
             // Set Payload field
             builder.setPayload(data);
         } catch (BufferException be) {
-            //LOG.info("Exception during decoding raw packet to ethernet.");
+            LOG.info("Exception during decoding raw packet to ethernet.");
         }
 
         // ToDo: Possibly log these values

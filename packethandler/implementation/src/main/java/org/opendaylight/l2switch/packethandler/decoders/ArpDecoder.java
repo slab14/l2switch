@@ -31,6 +31,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.K
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.ethernet.packet.received.packet.chain.packet.EthernetPacket;
 import org.opendaylight.yangtools.yang.binding.NotificationListener;
 import org.opendaylight.yangtools.yang.common.Uint32;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ARP (Address Resolution Protocol) Packet Decoder.
@@ -38,6 +40,8 @@ import org.opendaylight.yangtools.yang.common.Uint32;
 public class ArpDecoder extends AbstractPacketDecoder<EthernetPacketReceived, ArpPacketReceived>
         implements EthernetPacketListener {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ArpDecoder.class);
+    
     public ArpDecoder(NotificationPublishService notificationProviderService) {
         super(ArpPacketReceived.class, notificationProviderService);
     }
@@ -79,15 +83,19 @@ public class ArpDecoder extends AbstractPacketDecoder<EthernetPacketReceived, Ar
             if (builder.getHardwareType().equals(KnownHardwareType.Ethernet)) {
                 builder.setSourceHardwareAddress(HexEncode.bytesToHexStringFormat(BitBufferHelper.getBits(data, bitOffset + 64, 8 * Uint32.valueOf(builder.getHardwareLength()).intValue())));
                 builder.setDestinationHardwareAddress(HexEncode.bytesToHexStringFormat(BitBufferHelper.getBits(data, bitOffset + indexDstHardAdd, 8 * Uint32.valueOf(builder.getHardwareLength()).intValue())));
+	    } else {
+                LOG.debug("Unknown HardwareType -- sourceHardwareAddress and destinationHardwareAddress are not decoded");
             }
 
             if (builder.getProtocolType().equals(KnownEtherType.Ipv4)
                     || builder.getProtocolType().equals(KnownEtherType.Ipv6)) {
                 builder.setSourceProtocolAddress(InetAddress.getByAddress(BitBufferHelper.getBits(data, bitOffset + indexSrcProtAdd, 8 * Uint32.valueOf(builder.getProtocolLength()).intValue())).getHostAddress());
                 builder.setDestinationProtocolAddress(InetAddress.getByAddress(BitBufferHelper.getBits(data, bitOffset + indexDstProtAdd, 8 * Uint32.valueOf(builder.getProtocolLength()).intValue())).getHostAddress());
+	    } else {
+                LOG.debug("Unknown ProtocolType -- sourceProtocolAddress and destinationProtocolAddress are not decoded");
             }
         } catch (BufferException | UnknownHostException e) {
-            //LOG.debug("Exception while decoding APR packet", e.getMessage());
+	    LOG.debug("Exception while decoding ARP packet", e.getMessage());
         }
 
         // build arp

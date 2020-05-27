@@ -396,8 +396,9 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
     private boolean hostReadyForPurge(final HostNode hostNode, final long currentTimeInSeconds,
             final long expirationPeriod) {
         // checks if hosts need to be purged
-	List<Addresses> hostAddrs = new ArrayList<Addresses>(hostNode.getAddresses().values());
-        for (Addresses addrs : hostAddrs) {
+	//	List<Addresses> hostAddrs = new ArrayList<Addresses>(hostNode.getAddresses().values());
+	//        for (Addresses addrs : hostAddrs) {
+        for (Addresses addrs : hostNode.getAddresses().values()) {	
             long lastSeenTimeInSeconds = addrs.getLastSeen() / 1000;
             if (lastSeenTimeInSeconds > currentTimeInSeconds - expirationPeriod) {
                 return false;

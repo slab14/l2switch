@@ -83,6 +83,7 @@ public class L2SwitchMainProvider {
 	policy=new PolicyParser(jsonString);
 	PolicyMapBuilder mapBuilder = new PolicyMapBuilder(policy);
 	policyMap=mapBuilder.build();
+	
         // Setup FlowWrtierService
         FlowWriterServiceImpl flowWriterService = new FlowWriterServiceImpl(salFlowService);
         flowWriterService.setFlowTableId(Uint16.valueOf(mainConfig.getReactiveFlowTableId()).shortValue());

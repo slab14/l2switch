@@ -97,7 +97,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         if (packetReceived == null || packetReceived.getPacketChain() == null) {
             return;
         }
-
+	System.out.println("got a packet");
         RawPacket rawPacket = null;
         EthernetPacket ethernetPacket = null;
         ArpPacket arpPacket = null;
