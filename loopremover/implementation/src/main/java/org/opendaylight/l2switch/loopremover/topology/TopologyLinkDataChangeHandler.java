@@ -211,7 +211,7 @@ public class TopologyLinkDataChangeHandler implements DataTreeChangeListener<Lin
             if (topology == null) {
                 return null;
             }
-            List<Link> links = topology.getLink();
+            List<Link> links = new ArrayList<Link>(topology.getLink().values());
             if (links == null || links.isEmpty()) {
                 return null;
             }

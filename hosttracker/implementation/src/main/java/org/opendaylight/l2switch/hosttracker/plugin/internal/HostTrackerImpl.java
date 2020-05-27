@@ -292,9 +292,9 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         }
         if (optionalNT.isPresent()) {
             NetworkTopology networkTopo = optionalNT.get();
-            for (Topology t : networkTopo.getTopology()) {
+            for (Topology t : networkTopo.getTopology().values()) {
                 if (t.getLink() != null) {
-                    for (Link l : t.getLink()) {
+                    for (Link l : t.getLink().values()) {
                         if (l.getSource().getSourceTp().equals(tpId)
                                 && !l.getDestination().getDestTp().getValue().startsWith(Host.NODE_PREFIX)
                                 || l.getDestination().getDestTp().equals(tpId)

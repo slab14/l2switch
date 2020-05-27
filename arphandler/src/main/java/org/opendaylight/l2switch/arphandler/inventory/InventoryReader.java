@@ -152,9 +152,9 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
 
             if (nodes != null) {
                 // Get NodeConnectors for each node
-                for (Node node : nodes.getNode()) {
+                for (Node node : nodes.getNode().values()) {
                     ArrayList<NodeConnectorRef> nodeConnectorRefs = new ArrayList<>();
-                    List<NodeConnector> nodeConnectors = node.getNodeConnector();
+                    List<NodeConnector> nodeConnectors = new ArrayList<NodeConnector>(node.getNodeConnector().values());
                     if (nodeConnectors != null) {
                         for (NodeConnector nodeConnector : nodeConnectors) {
                             // Read STP status for this NodeConnector
@@ -217,7 +217,7 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
             if (dataObjectOptional.isPresent()) {
                 Node node = dataObjectOptional.get();
                 if (node.getNodeConnector() != null) {
-                    for (NodeConnector nc : node.getNodeConnector()) {
+                    for (NodeConnector nc : node.getNodeConnector().values()) {
                         // Don't look for mac in discarding node connectors
                         StpStatusAwareNodeConnector saNodeConnector = nc
                                 .augmentation(StpStatusAwareNodeConnector.class);

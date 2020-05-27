@@ -33,7 +33,7 @@ public final class Utilities {
     }
 
     public static List<Link> createLinks(NodeId srcNId, TpId srcTpId, NodeId dstNId, TpId dstTpId) {
-        List<Link> links = new ArrayList();
+        List<Link> links = new ArrayList<Link>();
         LinkBuilder srcdst = new LinkBuilder()//
                 .setSource(new SourceBuilder()//
                         .setSourceNode(srcNId)//

@@ -227,9 +227,9 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                     stpStatusDataChangeEventProcessor.schedule(this, flowInstallationDelay, TimeUnit.MILLISECONDS);
                 }
             } else {
-                for (Node node : nodes.getNode()) {
+                for (Node node : nodes.getNode().values()) {
                     // Install a FloodFlow on each node
-                    List<NodeConnector> nodeConnectors = node.getNodeConnector();
+                    List<NodeConnector> nodeConnectors = new ArrayList<NodeConnector>(node.getNodeConnector().values());
                     if (nodeConnectors != null) {
                         for (NodeConnector outerNodeConnector : nodeConnectors) {
                             StpStatusAwareNodeConnector outerSaNodeConnector = outerNodeConnector

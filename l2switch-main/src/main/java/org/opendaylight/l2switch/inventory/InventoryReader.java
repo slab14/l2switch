@@ -69,7 +69,7 @@ public class InventoryReader {
             if (dataObjectOptional.isPresent()) {
                 Node node = (Node) dataObjectOptional.get();
                 LOG.debug("Looking address{} in node : {}", macAddress, nodeInsId);
-                for (NodeConnector nc : node.getNodeConnector()) {
+                for (NodeConnector nc : node.getNodeConnector().values()) {
                     // Don't look for mac in discarding node connectors
                     StpStatusAwareNodeConnector saNodeConnector = nc.augmentation(StpStatusAwareNodeConnector.class);
                     if (saNodeConnector != null && StpStatus.Discarding.equals(saNodeConnector.getStatus())) {

@@ -151,8 +151,8 @@ public class TopologyLinkDataChangeHandlerTest {
                 instanceId));
         when(mockChange.getRootNode()).thenReturn(mockModification);
         // End setup code
-
-        Topology topology = new TopologyBuilder().setLink(null).build();
+	List<Link> myList = new ArrayList<Link>();
+        Topology topology = new TopologyBuilder().setLink(myList).build();
         Optional<Topology> topologyOptional = Optional.of(topology);
         FluentFuture checkedFuture = Mockito.mock(FluentFuture.class);
         when(checkedFuture.get()).thenReturn(topologyOptional);

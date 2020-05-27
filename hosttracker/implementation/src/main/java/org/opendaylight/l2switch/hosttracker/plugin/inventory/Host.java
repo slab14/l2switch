@@ -173,7 +173,7 @@ public class Host {
             org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node dstNode) {
         for (AttachmentPointsBuilder apb : attachmentPointsBuilders) {
             if (apb.isActive()) {
-                for (NodeConnector nc : dstNode.getNodeConnector()) {
+                for (NodeConnector nc : dstNode.getNodeConnector().values()) {
                     if (nc.getId().getValue().equals(apb.getTpId().getValue())) {
                         return Utilities.createLinks(nodeBuilder.getNodeId(),
                                 apb.getCorrespondingTp(),

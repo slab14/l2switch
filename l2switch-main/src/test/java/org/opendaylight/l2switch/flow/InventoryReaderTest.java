@@ -116,7 +116,7 @@ public class InventoryReaderTest {
         nodeConnectors.add(nc3);
         nodeConnectors.add(ncLocal);
 
-        when(node.getNodeConnector()).thenReturn(nodeConnectors);
+        when(node.getNodeConnector().values()).thenReturn(nodeConnectors);
 
         inventoryReader.getNodeConnector(nodeInstanceIdentifier, macAddress1);
 

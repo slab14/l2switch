@@ -24,7 +24,7 @@
     <name>OpenDaylight :: L2Switch :: HostTracker</name>
 
     <dependencies>
-
+<!--
       <dependency>
 	<groupId>org.opendaylight.yangtools</groupId>
 	<artifactId>yang-model-api</artifactId>
@@ -36,8 +36,7 @@
 	<artifactId>rfc7952-data-api</artifactId>
 	<version>5.0.1</version>
       </dependency>
-
-
+-->
 
         <dependency>
             <groupId>${project.groupId}</groupId>
