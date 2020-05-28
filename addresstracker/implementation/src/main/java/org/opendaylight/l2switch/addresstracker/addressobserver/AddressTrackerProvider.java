@@ -29,9 +29,9 @@ public class AddressTrackerProvider {
     private final String observerAddressesFrom;
 
     public AddressTrackerProvider(final DataBroker dataBroker,
-            final NotificationService notificationProviderService,
+            final NotificationService notificationService,
             final AddressTrackerConfig config) {
-        this.notificationService = notificationProviderService;
+        this.notificationService = notificationService;
         this.dataBroker = dataBroker;
         this.timestampUpdateInterval = config.getTimestampUpdateInterval().longValue();
         this.observerAddressesFrom = config.getObserveAddressesFrom();

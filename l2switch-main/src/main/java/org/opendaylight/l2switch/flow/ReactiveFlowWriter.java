@@ -94,10 +94,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 
     @Override
     public void onArpPacketReceived(ArpPacketReceived packetReceived) {
+	System.out.println("[RFW] got packet in ReactiveFlowWriter");
         if (packetReceived == null || packetReceived.getPacketChain() == null) {
             return;
         }
-	System.out.println("packet has data");
+	System.out.println("[RFW] packet has data");
         RawPacket rawPacket = null;
         EthernetPacket ethernetPacket = null;
         ArpPacket arpPacket = null;
@@ -110,12 +111,12 @@ public class ReactiveFlowWriter implements ArpPacketListener {
                 arpPacket = (ArpPacket) packet.getPacket();
             }
         }
-	System.out.println("determine packet type");
+	System.out.println("[RFW] determine packet type");
         if (rawPacket == null || ethernetPacket == null || arpPacket == null) {
             return;
         }
         MacAddress destMac = ethernetPacket.getDestinationMac();
-	System.out.println("PAcket's srcMac = "+destMac);	
+	System.out.println("[RFW] Packet's srcMac = "+destMac);	
         if (!ignoreThisMac(destMac)) {
 	    NodeConnectorRef destNodeConnector=inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
 	    System.out.println("don't ignore mac");

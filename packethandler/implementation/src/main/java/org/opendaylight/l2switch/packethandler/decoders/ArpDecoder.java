@@ -101,9 +101,11 @@ public class ArpDecoder extends AbstractPacketDecoder<EthernetPacketReceived, Ar
         packetChainList.add(new PacketChainBuilder().setPacket(builder.build()).build());
         arpReceivedBuilder.setPacketChain(packetChainList);
 
+	System.out.println("[Arp decoder] decoding Arp packet");
+	
         // carry forward the original payload.
         arpReceivedBuilder.setPayload(ethernetPacketReceived.getPayload());
-        return arpReceivedBuilder.build();
+	return arpReceivedBuilder.build();
     }
 
     @Override

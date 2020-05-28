@@ -52,6 +52,7 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
 
     @Override
     public void onPacketReceived(PacketReceived packetReceived) {
+	System.out.println("[Eth Decoder] got a packet");
         decodeAndPublish(packetReceived);
     }
 
