@@ -16,6 +16,7 @@ import java.util.Arrays;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.EthernetPacketReceived;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.Header8021qType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.KnownEtherType;
@@ -35,7 +36,8 @@ public class EthernetDecoderTest {
             (byte)0x98, (byte)0xfe, (byte)0xdc, (byte)0xba
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        EthernetPacketReceived notification = new EthernetDecoder(mock)
+	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
         assertEquals(ethernetPacket.getEthertype(), KnownEtherType.Ipv4);
@@ -59,7 +61,8 @@ public class EthernetDecoderTest {
             0x00, (byte)0xfe, (byte)0xdc, (byte)0xba
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        EthernetPacketReceived notification = new EthernetDecoder(mock)
+        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
         assertNull(ethernetPacket.getEthertype());
@@ -85,7 +88,8 @@ public class EthernetDecoderTest {
             0x00, (byte)0x00, (byte)0xdc, (byte)0xba
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        EthernetPacketReceived notification = new EthernetDecoder(mock)
+        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
         assertEquals(ethernetPacket.getEthertype(), KnownEtherType.Ipv6);
@@ -117,7 +121,8 @@ public class EthernetDecoderTest {
             (byte)0x0a, (byte)0x0b, (byte)0x0c, (byte)0x0d
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        EthernetPacketReceived notification = new EthernetDecoder(mock)
+        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
         assertEquals(ethernetPacket.getEthertype(), KnownEtherType.Ipv6);
@@ -159,7 +164,8 @@ public class EthernetDecoderTest {
             0x04, 0x5f, 0x69, 0x70, 0x70, (byte)0xc0, 0x12, 0x00, 0x0c, 0x00, 0x01
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        EthernetPacketReceived notification = new EthernetDecoder(mock)
+        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
         assertEquals(ethernetPacket.getEthertype(), KnownEtherType.Ipv6);

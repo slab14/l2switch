@@ -42,8 +42,8 @@ public class Ipv4Decoder extends AbstractPacketDecoder<EthernetPacketReceived, I
     
     private static final Logger LOG = LoggerFactory.getLogger(Ipv4Decoder.class);
     
-    public Ipv4Decoder(NotificationPublishService notificationProviderService) {
-        super(Ipv4PacketReceived.class, notificationProviderService);
+    public Ipv4Decoder(NotificationPublishService notificationProviderService, NotificationService notificationService) {
+        super(Ipv4PacketReceived.class, notificationProviderService, notificationService);
     }
 
     /**

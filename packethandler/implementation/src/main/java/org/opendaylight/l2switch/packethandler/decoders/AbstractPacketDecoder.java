@@ -9,7 +9,6 @@ package org.opendaylight.l2switch.packethandler.decoders;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-//import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yangtools.concepts.Registration;
@@ -26,21 +25,24 @@ public abstract class AbstractPacketDecoder<C, P extends Notification>
 
     private final Class<P> producedPacketNotificationType;
     private final NotificationPublishService notificationProviderService;
-    //private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
     private static final int CPUS = Runtime.getRuntime().availableProcessors();
     private final ExecutorService decodeAndPublishExecutor = Executors.newFixedThreadPool(CPUS);
 
-    //protected Registration listenerRegistration;
+    protected Registration listenerRegistration;
 
     /**
      * Constructor.
      */
     public AbstractPacketDecoder(Class<P> producedPacketNotificationType,
-				 NotificationPublishService notificationProviderService) {
+				 NotificationPublishService notificationProviderService, NotificationService notificationService) {
         this.producedPacketNotificationType = producedPacketNotificationType;
         this.notificationProviderService = notificationProviderService;
+        this.notificationService = notificationService;	
         //notificationService.registerNotificationListener(this);
+	NotificationListener notificationListener = getConsumedNotificationListener();
+	listenerRegistration = notificationService.registerNotificationListener(notificationListener);	
     }
 
     /**
@@ -87,11 +89,9 @@ public abstract class AbstractPacketDecoder<C, P extends Notification>
 
     @Override
     public void close() throws Exception {
-	/*
         if (listenerRegistration != null) {
             listenerRegistration.close();
         }
-	*/
         decodeAndPublishExecutor.shutdown();
     }
 }

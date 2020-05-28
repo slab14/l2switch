@@ -10,7 +10,6 @@ package org.opendaylight.l2switch.packethandler.decoders;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
-//import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.packethandler.decoders.utils.BitBufferHelper;
@@ -42,8 +41,8 @@ public class ArpDecoder extends AbstractPacketDecoder<EthernetPacketReceived, Ar
 
     private static final Logger LOG = LoggerFactory.getLogger(ArpDecoder.class);
     
-    public ArpDecoder(NotificationPublishService notificationProviderService) {
-        super(ArpPacketReceived.class, notificationProviderService);
+    public ArpDecoder(NotificationPublishService notificationProviderService, NotificationService notificationService) {
+        super(ArpPacketReceived.class, notificationProviderService, notificationService);
     }
 
     /**
@@ -104,7 +103,6 @@ public class ArpDecoder extends AbstractPacketDecoder<EthernetPacketReceived, Ar
 
         // carry forward the original payload.
         arpReceivedBuilder.setPayload(ethernetPacketReceived.getPayload());
-
         return arpReceivedBuilder.build();
     }
 

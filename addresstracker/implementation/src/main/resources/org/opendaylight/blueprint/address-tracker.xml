@@ -6,7 +6,7 @@
   <reference id="dataBroker"
     interface="org.opendaylight.mdsal.binding.api.DataBroker"
     odl:type="default" />
-  <reference id="notificationProviderService"
+  <reference id="notificationPublishService"
     interface="org.opendaylight.mdsal.binding.api.NotificationService" />
 
   <odl:clustered-app-config id="addressTrackerConfig"

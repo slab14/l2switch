@@ -29,8 +29,8 @@ import org.opendaylight.yangtools.yang.binding.NotificationListener;
 public class IcmpDecoder extends AbstractPacketDecoder<Ipv4PacketReceived, IcmpPacketReceived>
         implements Ipv4PacketListener {
 
-    public IcmpDecoder(NotificationPublishService notificationProviderService) {
-        super(IcmpPacketReceived.class, notificationProviderService);
+    public IcmpDecoder(NotificationPublishService notificationProviderService, NotificationService notificationService) {
+        super(IcmpPacketReceived.class, notificationProviderService, notificationService);
     }
 
     /**

@@ -25,8 +25,7 @@
         <module>features-l2switch</module>
         <module>odl-l2switch-all</module>
         <module>odl-l2switch-switch</module>
-        <module>odl-l2switch-switch-rest</module>
-        <module>odl-l2switch-switch-ui</module>
+        <!--<module>odl-l2switch-switch-rest</module>-->
         <module>odl-l2switch-hosttracker</module>
         <module>odl-l2switch-addresstracker</module>
         <module>odl-l2switch-arphandler</module>

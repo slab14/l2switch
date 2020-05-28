@@ -46,8 +46,8 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
     public static final Integer ETHERTYPE_8021Q = 0x8100;
     public static final Integer ETHERTYPE_QINQ = 0x9100;
 
-    public EthernetDecoder(NotificationPublishService notificationProviderService) {
-        super(EthernetPacketReceived.class, notificationProviderService);
+    public EthernetDecoder(NotificationPublishService notificationProviderService, NotificationService notificationService) {
+        super(EthernetPacketReceived.class, notificationProviderService, notificationService);
     }
 
     @Override

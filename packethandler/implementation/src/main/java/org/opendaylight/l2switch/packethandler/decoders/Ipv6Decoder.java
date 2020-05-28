@@ -41,8 +41,8 @@ import org.opendaylight.yangtools.yang.binding.NotificationListener;
 public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, Ipv6PacketReceived>
         implements EthernetPacketListener {
 
-    public Ipv6Decoder(NotificationPublishService notificationProviderService) {
-        super(Ipv6PacketReceived.class, notificationProviderService);
+    public Ipv6Decoder(NotificationPublishService notificationProviderService, NotificationService notificationService) {
+        super(Ipv6PacketReceived.class, notificationProviderService, notificationService);
     }
 
     /**

@@ -20,6 +20,7 @@
     <artifactId>features-l2switch</artifactId>
     <version>0.7.5-SNAPSHOT</version>
     <packaging>feature</packaging>
+    
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -39,13 +40,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>odl-l2switch-switch-rest</artifactId>
-            <version>${project.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>odl-l2switch-switch-ui</artifactId>
             <version>${project.version}</version>
             <type>xml</type>
             <classifier>features</classifier>

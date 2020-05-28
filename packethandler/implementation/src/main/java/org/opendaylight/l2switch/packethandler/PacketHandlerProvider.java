@@ -8,7 +8,6 @@
 package org.opendaylight.l2switch.packethandler;
 
 import com.google.common.collect.ImmutableSet;
-//import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.packethandler.decoders.AbstractPacketDecoder;
@@ -25,17 +24,21 @@ public class PacketHandlerProvider {
     private static final Logger LOG = LoggerFactory.getLogger(PacketHandlerProvider.class);
     ImmutableSet<AbstractPacketDecoder> decoders;
 
-    private final NotificationPublishService notificationService;
+    private final NotificationPublishService notificationPublishService;
+    private final NotificationService notificationService;
 
-    public PacketHandlerProvider(final NotificationPublishService notificationService) {
-        this.notificationService = notificationService;
+    public PacketHandlerProvider(final NotificationPublishService notificationPublishService, final NotificationService notificationService) {
+        this.notificationPublishService = notificationPublishService;
+        this.notificationService = notificationService;	
     }
 
     public void initiateDecoders() {
         decoders = new ImmutableSet.Builder<AbstractPacketDecoder>()
-                .add(new EthernetDecoder(notificationService))
-                .add(new ArpDecoder(notificationService)).add(new Ipv4Decoder(notificationService))
-                .add(new Ipv6Decoder(notificationService)).add(new IcmpDecoder(notificationService)).build();
+	    .add(new EthernetDecoder(notificationPublishService, notificationService))
+	    .add(new ArpDecoder(notificationPublishService, notificationService))
+	    .add(new Ipv4Decoder(notificationPublishService, notificationService))
+	    .add(new Ipv6Decoder(notificationPublishService, notificationService))
+	    .add(new IcmpDecoder(notificationPublishService, notificationService)).build();
         LOG.info("PacketHandler initialized.");
     }
 
