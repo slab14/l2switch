@@ -18,20 +18,6 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.l2switch.config.re
 import org.opendaylight.yangtools.concepts.Registration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.opendaylight.l2switch.flow.docker.DockerCalls;
-import java.util.Scanner;
-import org.opendaylight.l2switch.flow.json.PolicyParser;
-import org.opendaylight.l2switch.flow.json.GetFile;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import org.opendaylight.l2switch.flow.chain.PolicyMapBuilder;
-import java.util.HashMap;
-import org.opendaylight.l2switch.flow.chain.MacGroup;
-import org.opendaylight.l2switch.flow.chain.PolicyStatus;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
-import org.opendaylight.l2switch.flow.middlebox.AlertReceiver;
-import org.opendaylight.l2switch.flow.json.DevPolicy;
 import org.opendaylight.yangtools.yang.common.Uint8;
 import org.opendaylight.yangtools.yang.common.Uint16;
 
@@ -44,15 +30,6 @@ public class L2SwitchMainProvider {
     private final NotificationService notificationService;
     private final SalFlowService salFlowService;
     private final L2switchConfig mainConfig;
-    private String dataplaneIP;//"127.0.0.1";
-    private String dockerPort;//"4243";
-    private String ovsPort;//="6677";
-    private String remote_ovs_port;//="6634";
-    private String OFversion;//="13";
-    private String alertPort; //"6969"
-    private PolicyParser policy;
-    private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
-    private AlertReceiver mboxAlertServer = new AlertReceiver();
 
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
@@ -62,28 +39,9 @@ public class L2SwitchMainProvider {
         this.notificationService = notificationPublishService;
         this.salFlowService = salFlowService;
         this.mainConfig = config;
-	this.dataplaneIP=config.getDataplaneIP();
-	this.dockerPort=config.getDockerPort();
-	this.ovsPort=config.getOvsPort();
-	this.remote_ovs_port=config.getRemoteOvsPort();
-	this.OFversion=config.getOFversion();
-	this.alertPort=config.getAlertPort();
     }
 
     public void init() {
-	GetFile policyReader=new GetFile();
-	String jsonString=new String();
-	try {
-	    jsonString=policyReader.readFile(mainConfig.getPolicyFile());
-	} catch (FileNotFoundException e) {
-	    System.out.println("Error: "+e);
-	} catch (IOException e) {
-	    System.out.println("Error: "+e);
-	}
-	policy=new PolicyParser(jsonString);
-	PolicyMapBuilder mapBuilder = new PolicyMapBuilder(policy);
-	policyMap=mapBuilder.build();
-	
         // Setup FlowWrtierService
         FlowWriterServiceImpl flowWriterService = new FlowWriterServiceImpl(salFlowService);
         flowWriterService.setFlowTableId(Uint16.valueOf(mainConfig.getReactiveFlowTableId()).shortValue());
@@ -114,20 +72,10 @@ public class L2SwitchMainProvider {
         else {
             // Setup reactive flow writer
             LOG.info("L2Switch will react to network traffic and install flows");
-            ReactiveFlowWriter reactiveFlowWriter = new ReactiveFlowWriter(inventoryReader,
-									   flowWriterService,
-									   dataplaneIP, dockerPort,
-									   ovsPort, remote_ovs_port,
-									   OFversion, policy, policyMap);
+            ReactiveFlowWriter reactiveFlowWriter = new ReactiveFlowWriter(inventoryReader, flowWriterService);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
 
-	    // Start up listening socket to receive middlebox alters
-	    mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
-	    setupAlertReceiver(reactiveFlowWriter);
-	    mboxAlertServer.startServer();
-		    
         }
-	System.out.println("\nReady");
         LOG.info("L2SwitchMain initialized.");
     }
 
@@ -139,30 +87,7 @@ public class L2SwitchMainProvider {
         if (topoNodeListherReg != null) {
             topoNodeListherReg.close();
         }
-	mboxAlertServer.stopServer();	
-	DockerCalls docker = new DockerCalls();
-	String output = docker.remoteFindExistingContainers(dataplaneIP, dockerPort);
-	Iterable<String> sc = () -> new Scanner(output).useDelimiter("\n");
-	for(String line : sc) {
-	    String name = line.replace("\'","");
-	    if (!name.equals("")){
-		String ovsBridge = docker.remoteFindBridge(dataplaneIP, ovsPort);
-		docker.remoteShutdownContainer(dataplaneIP, dockerPort, name, ovsBridge, ovsPort);
-	    }
-	}
-	docker.remoteDeleteFlows(dataplaneIP, remote_ovs_port, OFversion);
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
-    }
-
-    private void setupAlertReceiver(ReactiveFlowWriter flowWriter){
-	mboxAlertServer.setDataplaneIP(dataplaneIP);
-	mboxAlertServer.setDockerPort(dockerPort);
-	mboxAlertServer.setOvsPort(ovsPort);
-	mboxAlertServer.setOFversion(OFversion);
-	mboxAlertServer.setOvsBridgeRemotePort(remote_ovs_port);
-	mboxAlertServer.setPolicy(policy.parsed.devices);
-	mboxAlertServer.setPolicyMap(policyMap);
-	mboxAlertServer.setFlowWriter(flowWriter);
     }
 }
 

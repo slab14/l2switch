@@ -46,39 +46,11 @@ module l2switch-config {
         }
         leaf reactive-flow-hard-timeout {
             type uint16;
-            default 0;
+            default 300;
         }
         leaf reactive-flow-idle-timeout {
             type uint16;
-            default 0;
+            default 600;
         }
-	leaf policy-file {
-	     type string;
-	     default "/users/slab/IoT_Sec_Gateway/policies/cloudlab-NewPolicy20.json";
-	}
-	leaf dataplane-IP {
-	     type string;
-	     default "127.0.0.1";
-	}
-	leaf docker-port {
-	     type string;
-	     default "4243";
-	}
-	leaf ovs-port {
-	     type string;
-	     default "6677";
-	}
-	leaf remote-ovs-port {
-	     type string;
-	     default "6634";
-	}
-	leaf OFversion {
-	     type string;
-	     default "13";
-	}
-	leaf alert-port {
-	     type string;
-	     default "9696";
-	}
     }
 }

@@ -60,7 +60,7 @@ public class FlowWriterServiceImplTest {
         MacAddress sourceMac = new MacAddress("00:00:ac:f0:01:01");
         MacAddress destMac = new MacAddress("00:00:ac:f0:02:02");
 
-        flowWriterService.addMacToMacFlow(sourceMac, destMac, nodeConnectorRef, nodeConnectorRef2);
+        flowWriterService.addMacToMacFlow(sourceMac, destMac, nodeConnectorRef);
         verify(salFlowService, times(1)).addFlow(any(AddFlowInput.class));
     }
 

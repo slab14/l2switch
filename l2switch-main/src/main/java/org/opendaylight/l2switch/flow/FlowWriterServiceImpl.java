@@ -54,7 +54,6 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 import org.opendaylight.yangtools.yang.common.Uint8;
 import org.opendaylight.yangtools.yang.common.Uint16;
@@ -106,8 +105,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
     @Override
     public void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac,
-				NodeConnectorRef destNodeConnectorRef,
-				NodeConnectorRef sourceNodeConnectorRef) {
+				NodeConnectorRef destNodeConnectorRef) {
 
         Preconditions.checkNotNull(destMac, "Destination mac address should not be null.");
         Preconditions.checkNotNull(destNodeConnectorRef, "Destination port should not be null.");
@@ -128,56 +126,12 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         // build a flow that target given mac id
         Flow flowBody = createMacToMacFlow(Uint16.valueOf(flowTableKey.getId()).shortValue(),
 					   flowPriority, sourceMac, destMac,
-					   destNodeConnectorRef, sourceNodeConnectorRef);
+					   destNodeConnectorRef);
 
         // commit the flow in config data
         writeFlowToConfigData(flowPath, flowBody);
     }
 
-    public void addMacFlow(MacAddress sourceMac, NodeConnectorRef destNodeConnectorRef,
-				NodeConnectorRef sourceNodeConnectorRef) {
-
-        Preconditions.checkNotNull(destNodeConnectorRef, "Destination port should not be null.");
-
-        // get flow table key
-        TableKey flowTableKey = new TableKey((short) flowTableId);
-
-        // build a flow path based on node connector to program flow
-        InstanceIdentifier<Flow> flowPath = buildFlowPath(destNodeConnectorRef,
-							  flowTableKey);
-
-        // build a flow that target given mac id
-        Flow flowBody = createMacFlow(Uint16.valueOf(flowTableKey.getId()).shortValue(),
-				      flowPriority, sourceMac,
-				      destNodeConnectorRef, sourceNodeConnectorRef);
-
-        // commit the flow in config data
-        writeFlowToConfigData(flowPath, flowBody);
-    }    
-
-    public void addToMacFlow(MacAddress destMac,
-				NodeConnectorRef destNodeConnectorRef,
-				NodeConnectorRef sourceNodeConnectorRef) {
-
-        Preconditions.checkNotNull(destMac, "Destination mac address should not be null.");
-        Preconditions.checkNotNull(destNodeConnectorRef, "Destination port should not be null.");
-
-        // get flow table key
-        TableKey flowTableKey = new TableKey((short) flowTableId);
-
-        // build a flow path based on node connector to program flow
-        InstanceIdentifier<Flow> flowPath = buildFlowPath(destNodeConnectorRef,
-							  flowTableKey);
-
-        // build a flow that target given mac id
-        Flow flowBody = createToMacFlow(Uint16.valueOf(flowTableKey.getId()).shortValue(),
-					   flowPriority, destMac,
-					   destNodeConnectorRef, sourceNodeConnectorRef);
-
-        // commit the flow in config data
-        writeFlowToConfigData(flowPath, flowBody);
-    }
-    
     /**
      * Writes mac-to-mac flow on all ports that are in the path between given
      * source and destination ports. It uses path provided by
@@ -208,30 +162,13 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         }
 
         // add destMac-To-sourceMac flow on source port
-        addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef, destNodeConnectorRef);
+        addMacToMacFlow(destMac, sourceMac, sourceNodeConnectorRef);
 
         // add sourceMac-To-destMac flow on destination port
-        addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef, sourceNodeConnectorRef);	
+        addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef);
 	
     }
 
-    @Override
-    public void addBidirectionalMacFlows(MacAddress sourceMac,
-					 NodeConnectorRef sourceNodeConnectorRef,
-					 NodeConnectorRef destNodeConnectorRef) {
-        Preconditions.checkNotNull(sourceMac, "Source mac address should not be null.");
-        Preconditions.checkNotNull(sourceNodeConnectorRef, "Source port should not be null.");
-        Preconditions.checkNotNull(destNodeConnectorRef, "Destination port should not be null.");
-
-        if (sourceNodeConnectorRef.equals(destNodeConnectorRef)) {
-            LOG.info("In addMacToMacFlowsUsingShortestPath: No flows added. Source and Destination ports are same.");
-            return;
-        }
-        // add destMac(*)-To-sourceMac flow on source port
-        addToMacFlow(sourceMac, sourceNodeConnectorRef, destNodeConnectorRef);
-        // add sourceMac-To-destMac(*) flow on destination port
-        addMacFlow(sourceMac, destNodeConnectorRef, sourceNodeConnectorRef);	
-    }    
 
     /**
      * @param nodeConnectorRef
@@ -257,7 +194,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      * @return the Flow
      */
     private Flow createMacToMacFlow(Short tableId, int priority, MacAddress sourceMac, MacAddress destMac,
-				    NodeConnectorRef destPort, NodeConnectorRef sourcePort) {
+				    NodeConnectorRef destPort) {
 
         // start building flow
         FlowBuilder macToMacFlow = new FlowBuilder() //
@@ -277,12 +214,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
             ethernetMatchBuilder.setEthernetSource(new EthernetSourceBuilder().setAddress(sourceMac).build());
         }
         EthernetMatch ethernetMatch = ethernetMatchBuilder.build();
-	
-        //Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
-	MatchBuilder matchBuilder = new MatchBuilder().setEthernetMatch(ethernetMatch);
-	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class).getId();
-	matchBuilder.setInPort(srcPort);
-	Match match = matchBuilder.build();
+        Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
 	
         Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
 
@@ -325,137 +257,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         return macToMacFlow.build();
     }
 
-    private Flow createMacFlow(Short tableId, int priority, MacAddress sourceMac,
-				    NodeConnectorRef destPort, NodeConnectorRef sourcePort) {
-
-        // start building flow
-        FlowBuilder macToMacFlow = new FlowBuilder() //
-                .setTableId(tableId) //
-                .setFlowName("mac2mac");
-
-        // use its own hash code for id.
-        macToMacFlow.setId(new FlowId(Long.toString(macToMacFlow.hashCode())));
-
-        // create a match that has mac to mac ethernet match
-        EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder();
-
-        // set source in the match only if present
-        if (sourceMac != null) {
-            ethernetMatchBuilder.setEthernetSource(new EthernetSourceBuilder().setAddress(sourceMac).build());
-        }
-        EthernetMatch ethernetMatch = ethernetMatchBuilder.build();
-	
-        //Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
-	MatchBuilder matchBuilder = new MatchBuilder().setEthernetMatch(ethernetMatch);
-	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class).getId();
-	matchBuilder.setInPort(srcPort);
-	Match match = matchBuilder.build();
-	
-        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
-
-
-        Action outputToControllerAction = new ActionBuilder() //
-                .setOrder(0)
-                .setAction(new OutputActionCaseBuilder() //
-                        .setOutputAction(new OutputActionBuilder() //
-                                .setMaxLength(0xffff) //
-                                .setOutputNodeConnector(destPortUri) //
-                                .build()) //
-                        .build()) //
-                .build();
-
-        // Create an Apply Action
-        ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(outputToControllerAction))
-                .build();
-
-        // Wrap our Apply Action in an Instruction
-        Instruction applyActionsInstruction = new InstructionBuilder() //
-                .setOrder(0)
-                .setInstruction(new ApplyActionsCaseBuilder()//
-                        .setApplyActions(applyActions) //
-                        .build()) //
-                .build();
-
-        // Put our Instruction in a list of Instructions
-        macToMacFlow.setMatch(match) //
-                .setInstructions(new InstructionsBuilder() //
-                        .setInstruction(ImmutableList.of(applyActionsInstruction)) //
-                        .build()) //
-                .setPriority(priority) //
-                .setBufferId(OFConstants.OFP_NO_BUFFER) //
-                .setHardTimeout(flowHardTimeout) //
-                .setIdleTimeout(flowIdleTimeout) //
-                .setCookie(new FlowCookie(BigInteger.valueOf(flowCookieInc.getAndIncrement())))
-                .setFlags(new FlowModFlags(false, false, false, false, false));
-
-
-        return macToMacFlow.build();
-    }    
-
-    private Flow createToMacFlow(Short tableId, int priority, MacAddress destMac,
-				    NodeConnectorRef destPort, NodeConnectorRef sourcePort) {
-
-        // start building flow
-        FlowBuilder macToMacFlow = new FlowBuilder() //
-                .setTableId(tableId) //
-                .setFlowName("mac2mac");
-
-        // use its own hash code for id.
-        macToMacFlow.setId(new FlowId(Long.toString(macToMacFlow.hashCode())));
-
-        // create a match that has mac to mac ethernet match
-        EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder() //
-                .setEthernetDestination(new EthernetDestinationBuilder() //
-                        .setAddress(destMac) //
-                        .build());
-        EthernetMatch ethernetMatch = ethernetMatchBuilder.build();
-	
-        //Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
-	MatchBuilder matchBuilder = new MatchBuilder().setEthernetMatch(ethernetMatch);
-	NodeConnectorId srcPort = sourcePort.getValue().firstKeyOf(NodeConnector.class).getId();
-	matchBuilder.setInPort(srcPort);
-	Match match = matchBuilder.build();
-	
-        Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
-
-
-        Action outputToControllerAction = new ActionBuilder() //
-                .setOrder(0)
-                .setAction(new OutputActionCaseBuilder() //
-                        .setOutputAction(new OutputActionBuilder() //
-                                .setMaxLength(0xffff) //
-                                .setOutputNodeConnector(destPortUri) //
-                                .build()) //
-                        .build()) //
-                .build();
-
-        // Create an Apply Action
-        ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(outputToControllerAction))
-                .build();
-
-        // Wrap our Apply Action in an Instruction
-        Instruction applyActionsInstruction = new InstructionBuilder() //
-                .setOrder(0)
-                .setInstruction(new ApplyActionsCaseBuilder()//
-                        .setApplyActions(applyActions) //
-                        .build()) //
-                .build();
-
-        // Put our Instruction in a list of Instructions
-        macToMacFlow.setMatch(match) //
-                .setInstructions(new InstructionsBuilder() //
-                        .setInstruction(ImmutableList.of(applyActionsInstruction)) //
-                        .build()) //
-                .setPriority(priority) //
-                .setBufferId(OFConstants.OFP_NO_BUFFER) //
-                .setHardTimeout(flowHardTimeout) //
-                .setIdleTimeout(flowIdleTimeout) //
-                .setCookie(new FlowCookie(BigInteger.valueOf(flowCookieInc.getAndIncrement())))
-                .setFlags(new FlowModFlags(false, false, false, false, false));
-
-
-        return macToMacFlow.build();
-    }
     
     /**
      * Starts and commits data change transaction which modifies provided flow
@@ -476,6 +277,5 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         builder.setTransactionUri(new Uri(flow.getId().getValue()));
         return salFlowService.addFlow(builder.build());
     }
-
 		
 }
