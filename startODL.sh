@@ -5,7 +5,7 @@ setupJava(){
     export PATH=$PATH:$JAVA_HOME/bin/
     export M2_HOME=/usr/share/maven/
     export M2=$M2_HOME
-    export MAVEN_OPTS='-Xmx1048m -XX:MaxPermSize=512m -Xms256m'
+    export MAVEN_OPTS='-Xmx512m -XX:MaxPermSize=512m -Xms256m'
     export PATH=$M2:$PATH
 }
 
@@ -30,7 +30,10 @@ addFiles(){
     fi
 }
 
+export JAVA_MAX_MEM=512M
+export JAVA_MAX_PERM_MEM=448M
+
 # start ODL
 cd $DIR/l2switch/distribution/karaf/target/assembly
 #sudo -E ./bin/karaf
-./bin/karaf clean -Xmx4096m 
+./bin/karaf 
