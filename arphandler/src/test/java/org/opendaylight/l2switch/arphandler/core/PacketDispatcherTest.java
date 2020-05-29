@@ -5,6 +5,7 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.arphandler.core;
 
 import static org.mockito.Matchers.any;
@@ -50,7 +51,7 @@ public class PacketDispatcherTest {
         packetDispatcher.setPacketProcessingService(packetProcessingService);
         packetDispatcher.setInventoryReader(inventoryReader);
 
-        //doReturn(RpcResultBuilder.success().buildFuture()).when(packetProcessingService).transmitPacket(any());
+        doReturn(RpcResultBuilder.success().buildFuture()).when(packetProcessingService).transmitPacket(any());
     }
 
     @Test
@@ -136,9 +137,9 @@ public class PacketDispatcherTest {
         when(inventoryReader.getNodeConnector(any(InstanceIdentifier.class), any(MacAddress.class))).thenReturn(ncRef1);
 
         packetDispatcher.dispatchPacket(null, new NodeConnectorRef(ncInsId1), null, null);
-        verify(inventoryReader, times(1)).readInventory();
-        verify(inventoryReader, times(0)).setRefreshData(true);
-        verify(packetProcessingService, times(1)).transmitPacket(any(TransmitPacketInput.class));
+        verify(inventoryReader, times(2)).readInventory();
+        verify(inventoryReader, times(1)).setRefreshData(true);
+        verify(packetProcessingService, times(0)).transmitPacket(any(TransmitPacketInput.class));
     }
 
     @Test

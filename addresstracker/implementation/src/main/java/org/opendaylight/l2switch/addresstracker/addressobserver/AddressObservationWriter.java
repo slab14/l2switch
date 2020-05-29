@@ -7,7 +7,6 @@
  */
 package org.opendaylight.l2switch.addresstracker.addressobserver;
 
-//import com.google.common.base.Optional;
 import java.util.Optional;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

@@ -5,14 +5,15 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.arphandler.core;
 
-import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -164,7 +165,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                 .<Node>child(Node.class).<NodeConnector>child(NodeConnector.class)
                 .<StpStatusAwareNodeConnector>augmentation(StpStatusAwareNodeConnector.class).build();
         return dataBroker.registerDataTreeChangeListener(
-	        DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, path), this);
+                             DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, path), this);
     }
 
     /**
@@ -207,9 +208,8 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                 InstanceIdentifier.InstanceIdentifierBuilder<Nodes> nodesInsIdBuilder = InstanceIdentifier
                         .<Nodes>builder(Nodes.class);
                 ReadTransaction readOnlyTransaction = dataBroker.newReadOnlyTransaction();
-                Optional<Nodes> dataObjectOptional = null;
-                dataObjectOptional = readOnlyTransaction
-                        .read(LogicalDatastoreType.OPERATIONAL, nodesInsIdBuilder.build()).get();
+                Optional<Nodes> dataObjectOptional = readOnlyTransaction
+                                 .read(LogicalDatastoreType.OPERATIONAL, nodesInsIdBuilder.build()).get();
                 if (dataObjectOptional.isPresent()) {
                     nodes = dataObjectOptional.get();
                 }
@@ -271,7 +271,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                                 // external ports only
                                 if (outerSaNodeConnector == null) {
                                     outputActions.add(new ActionBuilder().setOrder(0).withKey(new ActionKey(0))
-					     .setAction(
+                                            .setAction(
                                                     new OutputActionCaseBuilder()
                                                             .setOutputAction(new OutputActionBuilder()
                                                                     .setMaxLength(0xffff)
@@ -281,7 +281,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                                                             .build())
                                             .build());
                                 }
-				
+
                                 // Create an Apply Action
                                 ApplyActions applyActions = new ApplyActionsBuilder() //
                                         .setAction(ImmutableList.copyOf(outputActions)).build();

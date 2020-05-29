@@ -221,8 +221,8 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
             futureNode = readTx.read(LogicalDatastoreType.OPERATIONAL, iin);
             readTx.close();
         }
-        Optional<NodeConnector> opNodeConnector = null;
-        Optional<org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node> opNode = null;
+        Optional<NodeConnector> opNodeConnector = Optional.empty();
+        Optional<org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node> opNode = Optional.empty();
         try {
             opNodeConnector = futureNodeConnector.get();
             opNode = futureNode.get();

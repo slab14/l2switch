@@ -11,12 +11,11 @@ package org.opendaylight.l2switch.flow;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Optional;
-//import com.google.common.util.concurrent.CheckedFuture;
 import com.google.common.util.concurrent.FluentFuture;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
