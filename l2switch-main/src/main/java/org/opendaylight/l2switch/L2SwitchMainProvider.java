@@ -56,10 +56,10 @@ public class L2SwitchMainProvider {
 
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
-            final NotificationService notificationService,
+            final NotificationService notificationPublishService,
             final SalFlowService salFlowService, final L2switchConfig config) {
         this.dataService = dataBroker;
-        this.notificationService = notificationService;
+        this.notificationService = notificationPublishService;
         this.salFlowService = salFlowService;
         this.mainConfig = config;
 	this.dataplaneIP=config.getDataplaneIP();

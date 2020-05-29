@@ -52,7 +52,6 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
 
     @Override
     public void onPacketReceived(PacketReceived packetReceived) {
-	System.out.println("[Eth Decoder] got a packet");
         decodeAndPublish(packetReceived);
     }
 
@@ -85,9 +84,9 @@ public class EthernetDecoder extends AbstractPacketDecoder<PacketReceived, Ether
 
             // Deserialize the destination & source fields
             epBuilder.setDestinationMac(
-                    new MacAddress(HexEncode.bytesToHexStringFormat(BitBufferHelper.getBits(data, 0, 48))));
-            epBuilder.setSourceMac(
-                    new MacAddress(HexEncode.bytesToHexStringFormat(BitBufferHelper.getBits(data, 48, 48))));
+		        new MacAddress(HexEncode.bytesToHexStringFormat(BitBufferHelper.getBits(data, 0, 48))));
+	    epBuilder.setSourceMac(
+	                new MacAddress(HexEncode.bytesToHexStringFormat(BitBufferHelper.getBits(data, 48, 48))));
 
             // Deserialize the optional field 802.1Q headers
             Integer nextField = BitBufferHelper.getInt(BitBufferHelper.getBits(data, 96, 16));

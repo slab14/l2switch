@@ -94,11 +94,9 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 
     @Override
     public void onArpPacketReceived(ArpPacketReceived packetReceived) {
-	System.out.println("[RFW] got packet in ReactiveFlowWriter");
         if (packetReceived == null || packetReceived.getPacketChain() == null) {
             return;
         }
-	System.out.println("[RFW] packet has data");
         RawPacket rawPacket = null;
         EthernetPacket ethernetPacket = null;
         ArpPacket arpPacket = null;
@@ -111,20 +109,16 @@ public class ReactiveFlowWriter implements ArpPacketListener {
                 arpPacket = (ArpPacket) packet.getPacket();
             }
         }
-	System.out.println("[RFW] determine packet type");
         if (rawPacket == null || ethernetPacket == null || arpPacket == null) {
             return;
         }
         MacAddress destMac = ethernetPacket.getDestinationMac();
-	System.out.println("[RFW] Packet's srcMac = "+destMac);	
         if (!ignoreThisMac(destMac)) {
 	    NodeConnectorRef destNodeConnector=inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
-	    System.out.println("don't ignore mac");
 	    if(destNodeConnector != null){
 		String srcMac = ethernetPacket.getSourceMac().getValue();
-		System.out.println("PAcket's srcMac = "+srcMac);
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
-		    System.out.println("Got Mac source from policy file");
+		    System.out.println("Got Mac source from policy file: "+srcMac);
 		    int devNum = policyMap.get(srcMac).devNum;
 		    NodeConnectorRef inNCR=rawPacket.getIngress();
 		    policyMap.get(srcMac).setNCR(rawPacket.getIngress());

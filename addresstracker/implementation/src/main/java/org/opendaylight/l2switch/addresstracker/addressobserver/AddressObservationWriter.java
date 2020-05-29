@@ -56,7 +56,7 @@ public class AddressObservationWriter {
     private long timestampUpdateInterval;
     private final DataBroker dataService;
     private final Map<NodeConnectorRef, NodeConnectorLock> lockMap = new ConcurrentHashMap<>();
-    private final Map<NodeConnectorLock, FluentFuture<?>> futureMap = new ConcurrentHashMap<>();
+    private final Map<NodeConnectorLock, FluentFuture> futureMap = new ConcurrentHashMap<>();
 
     /**
      * Construct an AddressTracker with the specified inputs.
@@ -91,7 +91,7 @@ public class AddressObservationWriter {
 
         synchronized (nodeConnectorLock) {
             // Ensure previous transaction finished writing to the db
-            FluentFuture<?> future = futureMap.get(nodeConnectorLock);
+            FluentFuture future = futureMap.get(nodeConnectorLock);
             if (future != null) {
                 try {
                     future.get();
@@ -168,16 +168,17 @@ public class AddressObservationWriter {
             final WriteTransaction writeTransaction = dataService.newWriteOnlyTransaction();
             // Update this AddressCapableNodeConnector in the MD-SAL data tree
             writeTransaction.merge(LogicalDatastoreType.OPERATIONAL, addressCapableNcInstanceId, acncBuilder.build());
-	    final FluentFuture<?> writeTxResultFuture = writeTransaction.commit();
-	    Futures.addCallback(writeTransaction.commit(), new FutureCallback<CommitInfo>() {
+
+	    final FluentFuture writeTxResultFuture = writeTransaction.commit();
+	    Futures.addCallback(writeTxResultFuture, new FutureCallback<CommitInfo>() {
                 @Override
-                public void onSuccess(final CommitInfo notUsed) {
+                public void onSuccess(CommitInfo notUsed) {
                     LOG.debug("AddressObservationWriter write successful for tx :{}",
-                            writeTransaction.getIdentifier());
+			      writeTransaction.getIdentifier());
                 }
 
                 @Override
-                public void onFailure(final Throwable throwable) {
+                public void onFailure(Throwable throwable) {
                     LOG.error("AddressObservationWriter write transaction {} failed",
                             writeTransaction.getIdentifier(), throwable.getCause());
                 }

@@ -128,9 +128,11 @@ public class PacketDispatcher {
      *            The NodeConnector where the payload will go.
      */
     public void sendPacketOut(byte[] payload, NodeConnectorRef ingress, NodeConnectorRef egress) {
+
         if (ingress == null || egress == null) {
             return;
         }
+
         InstanceIdentifier<Node> egressNodePath = getNodePath(egress.getValue());
         TransmitPacketInput input = new TransmitPacketInputBuilder() //
                 .setPayload(payload) //
@@ -151,7 +153,6 @@ public class PacketDispatcher {
                     LOG.debug("transmitPacket for {} failed", input, failure);
                 }
             }, MoreExecutors.directExecutor());
-
     }
 
     private void refreshInventoryReader() {
