@@ -49,11 +49,12 @@ public class Ipv4DecoderTest {
             (byte) 0x98, (byte) 0xfe, (byte) 0xdc, (byte) 0xba // CRC
         };
         NotificationPublishService npServiceMock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(
-                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(14).build()).build());
+                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(14)
+                                                                                    .build()).build());
 
         Ipv4PacketReceived notification = new Ipv4Decoder(npServiceMock, mock2).decode(
                 new EthernetPacketReceivedBuilder().setPacketChain(packetChainList).setPayload(ethPayload).build());
@@ -103,11 +104,12 @@ public class Ipv4DecoderTest {
             (byte) 0x98, (byte) 0xfe, (byte) 0xdc, (byte) 0xba // CRC
         };
         NotificationPublishService npServiceMock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(
-                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(16).build()).build());
+                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(16)
+                                                                                      .build()).build());
 
         Ipv4PacketReceived notification = new Ipv4Decoder(npServiceMock, mock2).decode(
                 new EthernetPacketReceivedBuilder().setPacketChain(packetChainList).setPayload(ethPayload).build());
@@ -158,11 +160,12 @@ public class Ipv4DecoderTest {
             (byte) 0x98, (byte) 0xfe, (byte) 0xdc, (byte) 0xba // CRC
         };
         NotificationPublishService npServiceMock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(
-                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(18).build()).build());
+                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(18)
+                                                                                     .build()).build());
 
         Ipv4PacketReceived notification = new Ipv4Decoder(npServiceMock, mock2).decode(
                 new EthernetPacketReceivedBuilder().setPacketChain(packetChainList).setPayload(ethPayload).build());
@@ -206,11 +209,12 @@ public class Ipv4DecoderTest {
             0x00, 0x44, 0x00, 0x43, 0x01, 0x34, 0x2d, (byte)0xf5, 0x01, 0x01, 0x06, 0x00, (byte)0xdf, (byte)0xcc
         };
         NotificationPublishService npServiceMock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(
-                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(14).build()).build());
+                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(14)
+                                                                                      .build()).build());
 
         Ipv4PacketReceived notification = new Ipv4Decoder(npServiceMock, mock2).decode(
                 new EthernetPacketReceivedBuilder().setPacketChain(packetChainList).setPayload(ethPayload).build());

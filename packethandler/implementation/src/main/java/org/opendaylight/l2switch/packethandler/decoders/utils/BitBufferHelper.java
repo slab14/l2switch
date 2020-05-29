@@ -40,7 +40,7 @@ public final class BitBufferHelper {
      */
     public static byte getByte(byte[] data) {
         if (data.length * NetUtils.NUM_BITS_IN_A_BYTE > Byte.SIZE) {
-	    LOG.error("getByte", new BufferException("Container is too small for the number of requested bits"));
+            LOG.error("getByte", new BufferException("Container is too small for the number of requested bits"));
         }
         return data[0];
     }
@@ -55,7 +55,7 @@ public final class BitBufferHelper {
      */
     public static short getShort(byte[] data, int numBits) {
         if (numBits > Short.SIZE) {
-	    LOG.error("getShort", new BufferException("Container is too small for the number of requested bits"));
+            LOG.error("getShort", new BufferException("Container is too small for the number of requested bits"));
         }
         int startOffset = data.length * NetUtils.NUM_BITS_IN_A_BYTE - numBits;
         byte[] bits = null;
@@ -77,7 +77,7 @@ public final class BitBufferHelper {
      */
     public static short getShort(byte[] data) {
         if (data.length > Short.SIZE) {
-	    LOG.error("getShort", new BufferException("Container is too small for the number of requested bits"));
+            LOG.error("getShort", new BufferException("Container is too small for the number of requested bits"));
         }
         return (short) toNumber(data);
     }
@@ -92,7 +92,7 @@ public final class BitBufferHelper {
      */
     public static int getInt(byte[] data, int numBits) {
         if (numBits > Integer.SIZE) {
-	    LOG.error("getInt", new BufferException("Container is too small for the number of requested bits"));
+            LOG.error("getInt", new BufferException("Container is too small for the number of requested bits"));
         }
         int startOffset = data.length * NetUtils.NUM_BITS_IN_A_BYTE - numBits;
         byte[] bits = null;
@@ -114,7 +114,7 @@ public final class BitBufferHelper {
      */
     public static int getInt(byte[] data) {
         if (data.length > Integer.SIZE) {
-	    LOG.error("getInt", new BufferException("Container is too small for the number of requested bits"));
+            LOG.error("getInt", new BufferException("Container is too small for the number of requested bits"));
         }
         return (int) toNumber(data);
     }
@@ -129,10 +129,10 @@ public final class BitBufferHelper {
      */
     public static long getLong(byte[] data, int numBits) {
         if (numBits > Long.SIZE) {
-	    LOG.error("getLong", new BufferException("Container is too small for the number of requested bits"));
+            LOG.error("getLong", new BufferException("Container is too small for the number of requested bits"));
         }
         if (numBits > data.length * NetUtils.NUM_BITS_IN_A_BYTE) {
-	    LOG.error("getLong", new BufferException("Trying to read more bits than contained in the data buffer"));
+            LOG.error("getLong", new BufferException("Trying to read more bits than contained in the data buffer"));
         }
         int startOffset = data.length * NetUtils.NUM_BITS_IN_A_BYTE - numBits;
         byte[] bits = null;
@@ -154,7 +154,7 @@ public final class BitBufferHelper {
      */
     public static long getLong(byte[] data) {
         if (data.length > Long.SIZE) {
-	    LOG.error("getLong", new BufferException("Container is too small for the number of requested bits"));
+            LOG.error("getLong", new BufferException("Container is too small for the number of requested bits"));
         }
         return toNumber(data);
     }

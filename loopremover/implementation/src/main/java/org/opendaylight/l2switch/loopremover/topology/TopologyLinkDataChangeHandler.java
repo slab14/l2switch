@@ -5,9 +5,9 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.loopremover.topology;
 
-import java.util.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -15,10 +15,12 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.opendaylight.l2switch.loopremover.util.InstanceIdentifierUtils;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
 import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
@@ -26,9 +28,8 @@ import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.ReadWriteTransaction;
-import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.mdsal.common.api.CommitInfo;
-import org.opendaylight.l2switch.loopremover.util.InstanceIdentifierUtils;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnector;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.loopremover.rev140714.StpStatus;
@@ -43,7 +44,7 @@ import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendaylight.yangtools.yang.binding.Augmentable;
+
 
 /**
  * Listens to data change events on topology links {@link
@@ -103,7 +104,7 @@ public class TopologyLinkDataChangeHandler implements DataTreeChangeListener<Lin
         InstanceIdentifier<Link> linkInstance = InstanceIdentifier.builder(NetworkTopology.class)
                 .child(Topology.class, new TopologyKey(new TopologyId(topologyId))).child(Link.class).build();
         return dataBroker.registerDataTreeChangeListener(
-		  DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, linkInstance), this);
+                          DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, linkInstance), this);
     }
 
     /**
@@ -277,7 +278,8 @@ public class TopologyLinkDataChangeHandler implements DataTreeChangeListener<Lin
             } catch (InterruptedException | ExecutionException e) {
                 LOG.error("Error reading node connector {}", nodeConnectorRef.getValue());
                 readWriteTransaction.commit();
-                throw new RuntimeException("Error reading from operational store, node connector : " + nodeConnectorRef, e);
+                throw new RuntimeException("Error reading from operational store, node connector : "
+                                             + nodeConnectorRef, e);
             }
 
             if (nc != null) {

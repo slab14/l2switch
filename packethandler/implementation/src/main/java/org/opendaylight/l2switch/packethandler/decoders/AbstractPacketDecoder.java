@@ -14,7 +14,6 @@ import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.binding.Notification;
 import org.opendaylight.yangtools.yang.binding.NotificationListener;
-import org.slf4j.Logger;
 
 /**
  * A base class for all decoders. Each extended decoder should also implement a
@@ -23,7 +22,7 @@ import org.slf4j.Logger;
 public abstract class AbstractPacketDecoder<C, P extends Notification>
     implements AutoCloseable {
 
-    private final Class<P> producedPacketNotificationType;
+    //private final Class<P> producedPacketNotificationType;
     private final NotificationPublishService notificationProviderService;
     private final NotificationService notificationService;
 
@@ -36,13 +35,13 @@ public abstract class AbstractPacketDecoder<C, P extends Notification>
      * Constructor.
      */
     public AbstractPacketDecoder(Class<P> producedPacketNotificationType,
-				 NotificationPublishService notificationProviderService, NotificationService notificationService) {
-        this.producedPacketNotificationType = producedPacketNotificationType;
+                                 NotificationPublishService notificationProviderService,
+                                 NotificationService notificationService) {
+        //this.producedPacketNotificationType = producedPacketNotificationType;
         this.notificationProviderService = notificationProviderService;
-        this.notificationService = notificationService;	
-        //notificationService.registerNotificationListener(this);
-	NotificationListener notificationListener = getConsumedNotificationListener();
-	listenerRegistration = notificationService.registerNotificationListener(notificationListener);	
+        this.notificationService = notificationService;
+        NotificationListener notificationListener = getConsumedNotificationListener();
+        listenerRegistration = this.notificationService.registerNotificationListener(notificationListener);
     }
 
     /**
@@ -59,7 +58,7 @@ public abstract class AbstractPacketDecoder<C, P extends Notification>
         }
     }
     */
-    
+
     /**
      * Every extended decoder should call this method on a receipt of a input
      * packet notification. This method would make sure it decodes only when

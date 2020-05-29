@@ -1,10 +1,11 @@
-/**
+/*
  * Copyright (c) 2014 Cisco Systems, Inc. and others.  All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.packethandler.decoders;
 
 import static org.junit.Assert.assertEquals;
@@ -36,7 +37,7 @@ public class EthernetDecoderTest {
             (byte)0x98, (byte)0xfe, (byte)0xdc, (byte)0xba
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
@@ -61,7 +62,7 @@ public class EthernetDecoderTest {
             0x00, (byte)0xfe, (byte)0xdc, (byte)0xba
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
@@ -88,7 +89,7 @@ public class EthernetDecoderTest {
             0x00, (byte)0x00, (byte)0xdc, (byte)0xba
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
@@ -121,7 +122,7 @@ public class EthernetDecoderTest {
             (byte)0x0a, (byte)0x0b, (byte)0x0c, (byte)0x0d
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();
@@ -164,7 +165,7 @@ public class EthernetDecoderTest {
             0x04, 0x5f, 0x69, 0x70, 0x70, (byte)0xc0, 0x12, 0x00, 0x0c, 0x00, 0x01
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-        NotificationService mock2 = Mockito.mock(NotificationService.class);	
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         EthernetPacketReceived notification = new EthernetDecoder(mock, mock2)
                 .decode(new PacketReceivedBuilder().setPayload(packet).setMatch(new MatchBuilder().build()).build());
         EthernetPacket ethernetPacket = (EthernetPacket) notification.getPacketChain().get(1).getPacket();

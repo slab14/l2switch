@@ -1,10 +1,11 @@
-/**
+/*
  * Copyright (c) 2016 Hewlett Packard Enterprise, Co. and others. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.packethandler.decoders;
 
 import static org.junit.Assert.assertEquals;
@@ -45,7 +46,7 @@ public class IcmpDecoderTest {
         };
 
         NotificationPublishService npServiceMock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(new PacketChainBuilder().setPacket(new EthernetPacketBuilder().build()).build());

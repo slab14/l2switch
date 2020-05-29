@@ -5,6 +5,7 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.packethandler.decoders;
 
 import static org.junit.Assert.assertEquals;
@@ -42,7 +43,7 @@ public class ArpDecoderTest {
             0x01, 0x02, 0x03, 0x04 // Dest Protocol Address
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(new PacketChainBuilder()
@@ -77,7 +78,7 @@ public class ArpDecoderTest {
             0x01, 0x02, 0x03, 0x04 // Dest Protocol Address
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(new PacketChainBuilder()
@@ -109,11 +110,12 @@ public class ArpDecoderTest {
             0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x02
         };
         NotificationPublishService mock = Mockito.mock(NotificationPublishService.class);
-	NotificationService mock2 = Mockito.mock(NotificationService.class);
+        NotificationService mock2 = Mockito.mock(NotificationService.class);
         ArrayList<PacketChain> packetChainList = new ArrayList<>();
         packetChainList.add(new PacketChainBuilder().setPacket(new RawPacketBuilder().build()).build());
         packetChainList.add(
-                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(14).build()).build());
+                new PacketChainBuilder().setPacket(new EthernetPacketBuilder().setEthPayloadOffset(14)
+                                                                                      .build()).build());
         ArpPacketReceived notification = new ArpDecoder(mock, mock2)
                 .decode(new EthernetPacketReceivedBuilder().setPacketChain(packetChainList).setPayload(packet).build());
 

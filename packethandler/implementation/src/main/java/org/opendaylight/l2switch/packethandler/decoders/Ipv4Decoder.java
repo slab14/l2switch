@@ -10,12 +10,11 @@ package org.opendaylight.l2switch.packethandler.decoders;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
-//import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
-import org.opendaylight.mdsal.binding.api.NotificationPublishService;
-import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.packethandler.decoders.utils.BitBufferHelper;
 import org.opendaylight.l2switch.packethandler.decoders.utils.BufferException;
 import org.opendaylight.l2switch.packethandler.decoders.utils.NetUtils;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Dscp;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Ipv4Address;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.PacketChain;
@@ -39,10 +38,11 @@ import org.slf4j.LoggerFactory;
  */
 public class Ipv4Decoder extends AbstractPacketDecoder<EthernetPacketReceived, Ipv4PacketReceived>
         implements EthernetPacketListener {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(Ipv4Decoder.class);
-    
-    public Ipv4Decoder(NotificationPublishService notificationProviderService, NotificationService notificationService) {
+
+    public Ipv4Decoder(NotificationPublishService notificationProviderService,
+                       NotificationService notificationService) {
         super(Ipv4PacketReceived.class, notificationProviderService, notificationService);
     }
 
@@ -107,7 +107,7 @@ public class Ipv4Decoder extends AbstractPacketDecoder<EthernetPacketReceived, I
             builder.setIpv4PayloadOffset(start);
             builder.setIpv4PayloadLength(end - start);
         } catch (BufferException | UnknownHostException e) {
-            LOG.debug("Exception while decoding IPv4 packet", e.getMessage());
+            LOG.debug("Exception while decoding IPv4 packet: {}", e.getMessage());
         }
 
         // build ipv4

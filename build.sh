@@ -19,4 +19,4 @@ fi
 
 setupJava
 
-mvn clean install -Pq -DskipTests -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true
+mvn clean install 
