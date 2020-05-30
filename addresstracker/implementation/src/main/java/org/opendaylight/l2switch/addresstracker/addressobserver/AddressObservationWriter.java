@@ -5,28 +5,27 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.addresstracker.addressobserver;
 
-import java.util.Optional;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
-import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.mdsal.common.api.CommitInfo;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.address.tracker.rev140617.AddressCapableNodeConnector;
@@ -119,7 +118,8 @@ public class AddressObservationWriter {
             } catch (InterruptedException | ExecutionException e) {
                 LOG.error("Error reading node connector {}", nodeConnectorRef.getValue());
                 readTransaction.close();
-                throw new RuntimeException("Error reading from operational store, node connector : " + nodeConnectorRef, e);
+                throw new RuntimeException("Error reading from operational store, node connector : "
+                                            + nodeConnectorRef, e);
             }
             readTransaction.close();
             if (nc == null) {
@@ -132,7 +132,6 @@ public class AddressObservationWriter {
             if (acnc != null && acnc.getAddresses() != null) {
                 // Search for this mac-ip pair in the existing address
                 // observations & update last-seen timestamp
-		//                addresses = new ArrayList<Addresses>(acnc.getAddresses().values());
                 addresses = new ArrayList<Addresses>(acnc.getAddresses().values());
                 for (int i = 0; i < addresses.size(); i++) {
                     if (addresses.get(i).getIp().equals(ipAddress) && addresses.get(i).getMac().equals(macAddress)) {
@@ -168,18 +167,18 @@ public class AddressObservationWriter {
             // Update this AddressCapableNodeConnector in the MD-SAL data tree
             writeTransaction.merge(LogicalDatastoreType.OPERATIONAL, addressCapableNcInstanceId, acncBuilder.build());
 
-	    final FluentFuture writeTxResultFuture = writeTransaction.commit();
-	    Futures.addCallback(writeTxResultFuture, new FutureCallback<CommitInfo>() {
+            final FluentFuture writeTxResultFuture = writeTransaction.commit();
+            Futures.addCallback(writeTxResultFuture, new FutureCallback<CommitInfo>() {
                 @Override
                 public void onSuccess(CommitInfo notUsed) {
                     LOG.debug("AddressObservationWriter write successful for tx :{}",
-			      writeTransaction.getIdentifier());
+                               writeTransaction.getIdentifier());
                 }
 
                 @Override
                 public void onFailure(Throwable throwable) {
                     LOG.error("AddressObservationWriter write transaction {} failed",
-                            writeTransaction.getIdentifier(), throwable.getCause());
+                               writeTransaction.getIdentifier(), throwable.getCause());
                 }
             }, MoreExecutors.directExecutor());
             futureMap.put(nodeConnectorLock, writeTxResultFuture);

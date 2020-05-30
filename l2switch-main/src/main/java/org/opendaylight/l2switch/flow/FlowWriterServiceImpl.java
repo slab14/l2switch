@@ -5,6 +5,7 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.flow;
 
 import com.google.common.base.Preconditions;
@@ -44,7 +45,6 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instru
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeRef;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnector;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnectorKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.ethernet.match.fields.EthernetDestinationBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.ethernet.match.fields.EthernetSourceBuilder;
@@ -52,11 +52,9 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.EthernetMatchBuilder;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
+import org.opendaylight.yangtools.yang.common.Uint16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
-import org.opendaylight.yangtools.yang.common.Uint8;
-import org.opendaylight.yangtools.yang.common.Uint16;
 
 
 /**
@@ -77,10 +75,10 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
     private final AtomicLong flowIdInc = new AtomicLong();
     private final AtomicLong flowCookieInc = new AtomicLong(0x2a00000000000000L);
-    private final Integer DEFAULT_TABLE_ID = 0;
-    private final Integer DEFAULT_PRIORITY = 10;
-    private final Integer DEFAULT_HARD_TIMEOUT = 0;
-    private final Integer DEFAULT_IDLE_TIMEOUT = 0;
+    private static final Integer DEFAULT_TABLE_ID = 0;
+    private static final Integer DEFAULT_PRIORITY = 10;
+    private static final Integer DEFAULT_HARD_TIMEOUT = 0;
+    private static final Integer DEFAULT_IDLE_TIMEOUT = 0;
 
     public FlowWriterServiceImpl(SalFlowService salFlowService) {
         Preconditions.checkNotNull(salFlowService, "salFlowService should not be null.");
@@ -105,7 +103,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
     @Override
     public void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac,
-				NodeConnectorRef destNodeConnectorRef) {
+                                NodeConnectorRef destNodeConnectorRef) {
 
         Preconditions.checkNotNull(destMac, "Destination mac address should not be null.");
         Preconditions.checkNotNull(destNodeConnectorRef, "Destination port should not be null.");
@@ -121,12 +119,12 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
         // build a flow path based on node connector to program flow
         InstanceIdentifier<Flow> flowPath = buildFlowPath(destNodeConnectorRef,
-							  flowTableKey);
+                                                           flowTableKey);
 
         // build a flow that target given mac id
         Flow flowBody = createMacToMacFlow(Uint16.valueOf(flowTableKey.getId()).shortValue(),
-					   flowPriority, sourceMac, destMac,
-					   destNodeConnectorRef);
+                                                           flowPriority, sourceMac, destMac,
+                                                           destNodeConnectorRef);
 
         // commit the flow in config data
         writeFlowToConfigData(flowPath, flowBody);
@@ -137,20 +135,19 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      * source and destination ports. It uses path provided by
      * org.opendaylight.l2switch.loopremover.topology.NetworkGraphService to
      * find a links
-     * {@link org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Link}
      * between given ports. And then writes appropriate flow on each port that
      * is covered in that path.
      *
-     * @param sourceMac
-     * @param sourceNodeConnectorRef
-     * @param destMac
-     * @param destNodeConnectorRef
+     * @param sourceMac Souce Mac Address
+     * @param sourceNodeConnectorRef Source Node Connector Reference
+     * @param destMac Destination MAC Address
+     * @param destNodeConnectorRef Destination Node Connector Ref
      */
     @Override
     public void addBidirectionalMacToMacFlows(MacAddress sourceMac,
-					      NodeConnectorRef sourceNodeConnectorRef,
-					      MacAddress destMac,
-					      NodeConnectorRef destNodeConnectorRef) {
+                                              NodeConnectorRef sourceNodeConnectorRef,
+                                              MacAddress destMac,
+                                              NodeConnectorRef destNodeConnectorRef) {
         Preconditions.checkNotNull(sourceMac, "Source mac address should not be null.");
         Preconditions.checkNotNull(sourceNodeConnectorRef, "Source port should not be null.");
         Preconditions.checkNotNull(destMac, "Destination mac address should not be null.");
@@ -166,12 +163,15 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
         // add sourceMac-To-destMac flow on destination port
         addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef);
-	
+
     }
 
 
     /**
-     * @param nodeConnectorRef
+     * Build a flow path.
+     *
+     * @param nodeConnectorRef a reference to the Node Connector
+     * @param flowTableKey a reference to the flow table
      * @return
      */
     private InstanceIdentifier<Flow> buildFlowPath(NodeConnectorRef nodeConnectorRef, TableKey flowTableKey) {
@@ -194,7 +194,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
      * @return the Flow
      */
     private Flow createMacToMacFlow(Short tableId, int priority, MacAddress sourceMac, MacAddress destMac,
-				    NodeConnectorRef destPort) {
+                                     NodeConnectorRef destPort) {
 
         // start building flow
         FlowBuilder macToMacFlow = new FlowBuilder() //
@@ -215,7 +215,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         }
         EthernetMatch ethernetMatch = ethernetMatchBuilder.build();
         Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
-	
+
         Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
 
 
@@ -257,7 +257,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         return macToMacFlow.build();
     }
 
-    
+
     /**
      * Starts and commits data change transaction which modifies provided flow
      * path with supplied body.
@@ -270,12 +270,11 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         final InstanceIdentifier<Table> tableInstanceId = flowPath.<Table>firstIdentifierOf(Table.class);
         final InstanceIdentifier<Node> nodeInstanceId = flowPath.<Node>firstIdentifierOf(Node.class);
         final AddFlowInputBuilder builder = new AddFlowInputBuilder(flow);
-	
+
         builder.setNode(new NodeRef(nodeInstanceId));
         builder.setFlowRef(new FlowRef(flowPath));
         builder.setFlowTable(new FlowTableRef(tableInstanceId));
         builder.setTransactionUri(new Uri(flow.getId().getValue()));
         return salFlowService.addFlow(builder.build());
     }
-		
 }

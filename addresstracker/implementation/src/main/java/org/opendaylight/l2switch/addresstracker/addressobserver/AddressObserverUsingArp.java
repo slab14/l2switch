@@ -58,7 +58,7 @@ public class AddressObserverUsingArp implements ArpPacketListener {
         }
 
         addressObservationWriter.addAddress(ethernetPacket.getSourceMac(),
-	    new IpAddress(new Ipv4Address(arpPacket.getSourceProtocolAddress())),
-	    rawPacket.getIngress());
+            new IpAddress(new Ipv4Address(arpPacket.getSourceProtocolAddress())),
+                          rawPacket.getIngress());
     }
 }

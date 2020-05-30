@@ -5,21 +5,22 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch;
 
-import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.l2switch.flow.FlowWriterServiceImpl;
 import org.opendaylight.l2switch.flow.InitialFlowWriter;
 import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
 import org.opendaylight.l2switch.inventory.InventoryReader;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.service.rev130819.SalFlowService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.l2switch.config.rev140528.L2switchConfig;
 import org.opendaylight.yangtools.concepts.Registration;
+import org.opendaylight.yangtools.yang.common.Uint16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendaylight.yangtools.yang.common.Uint8;
-import org.opendaylight.yangtools.yang.common.Uint16;
+
 
 public class L2SwitchMainProvider {
     private static final Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
@@ -31,7 +32,7 @@ public class L2SwitchMainProvider {
     private final SalFlowService salFlowService;
     private final L2switchConfig mainConfig;
 
-    
+
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationService notificationPublishService,
             final SalFlowService salFlowService, final L2switchConfig config) {

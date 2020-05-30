@@ -5,6 +5,7 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.flow;
 
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
@@ -25,8 +26,8 @@ public interface FlowWriterService {
      * @param destMac the destination MAC
      * @param destNodeConnectorRef the destination port NodeConnectorRef
      */
-    public void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac,
-				NodeConnectorRef destNodeConnectorRef);
+    void addMacToMacFlow(MacAddress sourceMac, MacAddress destMac,
+                                    NodeConnectorRef destNodeConnectorRef);
 
     /**
      * Writes mac-to-mac flow on all ports that are in the path between given
@@ -40,9 +41,9 @@ public interface FlowWriterService {
      * @param destMac the destination MAC
      * @param destNodeConnectorRef the destination port NodeConnectorRef
      */
-    public void addBidirectionalMacToMacFlows(MacAddress sourceMac,
-					      NodeConnectorRef sourceNodeConnectorRef,
-					      MacAddress destMac,
-					      NodeConnectorRef destNodeConnectorRef);
+    void addBidirectionalMacToMacFlows(MacAddress sourceMac,
+                                        NodeConnectorRef sourceNodeConnectorRef,
+                                        MacAddress destMac,
+                                        NodeConnectorRef destNodeConnectorRef);
 
 }

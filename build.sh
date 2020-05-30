@@ -19,4 +19,4 @@ fi
 
 setupJava
 
-mvn clean install 
+mvn clean install -X

@@ -51,7 +51,7 @@ public class AddressTrackerProvider {
         if (packetTypes.contains(ARP_PACKET_TYPE)) {
             AddressObserverUsingArp addressObserverUsingArp = new AddressObserverUsingArp(addressObservationWriter);
             // Register AddressObserver for notifications
-	    this.listenerRegistrations.add(notificationService.registerNotificationListener(addressObserverUsingArp));
+            this.listenerRegistrations.add(notificationService.registerNotificationListener(addressObserverUsingArp));
         }
 
         if (packetTypes.contains(IPV4_PACKET_TYPE)) {

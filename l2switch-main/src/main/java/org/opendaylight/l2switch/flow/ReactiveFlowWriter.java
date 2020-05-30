@@ -5,6 +5,7 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.flow;
 
 import org.opendaylight.l2switch.inventory.InventoryReader;
@@ -17,10 +18,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.arp.pa
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.PacketChain;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.packet.chain.packet.RawPacket;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.ethernet.packet.received.packet.chain.packet.EthernetPacket;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
+
 
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
@@ -30,8 +28,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private final FlowWriterService flowWriterService;
 
     public ReactiveFlowWriter(InventoryReader inventoryReader,
-			      FlowWriterService flowWriterService) {
-	this.inventoryReader = inventoryReader;
+                              FlowWriterService flowWriterService) {
+        this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
     }
 
@@ -83,8 +81,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         }
         MacAddress destMac = ethernetPacket.getDestinationMac();
         if (!ignoreThisMac(destMac)) {
-	    writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ethernetPacket.getDestinationMac());
-	}
+            writeFlows(rawPacket.getIngress(), ethernetPacket.getSourceMac(), ethernetPacket.getDestinationMac());
+        }
     }
 
 

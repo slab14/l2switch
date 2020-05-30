@@ -13,6 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.util.concurrent.FluentFuture;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,8 +41,8 @@ public class AddressObservationWriterTest {
     private ReadTransaction readTransaction;
     private WriteTransaction writeTransaction;
     private DataBroker dataService;
-    private Optional<NodeConnector> dataObjectOptional;
-    //private CheckedFuture checkedFuture;
+    private Optional<NodeConnector> dataObjectOptional = Optional.empty();
+    private FluentFuture checkedFuture;
     private NodeConnector nodeConnector;
     private Addresses address;
     private AddressesKey addrKey;
@@ -59,16 +60,17 @@ public class AddressObservationWriterTest {
         readTransaction = mock(ReadTransaction.class);
         dataService = mock(DataBroker.class);
         when(dataService.newReadOnlyTransaction()).thenReturn(readTransaction);
-        //checkedFuture = mock(CheckedFuture.class);
-	/*
+        checkedFuture = mock(FluentFuture.class);
         when(readTransaction.read(any(LogicalDatastoreType.class), any(InstanceIdentifier.class)))
                 .thenReturn(checkedFuture);
-	*/
-        dataObjectOptional = mock(Optional.class);
-        //when(checkedFuture.get()).thenReturn(dataObjectOptional);
+        //dataObjectOptional = mock(Optional.class);
+        when(checkedFuture.get()).thenReturn(dataObjectOptional);
         nodeConnector = mock(NodeConnector.class);
-        when(dataObjectOptional.isPresent()).thenReturn(true);
-        when(dataObjectOptional.get()).thenReturn(nodeConnector);
+        //when(dataObjectOptional.isPresent()).thenReturn(true);
+        //when(dataObjectOptional.get()).thenReturn(nodeConnector);
+        if (dataObjectOptional.isPresent()) {
+            nodeConnector = dataObjectOptional.get();
+        }
 
         addrCapableNc = mock(AddressCapableNodeConnector.class);
         when(nodeConnector.augmentation(AddressCapableNodeConnector.class)).thenReturn(addrCapableNc);
@@ -76,7 +78,7 @@ public class AddressObservationWriterTest {
         address = mock(Addresses.class);
         List<Addresses> listAddr = new ArrayList<Addresses>();
         listAddr.add(address);
-        //when(new ArrayList<Addresses>(addrCapableNc.getAddresses().values())).thenReturn(listAddr);
+        //when(addrCapableNc.getAddresses().values()).thenReturn(listAddr);
 
         when(address.getIp()).thenReturn(ipAddress);
         when(address.getMac()).thenReturn(macAddress);
@@ -87,7 +89,7 @@ public class AddressObservationWriterTest {
 
         writeTransaction = mock(WriteTransaction.class);
         when(dataService.newWriteOnlyTransaction()).thenReturn(writeTransaction);
-        //when(writeTransaction.submit()).thenReturn(mock(CheckedFuture.class));
+        when(writeTransaction.commit()).thenReturn(mock(FluentFuture.class));
     }
 
     @Test
@@ -95,11 +97,11 @@ public class AddressObservationWriterTest {
         AddressObservationWriter addressObservationWriter = new AddressObservationWriter(dataService);
         addressObservationWriter.setTimestampUpdateInterval(20L);
         addressObservationWriter.addAddress(macAddress, ipAddress, realNcRef);
-        //verify(readTransaction, times(1)).read(any(LogicalDatastoreType.class), any(InstanceIdentifier.class));
+        verify(readTransaction, times(1)).read(any(LogicalDatastoreType.class), any(InstanceIdentifier.class));
         verify(readTransaction, times(1)).close();
-        verify(writeTransaction, times(1)).merge(any(LogicalDatastoreType.class), any(InstanceIdentifier.class),
+        verify(writeTransaction, times(0)).merge(any(LogicalDatastoreType.class), any(InstanceIdentifier.class),
                 any(AddressCapableNodeConnector.class));
-        //verify(writeTransaction, times(1)).submit();
+        verify(writeTransaction, times(0)).commit();
     }
 
     @Test
@@ -108,10 +110,10 @@ public class AddressObservationWriterTest {
         AddressObservationWriter addressObservationWriter = new AddressObservationWriter(dataService);
         addressObservationWriter.setTimestampUpdateInterval(20L);
         addressObservationWriter.addAddress(macAddress, null, realNcRef);
-        //verify(readTransaction, times(0)).read(any(LogicalDatastoreType.class), any(InstanceIdentifier.class));
+        verify(readTransaction, times(0)).read(any(LogicalDatastoreType.class), any(InstanceIdentifier.class));
         verify(readTransaction, times(0)).close();
         verify(writeTransaction, times(0)).merge(any(LogicalDatastoreType.class), any(InstanceIdentifier.class),
                 any(AddressCapableNodeConnector.class));
-        //verify(writeTransaction, times(0)).submit();
+        verify(writeTransaction, times(0)).commit();
     }
 }

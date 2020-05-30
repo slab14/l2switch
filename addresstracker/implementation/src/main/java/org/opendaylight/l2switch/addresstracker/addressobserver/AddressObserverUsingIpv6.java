@@ -60,7 +60,8 @@ public class AddressObserverUsingIpv6 implements Ipv6PacketListener {
 
         if (!IPV6_IP_TO_IGNORE.equals(ipv6Packet.getSourceIpv6().getValue())) {
             addressObservationWriter.addAddress(ethernetPacket.getSourceMac(),
-			new IpAddress(new Ipv6Address(ipv6Packet.getSourceIpv6().getValue())), rawPacket.getIngress());
+                    new IpAddress(new Ipv6Address(ipv6Packet.getSourceIpv6().getValue())),
+                    rawPacket.getIngress());
         }
     }
 }

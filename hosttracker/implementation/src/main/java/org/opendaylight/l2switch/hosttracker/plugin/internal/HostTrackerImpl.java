@@ -1,23 +1,25 @@
-/**
+/*
  * Copyright (c) 2014 André Martins, Colin Dixon, Evan Zeller and others. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.hosttracker.plugin.internal;
 
-import java.util.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.FluentFuture;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.opendaylight.l2switch.hosttracker.plugin.inventory.Host;
+import org.opendaylight.l2switch.hosttracker.plugin.util.Utilities;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
 import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
@@ -25,8 +27,6 @@ import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.l2switch.hosttracker.plugin.inventory.Host;
-import org.opendaylight.l2switch.hosttracker.plugin.util.Utilities;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.address.tracker.rev140617.AddressCapableNodeConnector;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.address.tracker.rev140617.address.node.connector.Addresses;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.host.tracker.rev140624.HostId;
@@ -110,23 +110,23 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
                         .augmentation(AddressCapableNodeConnector.class)//
                         .child(Addresses.class).build();
         this.addrsNodeListenerRegistration = dataService.registerDataTreeChangeListener(
-			DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, addrCapableNodeConnectors),
-			(DataTreeChangeListener)this);
+                          DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, addrCapableNodeConnectors),
+                                                    (DataTreeChangeListener)this);
 
         InstanceIdentifier<HostNode> hostNodes = InstanceIdentifier.builder(NetworkTopology.class)//
                 .child(Topology.class, new TopologyKey(new TopologyId(topologyId)))//
                 .child(Node.class)
                 .augmentation(HostNode.class).build();
         this.hostNodeListenerRegistration = dataService.registerDataTreeChangeListener(
-			DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, hostNodes),
-			(DataTreeChangeListener)this);
+                                           DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, hostNodes),
+                                                                     (DataTreeChangeListener)this);
 
         InstanceIdentifier<Link> linkIID = InstanceIdentifier.builder(NetworkTopology.class)//
                 .child(Topology.class, new TopologyKey(new TopologyId(topologyId)))
                 .child(Link.class).build();
 
         this.linkNodeListenerRegistration = dataService.registerDataTreeChangeListener(
-		DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, linkIID), (DataTreeChangeListener)this);
+                 DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, linkIID), (DataTreeChangeListener)this);
 
         //Processing addresses that existed before we register as a data change listener.
 //        ReadOnlyTransaction newReadOnlyTransaction = dataService.newReadOnlyTransaction();
@@ -222,7 +222,8 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
             readTx.close();
         }
         Optional<NodeConnector> opNodeConnector = Optional.empty();
-        Optional<org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node> opNode = Optional.empty();
+        Optional<org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node> opNode = Optional
+                                                                                                        .empty();
         try {
             opNodeConnector = futureNodeConnector.get();
             opNode = futureNode.get();
@@ -352,7 +353,7 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         if (linksToRemove != null) {
             for (Link l : linksToRemove) {
                 final InstanceIdentifier<Link> lIID = Utilities.buildLinkIID(l.key(), topologyId);
-		opProcessor.enqueueOperation(tx -> tx.delete(LogicalDatastoreType.OPERATIONAL,  lIID));
+                opProcessor.enqueueOperation(tx -> tx.delete(LogicalDatastoreType.OPERATIONAL,  lIID));
             }
         }
     }
@@ -373,8 +374,8 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
             final HostNode hn = h.getHostNode().augmentation(HostNode.class);
             //if (hn == null) {
                 //LOG.warn("Encountered non-host node {} in hosts during purge", h);
-            //} else 	    if (hn.getAddresses() != null) {
-	    if (hn.getAddresses() != null) {
+            //} else if (hn.getAddresses() != null) {
+            if (hn.getAddresses() != null) {
                 boolean purgeHosts = false;
                 // if the node is a host and has addresses, check to see if it's been seen recently
                 purgeHosts = hostReadyForPurge(hn, nowInSeconds,hostsPurgeAgeInSeconds);
@@ -396,9 +397,7 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
     private boolean hostReadyForPurge(final HostNode hostNode, final long currentTimeInSeconds,
             final long expirationPeriod) {
         // checks if hosts need to be purged
-	//	List<Addresses> hostAddrs = new ArrayList<Addresses>(hostNode.getAddresses().values());
-	//        for (Addresses addrs : hostAddrs) {
-        for (Addresses addrs : hostNode.getAddresses().values()) {	
+        for (Addresses addrs : hostNode.getAddresses().values()) {
             long lastSeenTimeInSeconds = addrs.getLastSeen() / 1000;
             if (lastSeenTimeInSeconds > currentTimeInSeconds - expirationPeriod) {
                 return false;

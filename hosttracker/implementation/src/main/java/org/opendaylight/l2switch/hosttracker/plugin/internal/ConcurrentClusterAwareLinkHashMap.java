@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Brocade Communications Systems, Inc. and others.  All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -69,7 +69,7 @@ public class ConcurrentClusterAwareLinkHashMap {
      */
     public synchronized void removeAll(List<Link> links) {
         for (final Map.Entry<InstanceIdentifier<Link>, LinkId> e : this.instanceIDs.entrySet()) {
-            LOG.debug("Links to remove from local & MD-SAL database", links.toString());
+            LOG.debug("Links to remove from local & MD-SAL database: {}", links.toString());
             for (Link l : links) {
                 if (e.getValue().equals(l.getLinkId())) {
                     this.opProcessor.enqueueOperation(tx -> tx.delete(LogicalDatastoreType.OPERATIONAL, e.getKey()));

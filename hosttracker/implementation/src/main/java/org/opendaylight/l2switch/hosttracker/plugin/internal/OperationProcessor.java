@@ -1,10 +1,11 @@
-/**
+/*
  * Copyright (c) 2015 Evan Zeller and others.  All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.opendaylight.l2switch.hosttracker.plugin.internal;
 
 import com.google.common.base.Preconditions;
@@ -16,9 +17,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadWriteTransaction;
-import org.opendaylight.mdsal.binding.api.TransactionChainListener;
-import org.opendaylight.mdsal.binding.api.TransactionChain;
 import org.opendaylight.mdsal.binding.api.Transaction;
+import org.opendaylight.mdsal.binding.api.TransactionChain;
+import org.opendaylight.mdsal.binding.api.TransactionChainListener;
 import org.opendaylight.mdsal.common.api.OptimisticLockFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +37,12 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
     OperationProcessor(final DataBroker dataBroker) {
         this.dataBroker = Preconditions.checkNotNull(dataBroker);
         this.queue = new LinkedBlockingQueue<>(QUEUE_DEPTH);
-	this.transactionChain.set(dataBroker.createTransactionChain(this));
+        this.transactionChain.set(dataBroker.createTransactionChain(this));
     }
 
 
     public void onTransactionChainFailed(TransactionChain chain, Transaction transaction,
-					 Throwable cause) {
+                                          Throwable cause) {
         chainFailure();
     }
 
@@ -59,7 +60,7 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
                 if (txChain == null) {
                     break;
                 }
- 
+
                 ReadWriteTransaction tx = txChain.newReadWriteTransaction();
                 //ReadWriteTransaction tx = dataBroker.newReadWriteTransaction();
 
@@ -84,7 +85,7 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
         if (txChain != null) {
             txChain.close();
         }
-    }    
+    }
 
     private void chainFailure() {
         try {
@@ -92,10 +93,11 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
                     dataBroker.createTransactionChain(this));
             if (prevChain != null) {
                 prevChain.close();
-            }	    
+            }
             clearQueue();
         } catch (IllegalStateException e) {
-            LOG.warn(e.getLocalizedMessage());
+            //LOG.warn(e.getLocalizedMessage());
+            LOG.warn("Illegal State", e);
         }
     }
 
