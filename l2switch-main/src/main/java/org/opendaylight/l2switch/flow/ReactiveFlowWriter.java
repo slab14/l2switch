@@ -19,7 +19,6 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.packet.chain.packet.RawPacket;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.ethernet.packet.received.packet.chain.packet.EthernetPacket;
 
-
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
  */
@@ -32,7 +31,6 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
     }
-
 
     /**
      * Checks if a MAC should be considered for flow creation.

@@ -51,7 +51,7 @@ module arp-handler-config {
         }
         leaf is-proactive-flood-mode {
             type boolean;
-            default false;
+            default true;
             description "Setting the value to false is same as passive discovery mode,
 			 where arp packets are sent to controller. Setting to true
 			 refers to proactive flood mode where flood flows are

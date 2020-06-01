@@ -286,6 +286,6 @@ module ethernet-packet {
         }
       }
     }
-    uses bpacket:packet-payload;	    
+    uses bpacket:packet-payload;
   }
 }

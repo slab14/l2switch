@@ -20,12 +20,16 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.host.tracker.rev140624.HostId;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Node;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This will (try to) submit all writes and deletes in to the MD-SAL database.
  * The removeLocally and putLocally methods should be used when dataChanges are dealt locally and not update to MD-SAL.
  */
 public class ConcurrentClusterAwareHostHashMap {
+    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentClusterAwareHostHashMap.class);
+
     private final OperationProcessor opProcessor;
     private final String topologyId;
 
@@ -88,11 +92,12 @@ public class ConcurrentClusterAwareHostHashMap {
      *            the value's (Host's) InstanceIdentifier&lt;Node&gt;
      * @param value
      *            the Host to store locally.
-     * @return the previous value associated with {@code key}, or {@code null}
-     *         if there was no mapping for {@code key}
+     * @return the previous value associated with <tt>key</tt>, or <tt>null</tt>
+     *         if there was no mapping for <tt>key</tt>
      */
     public synchronized Host putLocally(InstanceIdentifier<Node> ii, Host value) {
         Host host = value;
+        LOG.trace("Putting locally {}", host.getId());
         this.instanceIDs.put(ii, host.getId());
         return this.hostHashMap.put(host.getId(), value);
     }
@@ -130,6 +135,7 @@ public class ConcurrentClusterAwareHostHashMap {
                 hostNode));
         putLocally(buildNodeIID, host);
         this.instanceIDs.put(buildNodeIID, host.getId());
+        LOG.trace("Enqueued for MD-SAL transaction {}", hostNode.getNodeId());
     }
 
     /**
@@ -147,6 +153,7 @@ public class ConcurrentClusterAwareHostHashMap {
                                    hostNode));
             putLocally(buildNodeIID, h);
             this.instanceIDs.put(buildNodeIID, h.getId());
+            LOG.trace("Putting MD-SAL {}", hostNode.getNodeId());
         }
     }
 
@@ -164,6 +171,7 @@ public class ConcurrentClusterAwareHostHashMap {
         final InstanceIdentifier<Node> buildNodeIID = Utilities.buildNodeIID(hostNode.key(), topologyId);
         this.opProcessor.enqueueOperation(tx -> tx.merge(LogicalDatastoreType.OPERATIONAL, buildNodeIID,
                 hostNode));
+        LOG.trace("Putting MD-SAL {}", hostNode.getNodeId());
         return putLocally(buildNodeIID, host);
     }
 

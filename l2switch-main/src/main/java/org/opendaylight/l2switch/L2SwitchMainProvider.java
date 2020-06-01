@@ -75,7 +75,6 @@ public class L2SwitchMainProvider {
             LOG.info("L2Switch will react to network traffic and install flows");
             ReactiveFlowWriter reactiveFlowWriter = new ReactiveFlowWriter(inventoryReader, flowWriterService);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
-
         }
         LOG.info("L2SwitchMain initialized.");
     }
@@ -91,4 +90,3 @@ public class L2SwitchMainProvider {
         LOG.info("L2SwitchMain (instance {}) torn down.", this);
     }
 }
-

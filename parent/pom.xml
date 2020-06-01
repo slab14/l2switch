@@ -66,8 +66,8 @@
   </distributionManagement>
 
   <build>
-      <plugins>
-          <plugin>
+    <plugins>
+	<plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-checkstyle-plugin</artifactId>
               <configuration>
@@ -83,6 +83,4 @@
           </plugin>
       </plugins>
   </build>
-
-
 </project>

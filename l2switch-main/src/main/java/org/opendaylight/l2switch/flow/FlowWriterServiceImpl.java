@@ -146,7 +146,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 
         // add sourceMac-To-destMac flow on destination port
         addMacToMacFlow(sourceMac, destMac, destNodeConnectorRef);
-
     }
 
 
@@ -234,7 +233,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
                 .setIdleTimeout(flowIdleTimeout) //
                 .setCookie(new FlowCookie(BigInteger.valueOf(flowCookieInc.getAndIncrement())))
                 .setFlags(new FlowModFlags(false, false, false, false, false));
-
 
         return macToMacFlow.build();
     }

@@ -233,6 +233,6 @@ module ipv4-packet {
         }
       }
     }
-    uses bpacket:packet-payload;        
+    uses bpacket:packet-payload;
   }
 }

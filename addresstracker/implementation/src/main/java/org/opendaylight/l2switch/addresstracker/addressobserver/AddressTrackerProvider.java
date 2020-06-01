@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.eclipse.jdt.annotation.NonNull;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.address.tracker.config.rev160621.AddressTrackerConfig;
@@ -67,6 +68,7 @@ public class AddressTrackerProvider {
             // Register AddressObserver for notifications
             this.listenerRegistrations.add(notificationService.registerNotificationListener(addressObserverUsingIpv6));
         }
+        LOG.info("AddressTracker initialized.");
     }
 
     public void close() {
@@ -74,6 +76,7 @@ public class AddressTrackerProvider {
         LOG.info("AddressTracker torn down.");
     }
 
+    @NonNull
     private Set<String> processObserveAddressesFrom(String observeAddressesFrom) {
         Set<String> packetTypes = new HashSet<>();
         if (observeAddressesFrom == null || observeAddressesFrom.isEmpty()) {

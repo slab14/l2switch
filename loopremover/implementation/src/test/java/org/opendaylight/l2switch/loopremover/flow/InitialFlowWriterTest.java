@@ -62,8 +62,6 @@ public class InitialFlowWriterTest {
 
         initialFlowWriter.onDataTreeChanged(Collections.singletonList(mockChange));
         Thread.sleep(250);
-        //?? Invoked in prior versions ??
-        verify(salFlowService, times(0)).addFlow(any(AddFlowInput.class));
-
+        verify(salFlowService, times(1)).addFlow(any(AddFlowInput.class));
     }
 }

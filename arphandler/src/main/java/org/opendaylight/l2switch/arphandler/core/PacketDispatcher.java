@@ -125,7 +125,6 @@ public class PacketDispatcher {
      *            The NodeConnector where the payload will go.
      */
     public void sendPacketOut(byte[] payload, NodeConnectorRef ingress, NodeConnectorRef egress) {
-
         if (ingress == null || egress == null) {
             return;
         }

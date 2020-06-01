@@ -31,7 +31,6 @@
       <id>opendaylight-release</id>
       <url>${nexusproxy}/repositories/opendaylight.release/</url>
     </repository>
-
     <!-- OpenDayLight Snapshot artifact -->
     <snapshotRepository>
       <id>opendaylight-snapshot</id>

@@ -149,8 +149,10 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
                     nodes = dataObjectOptional.get();
                 }
             } catch (InterruptedException e) {
+                LOG.error("Failed to read nodes from Operation data store.");
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
             } catch (ExecutionException e) {
+                LOG.error("Failed to read nodes from Operation data store.");
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
             }
 
@@ -246,12 +248,16 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
                             }
                         }
                     }
+                } else {
+                    LOG.debug("Node connectors data is not present for node {}", node.getId());
                 }
             }
         } catch (InterruptedException e) {
+            LOG.error("Failed to read nodes from Operation data store.");
             readOnlyTransaction.close();
             throw new RuntimeException("Failed to read nodes from Operation data store.", e);
         } catch (ExecutionException e) {
+            LOG.error("Failed to read nodes from Operation data store.");
             readOnlyTransaction.close();
             throw new RuntimeException("Failed to read nodes from Operation data store.", e);
         }

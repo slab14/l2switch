@@ -66,9 +66,9 @@ public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, I
         Ipv6PacketBuilder builder = new Ipv6PacketBuilder();
         try {
             builder.setVersion(BitBufferHelper.getShort(BitBufferHelper.getBits(data, bitOffset, 4)));
-            //if (builder.getVersion().intValue() != 6) {
-            //LOG.debug("Version should be 6, but is {}", builder.getVersion());
-            //}
+            if (builder.getVersion().intValue() != 6) {
+                LOG.debug("Version should be 6, but is {}", builder.getVersion());
+            }
 
             builder.setDscp(new Dscp(BitBufferHelper.getShort(BitBufferHelper.getBits(data, bitOffset + 4, 6))));
             builder.setEcn(BitBufferHelper.getShort(BitBufferHelper.getBits(data, bitOffset + 10, 2)));

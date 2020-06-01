@@ -175,12 +175,14 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
          * @param nodeId The node to write the flow on.
          */
         public void addInitialFlows(InstanceIdentifier<Node> nodeId) {
+            LOG.debug("adding initial flows for node {} ", nodeId);
 
             InstanceIdentifier<Table> tableId = getTableInstanceId(nodeId);
             InstanceIdentifier<Flow> flowId = getFlowInstanceId(tableId);
 
             //add arpToController flow
             writeFlowToController(nodeId, tableId, flowId, createArpToControllerFlow(flowTableId, flowPriority));
+            LOG.debug("Added initial flows for node {} ", nodeId);
         }
 
         private InstanceIdentifier<Table> getTableInstanceId(InstanceIdentifier<Node> nodeId) {

@@ -443,6 +443,8 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
                 }
             }
             links.removeAll(linksToRemove);
+        } else {
+            LOG.warn("Encountered host with no id , Unexpected host id {}. ", host);
         }
     }
 

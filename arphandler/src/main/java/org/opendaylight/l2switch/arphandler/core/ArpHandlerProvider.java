@@ -17,8 +17,11 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.handler.config.r
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketProcessingService;
 import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.common.Uint16;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArpHandlerProvider {
+    private static final Logger LOG = LoggerFactory.getLogger(ArpHandlerProvider.class);
     private Registration listenerRegistration;
     private Registration floodTopoListenerReg;
     private Registration floodInvListenerReg;
@@ -45,6 +48,7 @@ public class ArpHandlerProvider {
     public void init() {
         if (arpHandlerConfig.isIsProactiveFloodMode()) {
             //Setup proactive flow writer, which writes flood flows
+            LOG.info("ArpHandler is in Proactive Flood Mode");
             ProactiveFloodFlowWriter floodFlowWriter = new ProactiveFloodFlowWriter(dataBroker, salFlowService);
             floodFlowWriter.setFlowTableId(Uint16.valueOf(arpHandlerConfig.getFloodFlowTableId()).shortValue());
             floodFlowWriter.setFlowPriority(arpHandlerConfig.getFloodFlowPriority().intValue());
@@ -55,6 +59,7 @@ public class ArpHandlerProvider {
             floodInvListenerReg = notificationService.registerNotificationListener(floodFlowWriter);
         } else {
             //Write initial flows to send arp to controller
+            LOG.info("ArpHandler is in Reactive Mode");
             InitialFlowWriter initialFlowWriter = new InitialFlowWriter(salFlowService);
             initialFlowWriter.setFlowTableId(Uint16.valueOf(arpHandlerConfig.getArpFlowTableId()).shortValue());
             initialFlowWriter.setFlowPriority(arpHandlerConfig.getArpFlowPriority().intValue());
@@ -77,6 +82,7 @@ public class ArpHandlerProvider {
             // Register ArpPacketHandler
             this.listenerRegistration = notificationService.registerNotificationListener(arpPacketHandler);
         }
+        LOG.info("ArpHandler initialized.");
     }
 
     public void close() throws Exception {
@@ -92,5 +98,6 @@ public class ArpHandlerProvider {
         if (topoNodeListenerReg != null) {
             topoNodeListenerReg.close();
         }
+        LOG.info("ArpHandler (instance {}) torn down.", this);
     }
 }
