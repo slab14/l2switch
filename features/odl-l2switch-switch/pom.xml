@@ -43,5 +43,11 @@
             <artifactId>main-impl</artifactId>
             <version>${project.version}</version>	    
         </dependency>
+        <dependency>
+            <groupId>org.opendaylight.l2switch.native</groupId>
+            <artifactId>libNativeFuncs</artifactId>
+            <version>${project.version}</version>
+	    <type>so</type>
+        </dependency>
     </dependencies>
 </project>

@@ -44,6 +44,33 @@
           <skip>true</skip>
         </configuration>
       </plugin>
+       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.1.2</version>
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.opendaylight.l2switch.native</groupId>
+                  <artifactId>libNativeFuncs</artifactId>
+                  <version>0.7.5-SNAPSHOT</version>
+                  <type>so</type>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${project.build.directory}/assembly/lib/</outputDirectory>
+                  <destFileName>libNativeFuncs.so</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   <scm>

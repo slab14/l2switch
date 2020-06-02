@@ -44,6 +44,12 @@
       <artifactId>loopremover-model</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.opendaylight.l2switch.native</groupId>
+      <artifactId>libNativeFuncs</artifactId>
+      <version>0.7.5-SNAPSHOT</version>
+      <type>so</type>
+    </dependency>    
+    <dependency>
       <groupId>net.sf.jung</groupId>
       <artifactId>jung-api</artifactId>
     </dependency>

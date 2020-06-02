@@ -14,6 +14,7 @@
     <module>arphandler</module>
     <module>addresstracker</module>
     <module>hosttracker</module>
+    <module>native</module>
     <module>l2switch-main</module>
     <module>distribution/karaf</module>
     <module>features</module>

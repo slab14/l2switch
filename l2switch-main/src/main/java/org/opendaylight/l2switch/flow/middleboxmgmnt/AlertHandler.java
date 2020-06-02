@@ -28,7 +28,7 @@ import org.opendaylight.l2switch.flow.json.ContOpts;
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
 import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
-
+import org.opendaylight.l2switch.NativeStuff;
 
 public class AlertHandler extends Thread {
 
@@ -74,10 +74,6 @@ public class AlertHandler extends Thread {
             BufferedReader in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
             //PrintWriter out = new PrintWriter( socket.getOutputStream() );
 	    
-            // Write out our header to the client
-            //out.println( "Controller Alert Handler" );
-            //out.flush();
-
 	    String policyID="";
 	    String alert="";
 
@@ -85,18 +81,24 @@ public class AlertHandler extends Thread {
             String line = in.readLine();
             while( line != null && line.length() > 0 ) {
 		//Perform actions based upon received message
-		//System.out.println("Got Data: "+ line);
-		// send message back.
-                //out.println( "Echo: " + line );
-                //out.flush();
-		if (line.contains("Policy ID:")) {
-		    policyID=line.substring(10);
+		System.out.println("Got Data: "+ line);
+		NativeStuff cfunc = new NativeStuff();
+		cfunc.helloNative();
+		String processedLine = processMsg(line);
+		cfunc.revData(line, line.length());
+		System.out.println("line after jni: "+line);
+		System.out.println("Converted Data: "+processedLine);
+		if (processedLine.contains("Policy ID:")) {
+		    policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
 		}
-		if (line.contains("Alert:")) {
-		    alert=line.substring(line.indexOf("Alert:")+6);
+		if (processedLine.contains("Alert:")) {
+		    alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
 		}
                 line = in.readLine();
             }
+
+	    System.out.println(policyID);
+	    System.out.println(alert);	    
 
             // Close our connection
             in.close();
@@ -146,8 +148,11 @@ public class AlertHandler extends Thread {
     }
 
     private boolean checkForTransitions(String policyID){
-	int IDnum=Integer.parseInt(policyID);
 	boolean out=false;
+	if (policyID.length()<1){
+	    return out;
+	}
+	int IDnum=Integer.parseInt(policyID);
 	// ensure ID is valid
 	if (IDnum<this.policyMap.size()) {
 	    // get Key for hashmap
@@ -186,6 +191,13 @@ public class AlertHandler extends Thread {
 	return out;
     }
 	
-     
+
+    private String processMsg(String rxMsg) {
+	StringBuilder out = new StringBuilder(rxMsg);
+	out=out.reverse();
+	return out.toString();
+    }
+
+    
 }
 
