@@ -83,10 +83,8 @@ public class AlertHandler extends Thread {
 		//Perform actions based upon received message
 		System.out.println("Got Data: "+ line);
 		NativeStuff cfunc = new NativeStuff();
-		cfunc.helloNative();
-		String processedLine = processMsg(line);
-		cfunc.revData(line, line.length());
-		System.out.println("line after jni: "+line);
+		//String processedLine = processMsg(line);
+		String processedLine = cfunc.rev(line, line.length());
 		System.out.println("Converted Data: "+processedLine);
 		if (processedLine.contains("Policy ID:")) {
 		    policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
