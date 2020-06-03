@@ -11,9 +11,11 @@ package org.opendaylight.l2switch.flow.middlebox;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 import org.opendaylight.l2switch.flow.chain.ServiceChain;
 import org.opendaylight.l2switch.flow.chain.NewFlows;
@@ -23,12 +25,14 @@ import org.opendaylight.l2switch.flow.json.PolicyParser;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Arrays;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.l2switch.flow.json.ContOpts;
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
 import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
 import org.opendaylight.l2switch.NativeStuff;
+import java.io.DataInputStream;
 
 public class AlertHandler extends Thread {
 
@@ -68,33 +72,37 @@ public class AlertHandler extends Thread {
     @Override
     public void run() {
         try {
-            //System.out.println( "Received a connection" );
-
-            // Get input and output streams
-            BufferedReader in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
-            //PrintWriter out = new PrintWriter( socket.getOutputStream() );
-	    
+            // Get input stream
+            //BufferedReader in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
+	    DataInputStream in = new DataInputStream( socket.getInputStream() );
+	    StringBuilder sb = new StringBuilder();
 	    String policyID="";
 	    String alert="";
+	    byte[] msg;
+	    byte[] inLen = new byte[4];
+	    int encrLen;
 
-            // Read lines from client until the client closes the connection or we receive an empty line
-            String line = in.readLine();
-            while( line != null && line.length() > 0 ) {
-		//Perform actions based upon received message
-		System.out.println("Got Data: "+ line);
-		NativeStuff cfunc = new NativeStuff();
-		//String processedLine = processMsg(line);
-		String processedLine = cfunc.rev(line, line.length());
-		System.out.println("Converted Data: "+processedLine);
-		if (processedLine.contains("Policy ID:")) {
-		    policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
-		}
-		if (processedLine.contains("Alert:")) {
-		    alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
-		}
-                line = in.readLine();
-            }
-
+            // Read lines from client until the client closes the connection
+	    in.read(inLen,0,4);
+	    //System.out.println(Arrays.toString(inLen));
+	    //encrLen=ByteBuffer.wrap(inLen).getInt();
+	    encrLen = ((inLen[0] & 0xFF) << 0) | ((inLen[1] & 0xFF) << 8) | ((inLen[2] & 0xFF) << 16 ) | ((inLen[3] & 0xFF) << 24 );
+	    System.out.println("msg rx length = "+encrLen);
+	    msg = new byte[encrLen];
+	    in.read(msg);
+	    //Perform actions based upon received message
+	    //System.out.println("Got Data: "+ Arrays.toString(msg));
+	    NativeStuff cfunc = new NativeStuff();
+	    //String processedLine = processMsg(line);
+	    String processedLine = cfunc.decrypt(msg, encrLen);
+	    System.out.println("Converted Data: "+processedLine);
+	    if (processedLine.contains("Policy ID:")) {
+		policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
+	    }
+	    if (processedLine.contains("Alert:")) {
+		alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
+	    }
+	    
 	    System.out.println(policyID);
 	    System.out.println(alert);	    
 

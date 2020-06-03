@@ -49,6 +49,7 @@
           <linkerEndOptions>
             <linkerEndOption>-shared</linkerEndOption>
             <linkerEndOption>-fPIC</linkerEndOption>
+            <linkerEndOption>-lcrypto</linkerEndOption>	    
           </linkerEndOptions>
 	</configuration>
       </plugin>
