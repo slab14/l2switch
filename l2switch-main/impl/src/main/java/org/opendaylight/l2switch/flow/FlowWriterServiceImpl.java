@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 import org.opendaylight.yangtools.yang.common.Uint8;
 import org.opendaylight.yangtools.yang.common.Uint16;
+//import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev200603.NewOpendaylightActionTypesData;
 
 
 /**
@@ -293,12 +294,22 @@ public class FlowWriterServiceImpl implements FlowWriterService {
                         .setOutputAction(new OutputActionBuilder() //
                                 .setMaxLength(0xffff) //
                                 .setOutputNodeConnector(destPortUri) //
-                                .build()) //
+				 .build()) //
                         .build()) //
                 .build();
-
+	/*
+        //NewActionsData signVerAction = new ActionBuilder() //
+        //        .setOrder(0)
+        //        .setAction(new SignActionCaseBuilder() //
+        //                .setSignAction(new SignActionBuilder() //
+	//		       .build()) //
+        //                .build())
+	//        .build();
+	*/
+	
         // Create an Apply Action
-        ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(outputToControllerAction))
+	// ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(signVerAction, outputToControllerAction))
+	ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(outputToControllerAction))	    
                 .build();
 
         // Wrap our Apply Action in an Instruction

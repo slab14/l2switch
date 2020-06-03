@@ -27,6 +27,7 @@ import org.opendaylight.l2switch.flow.chain.NewFlows;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
 import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
+import org.opendaylight.l2switch.flow.ovs.VSwitch;
 
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
@@ -43,6 +44,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private int counter=0;
     private boolean doOnce=true;
     private HashMap<String, PolicyStatus> policyMap;
+    private VSwitch vswitch;
 
     public ReactiveFlowWriter(InventoryReader inventoryReader,
 			      FlowWriterService flowWriterService) {
@@ -65,6 +67,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	this.OFversion=OFversion;
 	this.policy=policy;
 	this.policyMap=policyMap;
+	this.vswitch=new VSwitch(dataplaneIP, remoteOVSPort, OFversion);
     }    
 
     /**
@@ -172,6 +175,19 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	}
     }    
 
+    public void writeNewActionFlows(RuleDescriptor rule, String action1, String action2){
+	if(rule.outMac.equals("*")){
+	    /*
+	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR);
+	} else {
+	    flowWriterService.addBidirectionalMacToMacFlows(new MacAddress(rule.inMac), rule.inNCR, new MacAddress(rule.outMac), rule.outNCR);
+	    */
+	    System.out.print("NetConRff = "+rule.inNCR);
+	    
+	}
+    }    
+
+    
     private boolean inMap(HashMap<String, ArrayList<String>> m1, String testKey, String testVal) {
 	if (m1.containsKey(testKey)){
 	    ArrayList<String> listVals = m1.get(testKey);

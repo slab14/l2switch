@@ -44,6 +44,10 @@
       <artifactId>loopremover-model</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.opendaylight.l2switch.main</groupId>
+      <artifactId>main-model</artifactId>
+    </dependency>    
+    <dependency>
       <groupId>org.opendaylight.l2switch.native</groupId>
       <artifactId>libNativeFuncs</artifactId>
       <version>0.7.5-SNAPSHOT</version>
