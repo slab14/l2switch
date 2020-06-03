@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.opendaylight.l2switch</groupId>
+    <artifactId>l2switch-parent</artifactId>
+    <version>0.7.5-SNAPSHOT</version>
+    <relativePath>../../parent</relativePath>
+  </parent>
+  <groupId>org.opendaylight.l2switch.main</groupId>
+  <artifactId>main-impl</artifactId>
+  <packaging>bundle</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.opendaylight.openflowplugin.model</groupId>
+      <artifactId>model-flow-service</artifactId>
+      <version>0.11.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.controller.model</groupId>
+      <artifactId>model-topology</artifactId>
+      <version>2.0.0</version>
+      </dependency>
+    <dependency>
+      <groupId>org.opendaylight.yangtools</groupId>
+      <artifactId>yang-common</artifactId>
+      <version>5.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.packethandler</groupId>
+      <artifactId>packethandler-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.packethandler</groupId>
+      <artifactId>packethandler-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.addresstracker</groupId>
+      <artifactId>addresstracker-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.loopremover</groupId>
+      <artifactId>loopremover-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.native</groupId>
+      <artifactId>libNativeFuncs</artifactId>
+      <version>0.7.5-SNAPSHOT</version>
+      <type>so</type>
+    </dependency>    
+    <dependency>
+      <groupId>net.sf.jung</groupId>
+      <artifactId>jung-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.openflowplugin</groupId>
+      <artifactId>openflowplugin-api</artifactId>
+      <version>0.11.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opendaylight.mdsal</groupId>
+      <artifactId>mdsal-binding-api</artifactId>
+      <version>6.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.mdsal</groupId>
+      <artifactId>yang-binding</artifactId>
+      <version>6.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.mdsal.model</groupId>
+      <artifactId>ietf-topology</artifactId>
+    <!--  <version>2013.10.21.17.9</version> -->
+    </dependency>
+
+    <dependency>
+      <groupId>org.opendaylight.controller.model</groupId>
+      <artifactId>model-inventory</artifactId>
+      <version>2.0.0</version>
+    </dependency>
+    
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Export-Package>org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.main.impl.rev140528</Export-Package>
+            <Import-Package>*</Import-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

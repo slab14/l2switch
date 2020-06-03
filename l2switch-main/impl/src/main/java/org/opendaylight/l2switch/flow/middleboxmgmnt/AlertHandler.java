@@ -87,7 +87,7 @@ public class AlertHandler extends Thread {
 	    //System.out.println(Arrays.toString(inLen));
 	    //encrLen=ByteBuffer.wrap(inLen).getInt();
 	    encrLen = ((inLen[0] & 0xFF) << 0) | ((inLen[1] & 0xFF) << 8) | ((inLen[2] & 0xFF) << 16 ) | ((inLen[3] & 0xFF) << 24 );
-	    System.out.println("msg rx length = "+encrLen);
+	    //System.out.println("msg rx length = "+encrLen);
 	    msg = new byte[encrLen];
 	    in.read(msg);
 	    //Perform actions based upon received message
@@ -95,7 +95,7 @@ public class AlertHandler extends Thread {
 	    NativeStuff cfunc = new NativeStuff();
 	    //String processedLine = processMsg(line);
 	    String processedLine = cfunc.decrypt(msg, encrLen);
-	    System.out.println("Converted Data: "+processedLine);
+	    //System.out.println("Converted Data: "+processedLine);
 	    if (processedLine.contains("Policy ID:")) {
 		policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
 	    }
@@ -103,8 +103,8 @@ public class AlertHandler extends Thread {
 		alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
 	    }
 	    
-	    System.out.println(policyID);
-	    System.out.println(alert);	    
+	    //System.out.println(policyID);
+	    //System.out.println(alert);	    
 
             // Close our connection
             in.close();
