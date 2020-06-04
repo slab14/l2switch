@@ -82,73 +82,84 @@ public class AlertHandler extends Thread {
 	    byte[] msg;
 	    byte[] inLen = new byte[4];
 	    int encrLen;
+	    int bytesRead=0;
 
             // Read lines from client until the client closes the connection
-	    in.read(inLen,0,4);
-	    //System.out.println(Arrays.toString(inLen));
-	    //encrLen=ByteBuffer.wrap(inLen).getInt();
-	    encrLen = ((inLen[0] & 0xFF) << 0) | ((inLen[1] & 0xFF) << 8) | ((inLen[2] & 0xFF) << 16 ) | ((inLen[3] & 0xFF) << 24 );
-	    //System.out.println("msg rx length = "+encrLen);
-	    msg = new byte[encrLen];
-	    in.read(msg);
-	    //Perform actions based upon received message
-	    //System.out.println("Got Data: "+ Arrays.toString(msg));
-	    NativeStuff cfunc = new NativeStuff();
-	    //String processedLine = processMsg(line);
-	    String processedLine = cfunc.decrypt(msg, encrLen);
-	    //System.out.println("Converted Data: "+processedLine);
-	    if (processedLine.contains("Policy ID:")) {
-		policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
-	    }
-	    if (processedLine.contains("Alert:")) {
-		alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
-	    }
+	    bytesRead = in.read(inLen,0,4);
+	    if (bytesRead==4) {
+		//System.out.println(Arrays.toString(inLen));
+		//encrLen=ByteBuffer.wrap(inLen).getInt();
+		encrLen = ((inLen[0] & 0xFF) << 0) | ((inLen[1] & 0xFF) << 8) | ((inLen[2] & 0xFF) << 16 ) | ((inLen[3] & 0xFF) << 24 );
+		//System.out.println("msg rx length = "+encrLen);
+		msg = new byte[encrLen];
+		bytesRead=0;
+		bytesRead = in.read(msg);
+		if (bytesRead == encrLen) {
+		    //Perform actions based upon received message
+		    //System.out.println("Got Data: "+ Arrays.toString(msg));
+		    NativeStuff cfunc = new NativeStuff();
+		    //String processedLine = processMsg(line);
+		    String processedLine = cfunc.decrypt(msg, encrLen);
+		    //System.out.println("Converted Data: "+processedLine);
+		    if (processedLine.contains("Policy ID:")) {
+			policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
+		    }
+		    if (processedLine.contains("Alert:")) {
+			alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
+		    }
 	    
-	    //System.out.println(policyID);
-	    //System.out.println(alert);	    
+		    //System.out.println(policyID);
+		    //System.out.println(alert);
+		}
+	    }
 
             // Close our connection
             in.close();
             //out.close();
             socket.close();
 
+
 	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (checkForTransitions(policyID) && !alert.equals("")) {
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
 		    String srcMac=findKey(Integer.parseInt(policyID));
-		    //get old container names
-		    String[] oldContNames=getContNames(policyID, srcMac);
-		    //transition to next state
-		    this.policyMap.get(srcMac).transitionState();
-		    // perform actions
-		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
-							     this.ovsPort, this.OFversion,
-							     this.ovsBridge_remotePort,
-							     this.devPolicy[Integer.parseInt(policyID)],
-							     policyID,
-							     this.policyMap.get(srcMac).getCurState(),
-							     this.policyMap.get(srcMac).getNCR(),
-							     this.policyMap.get(srcMac).getInNCR(),
-							     this.policyMap.get(srcMac).getOutNCR());
-		    NewFlows updates = scWorker.setupNextChain();
-		    //remove old containers (and ovs-ports and OF routes)
-		    DockerCalls docker = new DockerCalls();
-		    String ovsBridge = docker.remoteFindBridge(this.dataplaneIP,
-							       this.ovsPort);
-		    for (String name: oldContNames){
-			docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort,
-						       name, ovsBridge, this.ovsPort,
-						       this.ovsBridge_remotePort,
-						       this.OFversion);
+		    // Alert Msg Analysis
+		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
+		    if(analyzer.analyze()) {
+			//get old container names
+			String[] oldContNames=getContNames(policyID, srcMac);
+			//transition to next state
+			this.policyMap.get(srcMac).transitionState();
+			// perform actions
+			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
+								 this.ovsPort, this.OFversion,
+								 this.ovsBridge_remotePort,
+								 this.devPolicy[Integer.parseInt(policyID)],
+								 policyID,
+								 this.policyMap.get(srcMac).getCurState(),
+								 this.policyMap.get(srcMac).getNCR(),
+								 this.policyMap.get(srcMac).getInNCR(),
+								 this.policyMap.get(srcMac).getOutNCR());
+			NewFlows updates = scWorker.setupNextChain();
+			//remove old containers (and ovs-ports and OF routes)
+			DockerCalls docker = new DockerCalls();
+			String ovsBridge = docker.remoteFindBridge(this.dataplaneIP,
+								   this.ovsPort);
+			for (String name: oldContNames){
+			    docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort,
+							   name, ovsBridge, this.ovsPort,
+							   this.ovsBridge_remotePort,
+							   this.OFversion);
+			}
+			//Write routing rules
+			ActionSet actions = new ActionSet("signkernel", "verifykernel");
+			for(RuleDescriptor rule:updates.rules){
+			    //this.flowWriter.writeFlows(rule);
+			    this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			    actions.switchActionOrder();
+			}
+			this.policyMap.get(srcMac).updateSetup(true);
 		    }
-		    //Write routing rules
-		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
-		    for(RuleDescriptor rule:updates.rules){
-			//this.flowWriter.writeFlows(rule);
-			this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
-			actions.switchActionOrder();
-		    }
-		    this.policyMap.get(srcMac).updateSetup(true);
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);
 		}
 	    }

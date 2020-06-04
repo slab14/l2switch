@@ -15,10 +15,10 @@ public class DevPolicy {
     public String inMAC;
     public String outMAC;
     public String[] states;
-    public String transition;
+    public String[] transition;
     public ProtectionDetails[] protections;
 
-    public DevPolicy(String name, String inMAC, String outMAC, String[] states, String transition, ProtectionDetails[] protections) {
+    public DevPolicy(String name, String inMAC, String outMAC, String[] states, String[] transition, ProtectionDetails[] protections) {
 	this.name=name;
 	this.inMAC=inMAC;
 	this.outMAC=outMAC;
@@ -47,7 +47,7 @@ public class DevPolicy {
 	return this.states[0];
     }
 
-    public String getTransition(){
+    public String[] getTransition(){
 	return this.transition;
     }
 
