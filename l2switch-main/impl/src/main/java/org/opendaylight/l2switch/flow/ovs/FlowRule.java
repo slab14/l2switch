@@ -15,6 +15,7 @@ public class FlowRule {
     private String matchMAC;
     private String loc;
     private String actionPort;
+    // consider how to handle 2 mac addresses
 
     public FlowRule(String priority, String matchPort, String matchMAC, String loc, String actionPort){
 	this.priority = priority;
@@ -78,6 +79,17 @@ public class FlowRule {
 
     public void setActionPort(String port){
 	actionPort=port;
+    }
+
+    public void switchDir(){
+	String temp = matchPort;
+        matchPort=actionPort;
+	actionPort=temp;
+        if (loc.equals("src")){
+            loc="dst";
+        } else {
+            loc="src";
+	}
     }
 
 }

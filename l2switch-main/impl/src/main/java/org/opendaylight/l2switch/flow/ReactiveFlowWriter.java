@@ -28,6 +28,8 @@ import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
 import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.l2switch.flow.ovs.VSwitch;
+import org.opendaylight.l2switch.flow.ovs.FlowRule;
+
 
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
@@ -134,6 +136,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    NewFlows updates = scWorker.setupChain();
 		    for(RuleDescriptor rule:updates.rules){
 			writeFlows(rule);
+			//writeNewActionFlows(rule, "sign", "verify");
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
 		}
@@ -176,14 +179,14 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     }    
 
     public void writeNewActionFlows(RuleDescriptor rule, String action1, String action2){
+	FlowRule matchAction;
 	if(rule.outMac.equals("*")){
-	    /*
-	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR);
+	    //TODO : conver NCR to String of OF port #
+	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);
 	} else {
-	    flowWriterService.addBidirectionalMacToMacFlows(new MacAddress(rule.inMac), rule.inNCR, new MacAddress(rule.outMac), rule.outNCR);
-	    */
-	    System.out.print("NetConRff = "+rule.inNCR);
-	    
+	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);	    
 	}
     }    
 

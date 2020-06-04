@@ -52,15 +52,5 @@ public class VSwitch {
 	this.OFversion=String.valueOf(ver);
     }
 
-    public void switchDir(){
-	String temp = matchPort;
-	matchPort=actionPort;
-	actionPort=temp;
-	if (loc.equals("src")){
-	    loc="dst";
-	} else {
-	    loc="src";
-	}
-    }
 
 }
