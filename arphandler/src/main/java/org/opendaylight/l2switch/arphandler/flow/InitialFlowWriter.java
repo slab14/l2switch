@@ -65,13 +65,16 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.K
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Adds a flow, which sends all ARP packets to the controller, on all switches.
  * Registers as ODL Inventory listener so that it can add flows once a new node i.e. switch is added
  */
 public class InitialFlowWriter implements DataTreeChangeListener<Node> {
-
+    private static final Logger LOG = LoggerFactory.getLogger(InitialFlowWriter.class);
+    
     private static final String FLOW_ID_PREFIX = "L2switch-";
 
     private final ExecutorService initialFlowExecutor = Executors.newCachedThreadPool();
@@ -172,12 +175,13 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
          * @param nodeId The node to write the flow on.
          */
         public void addInitialFlows(InstanceIdentifier<Node> nodeId) {
-
+	    LOG.debug("adding initial flows for node {} ", nodeId);
             InstanceIdentifier<Table> tableId = getTableInstanceId(nodeId);
             InstanceIdentifier<Flow> flowId = getFlowInstanceId(tableId);
 
             //add arpToController flow
             writeFlowToController(nodeId, tableId, flowId, createArpToControllerFlow(flowTableId, flowPriority));
+	    LOG.debug("Added initial flows for node {} ", nodeId);	    
         }
 
         private InstanceIdentifier<Table> getTableInstanceId(InstanceIdentifier<Node> nodeId) {

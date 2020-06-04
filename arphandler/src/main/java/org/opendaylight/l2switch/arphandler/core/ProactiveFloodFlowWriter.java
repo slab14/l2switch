@@ -72,6 +72,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.loopremover.rev140
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ProactiveFloodFlowWriter is used for the proactive mode of L2Switch. In this
@@ -80,7 +82,8 @@ import org.opendaylight.yangtools.yang.common.RpcResult;
  */
 public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatusAwareNodeConnector>,
         OpendaylightInventoryListener {
-
+    private static final Logger LOG = LoggerFactory.getLogger(ProactiveFloodFlowWriter.class);
+    
     private static final String FLOW_ID_PREFIX = "L2switch-";
 
     private final DataBroker dataBroker;
@@ -152,8 +155,10 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                     flowRefreshScheduled = true;
                 }
             }
+	    LOG.debug("Scheduled Flows for refresh.");
         } else {
             threadReschedule = true;
+	    LOG.debug("Already scheduled for flow refresh.");
         }
     }
 
@@ -181,20 +186,23 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                     flowRefreshScheduled = true;
                 }
             }
+	    LOG.debug("Scheduled Flows for refresh.");
         } else {
             threadReschedule = true;
+	    LOG.debug("Already scheduled for flow refresh.");
         }
     }
 
     private class StpStatusDataChangeEventProcessor implements Runnable {
         @Override
         public void run() {
+	    LOG.debug("In flow refresh thread.");
             if (threadReschedule) {
+		LOG.debug("Rescheduling thread");
                 stpStatusDataChangeEventProcessor.schedule(this, flowInstallationDelay, TimeUnit.MILLISECONDS);
                 threadReschedule = false;
                 return;
             }
-
             flowRefreshScheduled = false;
             installFloodFlows();
         }
@@ -216,13 +224,16 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
                 readOnlyTransaction.close();
             } catch (InterruptedException e) {
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
+		LOG.error("Failed to read nodes from Operation data store.");
             } catch (ExecutionException e) {
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
+		LOG.error("Failed to read nodes from Operation data store.");
             }
 
             if (nodes == null) {
                 // Reschedule thread when the data store read had errors
                 if (!flowRefreshScheduled) {
+		    LOG.debug("Rescheduling flow refresh thread because datastore read failed.");
                     flowRefreshScheduled = true;
                     stpStatusDataChangeEventProcessor.schedule(this, flowInstallationDelay, TimeUnit.MILLISECONDS);
                 }

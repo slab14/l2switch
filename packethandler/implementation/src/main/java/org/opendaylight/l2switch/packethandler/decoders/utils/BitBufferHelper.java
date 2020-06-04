@@ -9,6 +9,7 @@
 package org.opendaylight.l2switch.packethandler.decoders.utils;
 
 import java.util.Arrays;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -332,7 +333,7 @@ public final class BitBufferHelper {
      * @param numBits the number of bits
      * @return numerical value of byte array passed
      */
-    public static long toNumber(byte[] array, int numBits) {
+    public static long toNumber(@Nonnull byte[] array, int numBits) {	
         int length = numBits / NetUtils.NUM_BITS_IN_A_BYTE;
         int bitsRest = numBits % NetUtils.NUM_BITS_IN_A_BYTE;
         int startOffset = array.length - length;

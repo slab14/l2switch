@@ -45,6 +45,8 @@ import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
 public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
@@ -441,6 +443,8 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
                 }
             }
             links.removeAll(linksToRemove);
+	} else {
+	    LOG.warn("Encountered host with no id , Unexpected host id {}. ", host);
         }
     }
 

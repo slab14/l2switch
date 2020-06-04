@@ -17,8 +17,12 @@ import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.address.tracker.config.rev160621.AddressTrackerConfig;
 import org.opendaylight.yangtools.concepts.Registration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AddressTrackerProvider {
+    private static final Logger LOG = LoggerFactory.getLogger(AddressTrackerProvider.class);
+    
     private static final String ARP_PACKET_TYPE = "arp";
     private static final String IPV4_PACKET_TYPE = "ipv4";
     private static final String IPV6_PACKET_TYPE = "ipv6";

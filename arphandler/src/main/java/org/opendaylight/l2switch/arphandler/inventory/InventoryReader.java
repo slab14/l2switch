@@ -39,6 +39,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.loopremover.rev140
 import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * InventoryReader reads the opendaylight-inventory tree in MD-SAL data store.
@@ -148,8 +150,10 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
+		LOG.error("Failed to read nodes from Operation data store.");
             } catch (ExecutionException e) {
                 throw new RuntimeException("Failed to read nodes from Operation data store.", e);
+		LOG.error("Failed to read nodes from Operation data store.");
             }
 
             if (nodes != null) {
@@ -242,15 +246,18 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
                                     }
                                 }
                             }
-                        }
+			}
                     }
-                }
+		} else {
+		    LOG.debug("Node connectors data is not present for node {}", node.getId());
             }
         } catch (InterruptedException e) {
             readOnlyTransaction.close();
+	    LOG.error("Failed to read nodes from Operation data store.");
             throw new RuntimeException("Failed to read nodes from Operation data store.", e);
         } catch (ExecutionException e) {
             readOnlyTransaction.close();
+	    LOG.error("Failed to read nodes from Operation data store.");
             throw new RuntimeException("Failed to read nodes from Operation data store.", e);
         }
         readOnlyTransaction.close();

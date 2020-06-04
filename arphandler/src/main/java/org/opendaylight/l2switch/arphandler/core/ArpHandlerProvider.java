@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ArpHandlerProvider {
+    private static final Logger LOG = LoggerFactory.getLogger(ArpHandlerProvider.class);
+    
     private Registration listenerRegistration;
     private Registration floodTopoListenerReg;
     private Registration floodInvListenerReg;
@@ -46,6 +48,7 @@ public class ArpHandlerProvider {
 
     public void init() {
         if (arpHandlerConfig.isIsProactiveFloodMode()) {
+	    LOG.info("ArpHandler is in Proactive Flood Mode");
             //Setup proactive flow writer, which writes flood flows
             ProactiveFloodFlowWriter floodFlowWriter = new ProactiveFloodFlowWriter(dataBroker, salFlowService);
             floodFlowWriter.setFlowTableId(Uint16.valueOf(arpHandlerConfig.getFloodFlowTableId()).shortValue());
@@ -56,6 +59,7 @@ public class ArpHandlerProvider {
             floodTopoListenerReg = floodFlowWriter.registerAsDataChangeListener();
             floodInvListenerReg = notificationService.registerNotificationListener(floodFlowWriter);
         } else {
+	    LOG.info("ArpHandler is in Reactive Mode");
             //Write initial flows to send arp to controller
             InitialFlowWriter initialFlowWriter = new InitialFlowWriter(salFlowService);
             initialFlowWriter.setFlowTableId(Uint16.valueOf(arpHandlerConfig.getArpFlowTableId()).shortValue());
@@ -79,6 +83,7 @@ public class ArpHandlerProvider {
             // Register ArpPacketHandler
             this.listenerRegistration = notificationService.registerNotificationListener(arpPacketHandler);
         }
+	LOG.info("ArpHandler initialized.");
     }
 
     public void close() throws Exception {
@@ -94,5 +99,6 @@ public class ArpHandlerProvider {
         if (topoNodeListenerReg != null) {
             topoNodeListenerReg.close();
         }
+	LOG.info("ArpHandler (instance {}) torn down.", this);
     }
 }
