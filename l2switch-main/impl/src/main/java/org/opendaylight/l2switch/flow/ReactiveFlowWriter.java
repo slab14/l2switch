@@ -135,8 +135,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector);
 		    NewFlows updates = scWorker.setupChain();
 		    for(RuleDescriptor rule:updates.rules){
-			writeFlows(rule);
-			//writeNewActionFlows(rule, "sign", "verify");
+			//writeFlows(rule);
+			writeNewActionFlows(rule, "pop_vlan", "pop_vlan");
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
 		}
@@ -182,11 +182,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	FlowRule matchAction;
 	if(rule.outMac.equals("*")){
 	    //TODO : conver NCR to String of OF port #
-	    //matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
-	    matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");
+	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
 	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);
 	} else {
-	    matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");	    
+	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);	    
+	    //matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");	    
 	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);	    
 	}
     }    

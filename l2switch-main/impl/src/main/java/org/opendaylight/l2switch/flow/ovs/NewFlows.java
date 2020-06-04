@@ -27,9 +27,9 @@ public class NewFlows {
     }
     
     public void writeNewFlow(FlowRule rule, String action) {
-	String matchAction = String.format("priority=%s in_port=%s,dl_%s=%s  actions=%s,output:%", rule.getPriority(), rule.getMatchPort(), rule.getLoc(), rule.getMatchMAC(), action, rule.getActionPort());
 	String cmd = "";
 	String opts = "";
+	String matchAction = String.format("priority=%s in_port=%s,dl_%s=%s  actions=%s,output:%s", rule.getPriority(), rule.getMatchPort(), rule.getLoc(), rule.getMatchMAC(), action, rule.getActionPort());
 	if(this.vswitch.getOFver().equals("13")){
 	    opts="-O Openflow13";
 	}

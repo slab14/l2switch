@@ -8,6 +8,9 @@
 package org.opendaylight.l2switch.flow.ovs;
 
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnector;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 
 public class FlowRule {
     private String priority;
@@ -33,6 +36,29 @@ public class FlowRule {
 	this.actionPort = actionPort;
     }
 
+    public FlowRule(String priority, NodeConnectorRef matchPort, String matchMAC, String loc, NodeConnectorRef actionPort){
+	String[] findOFport;
+	this.priority = priority;
+	findOFport = matchPort.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
+	this.matchPort = findOFport[findOFport.length-1];
+	this.matchMAC = matchMAC;
+	this.loc=loc;
+	findOFport = actionPort.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");	
+	this.actionPort = findOFport[findOFport.length-1];
+    }
+    
+    public FlowRule(String priority, NodeConnectorRef matchPort, MacAddress matchMAC, String loc, NodeConnectorRef actionPort){
+	String[] findOFport;
+	this.priority = priority;
+	findOFport = matchPort.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
+	this.matchPort = findOFport[findOFport.length-1];
+	this.matchMAC = matchMAC.getValue();
+	this.loc=loc;
+	findOFport = actionPort.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");	
+	this.actionPort = findOFport[findOFport.length-1];
+    }    
+
+    
     public String getPriority(){
 	return priority;
     }
@@ -65,6 +91,12 @@ public class FlowRule {
 	matchPort=port;
     }
 
+    public void setMatchPort(NodeConnectorRef newPort){
+	String[] findOFport;
+        findOFport = newPort.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
+        this.matchPort = findOFport[findOFport.length-1];
+    }
+
     public void setMatchMAC(String newMAC){
 	matchMAC = newMAC;
     }
@@ -80,6 +112,12 @@ public class FlowRule {
     public void setActionPort(String port){
 	actionPort=port;
     }
+
+    public void setActionPort(NodeConnectorRef newPort){
+	String[] findOFport;
+        findOFport = newPort.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
+        this.actionPort = findOFport[findOFport.length-1];
+    }    
 
     public void switchDir(){
 	String temp = matchPort;

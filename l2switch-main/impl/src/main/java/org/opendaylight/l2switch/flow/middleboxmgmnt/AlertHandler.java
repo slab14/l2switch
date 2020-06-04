@@ -142,7 +142,8 @@ public class AlertHandler extends Thread {
 		    }
 		    //Write routing rules
 		    for(RuleDescriptor rule:updates.rules){
-			this.flowWriter.writeFlows(rule);
+			//this.flowWriter.writeFlows(rule);
+			this.flowWriter.writeNewActionFlows(rule, "pop_vlan", "pop_vlan");
 		    }
 		    this.policyMap.get(srcMac).updateSetup(true);
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);
