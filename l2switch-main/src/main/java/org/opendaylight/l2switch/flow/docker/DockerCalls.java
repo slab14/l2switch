@@ -169,7 +169,7 @@ public class DockerCalls {
     }
 
     public void remoteCreateContainer(String ip, String docker_port, String cont_name, String container_image, String devNum) {
-	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Env\": [\"PROTECTION_ID=%s\"], \"HostConfig\": {\"AutoRemove\": true}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, devNum);
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Env\": [\"PROTECTION_ID=%s\"], \"HostConfig\": {\"AutoRemove\": true, \"CapAdd\": [\"NET_ADMIN\"]}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, devNum);
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	ExecShellCmd obj = new ExecShellCmd();
 	String output=obj.exeCmd(newCmd);
