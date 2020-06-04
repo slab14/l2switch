@@ -28,6 +28,8 @@ import org.opendaylight.yangtools.yang.binding.NotificationListener;
 public class IcmpDecoder extends AbstractPacketDecoder<Ipv4PacketReceived, IcmpPacketReceived>
         implements Ipv4PacketListener {
 
+    private static final Logger LOG = LoggerFactory.getLogger(IcmpDecoder.class);
+
     public IcmpDecoder(NotificationPublishService notificationProviderService,
                        NotificationService notificationService) {
         super(IcmpPacketReceived.class, notificationProviderService, notificationService);
@@ -69,7 +71,7 @@ public class IcmpDecoder extends AbstractPacketDecoder<Ipv4PacketReceived, IcmpP
             builder.setIcmpPayloadOffset(start);
             builder.setIcmpPayloadLength(end - start);
         } catch (BufferException e) {
-            //LOG.debug("Exception while decoding ICMP packet", e.getMessage());
+            LOG.debug("Exception while decoding ICMP packet", e);
         }
 
         // build icmp

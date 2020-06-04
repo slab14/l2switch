@@ -40,6 +40,8 @@ import org.opendaylight.yangtools.yang.binding.NotificationListener;
 public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, Ipv6PacketReceived>
         implements EthernetPacketListener {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Ipv6Decoder.class);
+
     public Ipv6Decoder(NotificationPublishService notificationProviderService,
                        NotificationService notificationService) {
         super(Ipv6PacketReceived.class, notificationProviderService, notificationService);
@@ -105,7 +107,7 @@ public class Ipv6Decoder extends AbstractPacketDecoder<EthernetPacketReceived, I
                 builder.setExtensionHeaders(extensionHeaders);
             }
         } catch (BufferException | UnknownHostException e) {
-            //LOG.debug("Exception while decoding IPv4 packet", e.getMessage());
+            LOG.debug("Exception while decoding IPv6 packet", e);
         }
 
         // build ipv6

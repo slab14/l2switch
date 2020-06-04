@@ -49,6 +49,8 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 @SuppressWarnings("rawtypes")
 public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HostTrackerImpl.class);
+
     private static final int CPUS = Runtime.getRuntime().availableProcessors();
 
     private static final String TOPOLOGY_NAME = "flow:1";
@@ -227,8 +229,8 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         try {
             opNodeConnector = futureNodeConnector.get();
             opNode = futureNode.get();
-        } catch (ExecutionException | InterruptedException ex) {
-            //LOG.warn(ex.getLocalizedMessage());
+        } catch (ExecutionException | InterruptedException e) {
+            LOG.warn("Failed to get node connector {}", iinc, e);
         }
         if (opNode != null && opNode.isPresent()
                 && opNodeConnector != null && opNodeConnector.isPresent()) {
@@ -288,7 +290,8 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         Optional<NetworkTopology> optionalNT;
         try {
             optionalNT = lfONT.get();
-        } catch (InterruptedException | ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException e) {
+            LOG.warn("Failed to get network topology {}", ntII, e);
             return false;
         }
         if (optionalNT.isPresent()) {
@@ -347,12 +350,14 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         if (linksToAdd != null) {
             for (final Link l : linksToAdd) {
                 final InstanceIdentifier<Link> lIID = Utilities.buildLinkIID(l.key(), topologyId);
+                LOG.trace("Writing link from MD_SAL: {}", lIID.toString());
                 opProcessor.enqueueOperation(tx -> tx.merge(LogicalDatastoreType.OPERATIONAL, lIID, l));
             }
         }
         if (linksToRemove != null) {
             for (Link l : linksToRemove) {
                 final InstanceIdentifier<Link> lIID = Utilities.buildLinkIID(l.key(), topologyId);
+                LOG.trace("Removing link from MD_SAL: {}", lIID.toString());
                 opProcessor.enqueueOperation(tx -> tx.delete(LogicalDatastoreType.OPERATIONAL,  lIID));
             }
         }
@@ -372,10 +377,9 @@ public class HostTrackerImpl implements DataTreeChangeListener<DataObject> {
         // iterate through all hosts in the local cache
         for (Host h : hosts.values()) {
             final HostNode hn = h.getHostNode().augmentation(HostNode.class);
-            //if (hn == null) {
-                //LOG.warn("Encountered non-host node {} in hosts during purge", h);
-            //} else if (hn.getAddresses() != null) {
-            if (hn.getAddresses() != null) {
+            if (hn == null) {
+                LOG.warn("Encountered non-host node {} in hosts during purge", h);
+            } else if (hn.getAddresses() != null) {
                 boolean purgeHosts = false;
                 // if the node is a host and has addresses, check to see if it's been seen recently
                 purgeHosts = hostReadyForPurge(hn, nowInSeconds,hostsPurgeAgeInSeconds);

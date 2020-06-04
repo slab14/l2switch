@@ -279,6 +279,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                                                                        InstanceIdentifier<Table> tableInstanceId,
                                                                        InstanceIdentifier<Flow> flowPath,
                                                                        Flow flow) {
+            LOG.trace("Adding flow to node {}",nodeInstanceId.firstKeyOf(Node.class).getId().getValue());
             final AddFlowInputBuilder builder = new AddFlowInputBuilder(flow);
             builder.setNode(new NodeRef(nodeInstanceId));
             builder.setFlowRef(new FlowRef(flowPath));

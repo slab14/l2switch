@@ -12,13 +12,11 @@
   <packaging>bundle</packaging>
 
   <dependencies>
-
     <dependency>
       <groupId>org.opendaylight.controller.model</groupId>
       <artifactId>model-inventory</artifactId>
       <version>2.0.0</version>
     </dependency>
-
     <dependency>
       <groupId>org.opendaylight.yangtools</groupId>
       <artifactId>yang-common</artifactId>
@@ -29,13 +27,11 @@
       <artifactId>rfc6991-ietf-yang-types</artifactId>
       <version>6.0.0</version>
     </dependency>
-
     <dependency>
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>yang-binding</artifactId>
       <version>6.0.0</version>
     </dependency>
-    
   </dependencies>
 
   <build>

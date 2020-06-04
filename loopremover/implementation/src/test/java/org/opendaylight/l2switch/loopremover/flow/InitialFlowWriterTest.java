@@ -8,7 +8,7 @@
 
 package org.opendaylight.l2switch.loopremover.flow;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,6 +62,5 @@ public class InitialFlowWriterTest {
         initialFlowWriter.onDataTreeChanged(Collections.singletonList(mockChange));
         Thread.sleep(250);
         verify(salFlowService, times(1)).addFlow(any(AddFlowInput.class));
-
     }
 }

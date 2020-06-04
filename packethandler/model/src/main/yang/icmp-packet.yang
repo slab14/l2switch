@@ -37,7 +37,6 @@ module icmp-packet {
         leaf icmp-payload-length {
             type int32;
         }
-
     }
 
     notification icmp-packet-received {

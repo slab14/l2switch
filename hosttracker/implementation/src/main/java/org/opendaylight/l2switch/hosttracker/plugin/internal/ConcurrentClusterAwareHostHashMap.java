@@ -164,6 +164,7 @@ public class ConcurrentClusterAwareHostHashMap {
         final InstanceIdentifier<Node> buildNodeIID = Utilities.buildNodeIID(hostNode.key(), topologyId);
         this.opProcessor.enqueueOperation(tx -> tx.merge(LogicalDatastoreType.OPERATIONAL, buildNodeIID,
                 hostNode));
+        LOG.trace("Putting MD-SAL {}", hostNode.getNodeId());
         return putLocally(buildNodeIID, host);
     }
 

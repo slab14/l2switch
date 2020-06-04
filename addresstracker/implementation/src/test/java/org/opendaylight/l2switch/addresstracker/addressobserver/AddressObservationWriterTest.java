@@ -7,7 +7,7 @@
  */
 package org.opendaylight.l2switch.addresstracker.addressobserver;
 
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

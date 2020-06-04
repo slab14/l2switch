@@ -21,7 +21,6 @@
             <artifactId>ietf-topology</artifactId>
 	  <!--  <version>2013.10.21.17.9</version> -->
         </dependency>
-
 	<dependency>
 	  <groupId>org.opendaylight.mdsal</groupId>
 	  <artifactId>mdsal-binding-api</artifactId>
@@ -32,7 +31,6 @@
 	  <artifactId>yang-binding</artifactId>
 	  <version>6.0.0</version>
 	</dependency>
-
 	<dependency>
           <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
           <artifactId>rfc6991-ietf-yang-types</artifactId>
@@ -43,13 +41,11 @@
           <artifactId>rfc6991-ietf-inet-types</artifactId>
           <version>6.0.0</version>
         </dependency>
-
 	<dependency>
 	  <groupId>org.opendaylight.controller.model</groupId>
 	  <artifactId>model-inventory</artifactId>
 	  <version>2.0.0</version>
 	</dependency>	
-
     </dependencies>
 
     <build>

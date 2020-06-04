@@ -94,6 +94,7 @@ public class InventoryReaderTest {
                 .setLastSeen(now).build();
         List<Addresses> addressList = new ArrayList<Addresses>();
         addressList.add(address1);
+        //error when adding 2nd item
         //addressList.add(address2);
         AddressCapableNodeConnector addressCapableNodeConnector = new AddressCapableNodeConnectorBuilder()
                 .setAddresses(addressList).build();

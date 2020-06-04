@@ -60,6 +60,5 @@ public class InitialFlowWriterTest {
         initialFlowWriter.onDataTreeChanged(Collections.singletonList(mockChange));
         Thread.sleep(250);
         verify(salFlowService, times(1)).addFlow(any(AddFlowInput.class));
-
     }
 }

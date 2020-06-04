@@ -60,8 +60,7 @@ public class PacketDispatcher {
     public void dispatchPacket(byte[] payload, NodeConnectorRef ingress, MacAddress srcMac, MacAddress destMac) {
         inventoryReader.readInventory();
 
-        String nodeId = ingress.getValue().firstIdentifierOf(Node.class).firstKeyOf(Node.class).getId()
-                .getValue();
+        String nodeId = ingress.getValue().firstIdentifierOf(Node.class).firstKeyOf(Node.class).getId().getValue();
         NodeConnectorRef srcConnectorRef = inventoryReader.getControllerSwitchConnectors().get(nodeId);
 
         if (srcConnectorRef == null) {
@@ -141,9 +140,9 @@ public class PacketDispatcher {
                 .build();
 
         Futures.addCallback(JdkFutureAdapters.listenInPoolThread(packetProcessingService.transmitPacket(input)),
-            new FutureCallback<RpcResult<TransmitPacketOutput>>() {
+            new FutureCallback<RpcResult<?>>() {
                 @Override
-                public void onSuccess(RpcResult<TransmitPacketOutput> result) {
+                public void onSuccess(RpcResult<?> result) {
                     LOG.debug("transmitPacket was successful");
                 }
 

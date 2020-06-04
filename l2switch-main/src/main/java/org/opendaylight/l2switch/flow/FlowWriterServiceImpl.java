@@ -130,19 +130,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         writeFlowToConfigData(flowPath, flowBody);
     }
 
-    /**
-     * Writes mac-to-mac flow on all ports that are in the path between given
-     * source and destination ports. It uses path provided by
-     * org.opendaylight.l2switch.loopremover.topology.NetworkGraphService to
-     * find a links
-     * between given ports. And then writes appropriate flow on each port that
-     * is covered in that path.
-     *
-     * @param sourceMac Souce Mac Address
-     * @param sourceNodeConnectorRef Source Node Connector Reference
-     * @param destMac Destination MAC Address
-     * @param destNodeConnectorRef Destination Node Connector Ref
-     */
     @Override
     public void addBidirectionalMacToMacFlows(MacAddress sourceMac,
                                               NodeConnectorRef sourceNodeConnectorRef,
@@ -217,7 +204,6 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         Match match = new MatchBuilder().setEthernetMatch(ethernetMatch).build();
 
         Uri destPortUri = destPort.getValue().firstKeyOf(NodeConnector.class).getId();
-
 
         Action outputToControllerAction = new ActionBuilder() //
                 .setOrder(0)

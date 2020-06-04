@@ -36,7 +36,7 @@
             <type>xml</type>
             <classifier>features</classifier>
         </dependency>
-<!--
+	<!-- leaving out
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>odl-l2switch-switch-rest</artifactId>
@@ -44,7 +44,16 @@
             <type>xml</type>
             <classifier>features</classifier>
         </dependency>
--->
+        -->
+        <!-- FIXME: uncomment when we have dlux
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>odl-l2switch-switch-ui</artifactId>
+            <version>${project.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+        </dependency>
+        -->	    
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>odl-l2switch-hosttracker</artifactId>

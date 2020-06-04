@@ -45,6 +45,8 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
  */
 public class InventoryReader implements DataTreeChangeListener<DataObject> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(InventoryReader.class);
+
     private final DataBroker dataService;
     // Key: SwitchId, Value: NodeConnectorRef that corresponds to NC between
     // controller & switch
@@ -167,19 +169,20 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
                                 continue;
                             }
                             NodeConnectorRef ncRef = new NodeConnectorRef(InstanceIdentifier.<Nodes>builder(Nodes.class)
-                                                                          .<Node, NodeKey>child(Node.class, node.key())
-                                       .<NodeConnector, NodeConnectorKey>child(NodeConnector.class, nodeConnector.key())
-                                       .build());
+                                    .<Node, NodeKey>child(Node.class, node.key())
+                                    .<NodeConnector, NodeConnectorKey>child(NodeConnector.class, nodeConnector.key())
+                                    .build());
                             nodeConnectorRefs.add(ncRef);
                         }
                     }
 
                     switchNodeConnectors.put(node.getId().getValue(), nodeConnectorRefs);
                     NodeConnectorRef ncRef = new NodeConnectorRef(InstanceIdentifier.<Nodes>builder(Nodes.class)
-                                                                    .<Node, NodeKey>child(Node.class, node.key())
-                                                      .<NodeConnector, NodeConnectorKey>child(NodeConnector.class,
-                                     new NodeConnectorKey(new NodeConnectorId(node.getId().getValue() + ":LOCAL")))
+                            .<Node, NodeKey>child(Node.class, node.key())
+                            .<NodeConnector, NodeConnectorKey>child(NodeConnector.class,
+                                    new NodeConnectorKey(new NodeConnectorId(node.getId().getValue() + ":LOCAL")))
                             .build());
+                    LOG.debug("Local port for node {} is {}", node.key(), ncRef);
                     controllerSwitchConnectors.put(node.getId().getValue(), ncRef);
                 }
             }
@@ -224,6 +227,7 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
                         if (saNodeConnector != null && StpStatus.Discarding.equals(saNodeConnector.getStatus())) {
                             continue;
                         }
+                        LOG.debug("Looking address{} in nodeconnector : {}", macAddress, nc.key());
                         AddressCapableNodeConnector acnc = nc.augmentation(AddressCapableNodeConnector.class);
                         if (acnc != null) {
                             List<Addresses> addressesList = new ArrayList<Addresses>(acnc.getAddresses().values());
@@ -231,8 +235,9 @@ public class InventoryReader implements DataTreeChangeListener<DataObject> {
                                 if (macAddress.equals(add.getMac())) {
                                     if (add.getLastSeen() > latest) {
                                         destNodeConnector = new NodeConnectorRef(
-                                                            nodeInsId.child(NodeConnector.class, nc.key()));
+                                            nodeInsId.child(NodeConnector.class, nc.key()));
                                         latest = add.getLastSeen();
+                                        LOG.debug("Found address{} in nodeconnector : {}", macAddress, nc.key());
                                         break;
                                     }
                                 }

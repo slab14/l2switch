@@ -45,5 +45,4 @@ public interface FlowWriterService {
                                         NodeConnectorRef sourceNodeConnectorRef,
                                         MacAddress destMac,
                                         NodeConnectorRef destNodeConnectorRef);
-
 }

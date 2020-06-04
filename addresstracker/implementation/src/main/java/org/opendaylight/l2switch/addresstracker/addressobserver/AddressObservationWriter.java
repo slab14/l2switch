@@ -125,8 +125,7 @@ public class AddressObservationWriter {
             if (nc == null) {
                 return;
             }
-            AddressCapableNodeConnector acnc = nc
-                    .augmentation(AddressCapableNodeConnector.class);
+            AddressCapableNodeConnector acnc = nc.augmentation(AddressCapableNodeConnector.class);
 
             // Address observations exist
             if (acnc != null && acnc.getAddresses() != null) {

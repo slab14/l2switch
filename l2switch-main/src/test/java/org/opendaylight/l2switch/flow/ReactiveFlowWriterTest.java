@@ -37,6 +37,7 @@ public class ReactiveFlowWriterTest {
     @Mock private InventoryReader inventoryReader;
     @Mock private FlowWriterService flowWriterService;
     @Mock private NodeConnectorRef destNodeConnectorRef;
+
     private ReactiveFlowWriter reactiveFlowWriter;
     private InstanceIdentifier<Node> nodeInstanceIdentifier;
     private NodeConnectorRef nodeConnectorRef;

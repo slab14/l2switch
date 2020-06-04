@@ -96,8 +96,7 @@ public class OperationProcessor implements AutoCloseable, Runnable, TransactionC
             }
             clearQueue();
         } catch (IllegalStateException e) {
-            //LOG.warn(e.getLocalizedMessage());
-            LOG.warn("Illegal State", e);
+            LOG.warn("Failed to close chain", e);
         }
     }
 
