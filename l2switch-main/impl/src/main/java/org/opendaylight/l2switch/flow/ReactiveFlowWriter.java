@@ -29,6 +29,7 @@ import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.l2switch.flow.ovs.VSwitch;
 import org.opendaylight.l2switch.flow.ovs.FlowRule;
+import org.opendaylight.l2switch.flow.ovs.ActionSet;
 
 
 /**
@@ -134,9 +135,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    String[] routes={sourceRange, destRange};
 		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector);
 		    NewFlows updates = scWorker.setupChain();
+		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
 			//writeFlows(rule);
-			writeNewActionFlows(rule, "pop_vlan", "pop_vlan");
+			writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			actions.switchActionOrder();
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
 		}

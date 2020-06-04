@@ -33,6 +33,7 @@ import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
 import org.opendaylight.l2switch.NativeStuff;
 import java.io.DataInputStream;
+import org.opendaylight.l2switch.flow.ovs.ActionSet;
 
 public class AlertHandler extends Thread {
 
@@ -141,9 +142,11 @@ public class AlertHandler extends Thread {
 						       this.OFversion);
 		    }
 		    //Write routing rules
+		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
 			//this.flowWriter.writeFlows(rule);
-			this.flowWriter.writeNewActionFlows(rule, "pop_vlan", "pop_vlan");
+			this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			actions.switchActionOrder();
 		    }
 		    this.policyMap.get(srcMac).updateSetup(true);
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);
