@@ -16,29 +16,28 @@ import org.opendaylight.l2switch.flow.ovs.VSwitch;
 
 
 public class NewFlows {
-    public void writeNewFlow(VSwitch vswitch, FlowRule rule, String action) {
+    VSwitch vswitch;
+    
+    public NewFlows(VSwitch vswitch){
+	this.vswitch = vswitch;
+    }
+    
+    public NewFlows(String dataplaneIP, String ovsBridge_remotePort, String OF_version) {
+	this.vswitch = new VSwitch(dataplaneIP, ovsBridge_remotePort, OF_version);
+    }
+    
+    public void writeNewFlow(FlowRule rule, String action) {
 	String matchAction = String.format("priority=%s in_port=%s,dl_%s=%s  actions=%s,output:%", rule.getPriority(), rule.getMatchPort(), rule.getLoc(), rule.getMatchMAC(), action, rule.getActionPort());
 	String cmd = "";
 	String opts = "";
-	if(vswitch.getOFver().equals("13")){
+	if(this.vswitch.getOFver().equals("13")){
 	    opts="-O Openflow13";
 	}
-	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl %s add-flow tcp:%s:%s '%s'", opts, vswitch.getIP(), vswitch.getPort(), matchAction);
+	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl %s add-flow tcp:%s:%s '%s'", opts, this.vswitch.getIP(), this.vswitch.getPort(), matchAction);
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	ExecShellCmd obj = new ExecShellCmd();
 	obj.exeCmd(newCmd);
-}
+    }
 
 
-    public void writeNewFlow(String ip, String ovsBridge_remotePort, FlowRule rule, String action, String OF_version) {
-	String matchAction = String.format("priority=%s in_port=%s,dl_%s=%s  actions=%s,output:%", rule.getPriority(), rule.getMatchPort(), rule.getLoc(), rule.getMatchMAC(), action, rule.getActionPort());
-	String cmd = "";
-	String opts = "";
-	if(OF_version.equals("13")){
-	    opts="-O Openflow13";
-	}
-	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl %s add-flow tcp:%s:%s '%s'", opts, ip, ovsBridge_remotePort, matchAction);
-	String[] newCmd = {"/bin/sh", "-c", cmd};
-	ExecShellCmd obj = new ExecShellCmd();
-	obj.exeCmd(newCmd);
 }    

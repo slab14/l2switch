@@ -182,10 +182,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	FlowRule matchAction;
 	if(rule.outMac.equals("*")){
 	    //TODO : conver NCR to String of OF port #
-	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+	    //matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+	    matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");
 	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);
 	} else {
-	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+	    matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");	    
 	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);	    
 	}
     }    

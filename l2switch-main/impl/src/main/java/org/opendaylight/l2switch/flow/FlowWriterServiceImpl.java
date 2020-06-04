@@ -245,8 +245,9 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	writeFlow(vswitch, rule, action2);
     }
 
-    public void writeFlow(Vswitch vswitch, FlowRule rule, String action) {
-	NewFlows writer = new NewFlows(vswitch, rule, action);
+    public void writeFlow(VSwitch vswitch, FlowRule rule, String action) {
+	NewFlows writer = new NewFlows(vswitch);
+	writer.writeNewFlow(rule, action);
     }
     
     /**
