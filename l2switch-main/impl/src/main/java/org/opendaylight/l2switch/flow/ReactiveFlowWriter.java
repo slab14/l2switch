@@ -27,6 +27,10 @@ import org.opendaylight.l2switch.flow.chain.NewFlows;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
 import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
+import org.opendaylight.l2switch.flow.ovs.VSwitch;
+import org.opendaylight.l2switch.flow.ovs.FlowRule;
+import org.opendaylight.l2switch.flow.ovs.ActionSet;
+
 
 /**
  * This class listens to certain type of packets and writes a mac to mac flows.
@@ -43,6 +47,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private int counter=0;
     private boolean doOnce=true;
     private HashMap<String, PolicyStatus> policyMap;
+    private VSwitch vswitch;
 
     public ReactiveFlowWriter(InventoryReader inventoryReader,
 			      FlowWriterService flowWriterService) {
@@ -65,6 +70,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	this.OFversion=OFversion;
 	this.policy=policy;
 	this.policyMap=policyMap;
+	this.vswitch=new VSwitch(dataplaneIP, remoteOVSPort, OFversion);
     }    
 
     /**
@@ -129,8 +135,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    String[] routes={sourceRange, destRange};
 		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector);
 		    NewFlows updates = scWorker.setupChain();
+		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
-			writeFlows(rule);
+			//writeFlows(rule);
+			writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			actions.switchActionOrder();
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
 		}
@@ -172,6 +181,20 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	}
     }    
 
+    public void writeNewActionFlows(RuleDescriptor rule, String action1, String action2){
+	FlowRule matchAction;
+	if(rule.outMac.equals("*")){
+	    //TODO : conver NCR to String of OF port #
+	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);
+	} else {
+	    matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);	    
+	    //matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");	    
+	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);	    
+	}
+    }    
+
+    
     private boolean inMap(HashMap<String, ArrayList<String>> m1, String testKey, String testVal) {
 	if (m1.containsKey(testKey)){
 	    ArrayList<String> listVals = m1.get(testKey);

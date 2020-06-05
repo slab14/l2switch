@@ -1,0 +1,28 @@
+module new-opendaylight-action-types {
+  yang-version 1;
+  namespace "urn:opendaylight:action:types";
+  prefix action;
+
+  import opendaylight-action-types {prefix act; revision-date "2013-11-12";}
+
+  revision "2020-06-03" {
+    description "Initial addition of custom actions";
+  }
+
+  uses act:action {
+    augment "action" {
+      case sign-action-case {
+        container sign-action {
+	  presence "no content action";
+        }
+      }
+
+      case verify-action-case {
+        container verify-action {
+	  presence "no content action";
+        }
+      }
+
+    }
+  }
+}

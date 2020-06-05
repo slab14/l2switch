@@ -11,9 +11,11 @@ package org.opendaylight.l2switch.flow.middlebox;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 import org.opendaylight.l2switch.flow.chain.ServiceChain;
 import org.opendaylight.l2switch.flow.chain.NewFlows;
@@ -23,12 +25,15 @@ import org.opendaylight.l2switch.flow.json.PolicyParser;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Arrays;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.l2switch.flow.json.ContOpts;
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
 import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
 import org.opendaylight.l2switch.flow.chain.RuleDescriptor;
-
+import org.opendaylight.l2switch.NativeStuff;
+import java.io.DataInputStream;
+import org.opendaylight.l2switch.flow.ovs.ActionSet;
 
 public class AlertHandler extends Thread {
 
@@ -68,75 +73,93 @@ public class AlertHandler extends Thread {
     @Override
     public void run() {
         try {
-            //System.out.println( "Received a connection" );
-
-            // Get input and output streams
-            BufferedReader in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
-            //PrintWriter out = new PrintWriter( socket.getOutputStream() );
-	    
-            // Write out our header to the client
-            //out.println( "Controller Alert Handler" );
-            //out.flush();
-
+            // Get input stream
+            //BufferedReader in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
+	    DataInputStream in = new DataInputStream( socket.getInputStream() );
+	    StringBuilder sb = new StringBuilder();
 	    String policyID="";
 	    String alert="";
+	    byte[] msg;
+	    byte[] inLen = new byte[4];
+	    int encrLen;
+	    int bytesRead=0;
 
-            // Read lines from client until the client closes the connection or we receive an empty line
-            String line = in.readLine();
-            while( line != null && line.length() > 0 ) {
-		//Perform actions based upon received message
-		//System.out.println("Got Data: "+ line);
-		// send message back.
-                //out.println( "Echo: " + line );
-                //out.flush();
-		if (line.contains("Policy ID:")) {
-		    policyID=line.substring(10);
+            // Read lines from client until the client closes the connection
+	    bytesRead = in.read(inLen,0,4);
+	    if (bytesRead==4) {
+		//System.out.println(Arrays.toString(inLen));
+		//encrLen=ByteBuffer.wrap(inLen).getInt();
+		encrLen = ((inLen[0] & 0xFF) << 0) | ((inLen[1] & 0xFF) << 8) | ((inLen[2] & 0xFF) << 16 ) | ((inLen[3] & 0xFF) << 24 );
+		//System.out.println("msg rx length = "+encrLen);
+		msg = new byte[encrLen];
+		bytesRead=0;
+		bytesRead = in.read(msg);
+		if (bytesRead == encrLen) {
+		    //Perform actions based upon received message
+		    //System.out.println("Got Data: "+ Arrays.toString(msg));
+		    NativeStuff cfunc = new NativeStuff();
+		    //String processedLine = processMsg(line);
+		    String processedLine = cfunc.decrypt(msg, encrLen);
+		    //System.out.println("Converted Data: "+processedLine);
+		    if (processedLine.contains("Policy ID:")) {
+			policyID=processedLine.substring(processedLine.indexOf("Policy ID:")+10, processedLine.indexOf(";"));
+		    }
+		    if (processedLine.contains("Alert:")) {
+			alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
+		    }
+	    
+		    //System.out.println(policyID);
+		    //System.out.println(alert);
 		}
-		if (line.contains("Alert:")) {
-		    alert=line.substring(line.indexOf("Alert:")+6);
-		}
-                line = in.readLine();
-            }
+	    }
 
             // Close our connection
             in.close();
             //out.close();
             socket.close();
 
+
 	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (checkForTransitions(policyID) && !alert.equals("")) {
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
 		    String srcMac=findKey(Integer.parseInt(policyID));
-		    //get old container names
-		    String[] oldContNames=getContNames(policyID, srcMac);
-		    //transition to next state
-		    this.policyMap.get(srcMac).transitionState();
-		    // perform actions
-		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
-							     this.ovsPort, this.OFversion,
-							     this.ovsBridge_remotePort,
-							     this.devPolicy[Integer.parseInt(policyID)],
-							     policyID,
-							     this.policyMap.get(srcMac).getCurState(),
-							     this.policyMap.get(srcMac).getNCR(),
-							     this.policyMap.get(srcMac).getInNCR(),
-							     this.policyMap.get(srcMac).getOutNCR());
-		    NewFlows updates = scWorker.setupNextChain();
-		    //remove old containers (and ovs-ports and OF routes)
-		    DockerCalls docker = new DockerCalls();
-		    String ovsBridge = docker.remoteFindBridge(this.dataplaneIP,
-							       this.ovsPort);
-		    for (String name: oldContNames){
-			docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort,
-						       name, ovsBridge, this.ovsPort,
-						       this.ovsBridge_remotePort,
-						       this.OFversion);
+		    // Alert Msg Analysis
+		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
+		    if(analyzer.analyze()) {
+			//get old container names
+			String[] oldContNames=getContNames(policyID, srcMac);
+			//transition to next state
+			this.policyMap.get(srcMac).transitionState();
+			// perform actions
+			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
+								 this.ovsPort, this.OFversion,
+								 this.ovsBridge_remotePort,
+								 this.devPolicy[Integer.parseInt(policyID)],
+								 policyID,
+								 this.policyMap.get(srcMac).getCurState(),
+								 this.policyMap.get(srcMac).getNCR(),
+								 this.policyMap.get(srcMac).getInNCR(),
+								 this.policyMap.get(srcMac).getOutNCR());
+			NewFlows updates = scWorker.setupNextChain();
+			//remove old containers (and ovs-ports and OF routes)
+			DockerCalls docker = new DockerCalls();
+			String ovsBridge = docker.remoteFindBridge(this.dataplaneIP,
+								   this.ovsPort);
+			for (String name: oldContNames){
+			    docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort,
+							   name, ovsBridge, this.ovsPort,
+							   this.ovsBridge_remotePort,
+							   this.OFversion);
+			}
+			//Write routing rules
+			ActionSet actions = new ActionSet("signkernel", "verifykernel");
+			for(RuleDescriptor rule:updates.rules){
+			    //this.flowWriter.writeFlows(rule);
+			    this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			    actions.switchActionOrder();
+			}
+			this.policyMap.get(srcMac).updateSetup(true);
 		    }
-		    //Write routing rules
-		    for(RuleDescriptor rule:updates.rules){
-			this.flowWriter.writeFlows(rule);
-		    }
-		    this.policyMap.get(srcMac).updateSetup(true);
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);
 		}
 	    }
@@ -146,8 +169,11 @@ public class AlertHandler extends Thread {
     }
 
     private boolean checkForTransitions(String policyID){
-	int IDnum=Integer.parseInt(policyID);
 	boolean out=false;
+	if (policyID.length()<1){
+	    return out;
+	}
+	int IDnum=Integer.parseInt(policyID);
 	// ensure ID is valid
 	if (IDnum<this.policyMap.size()) {
 	    // get Key for hashmap
@@ -186,6 +212,13 @@ public class AlertHandler extends Thread {
 	return out;
     }
 	
-     
+
+    private String processMsg(String rxMsg) {
+	StringBuilder out = new StringBuilder(rxMsg);
+	out=out.reverse();
+	return out.toString();
+    }
+
+    
 }
 

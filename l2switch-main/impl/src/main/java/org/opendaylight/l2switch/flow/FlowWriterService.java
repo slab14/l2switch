@@ -9,6 +9,8 @@ package org.opendaylight.l2switch.flow;
 
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
+import org.opendaylight.l2switch.flow.ovs.VSwitch;
+import org.opendaylight.l2switch.flow.ovs.FlowRule;
 
 /**
  * Service that adds packet forwarding flows to configuration data store.
@@ -49,4 +51,7 @@ public interface FlowWriterService {
     public void addBidirectionalMacFlows(MacAddress sourceMac,
 					 NodeConnectorRef sourceNodeConnectorRef,
 					 NodeConnectorRef destNodeConnectorRef);
+
+    public void addBidirectionalFlowsNewActions(VSwitch vswitch,FlowRule matchAction,
+						String action1 ,String action2);
 }

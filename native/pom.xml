@@ -1,0 +1,58 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.opendaylight.l2switch</groupId>
+    <artifactId>l2switch-parent</artifactId>
+    <version>0.7.5-SNAPSHOT</version>
+    <relativePath>../parent</relativePath>
+  </parent>
+
+  <groupId>org.opendaylight.l2switch.native</groupId>
+  <artifactId>libNativeFuncs</artifactId>
+  <packaging>so</packaging>
+
+  <name>libNativeFuncs</name>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <version>1.0-alpha-11</version>
+        <extensions>true</extensions>
+        <configuration>
+          <compilerProvider>generic-classic</compilerProvider>
+          <compilerExecutable>gcc</compilerExecutable>
+          <linkerExecutable>gcc</linkerExecutable>
+          <sources>
+            <source>
+              <directory>${basedir}/src/main/c/</directory>
+              <fileNames>
+                <fileName>jniPktOps.c</fileName>
+                <fileName>jniStates.c</fileName>
+              </fileNames>
+            </source>
+          </sources>
+          <compilerStartOptions>
+            <compilerStartOption>-I ${JAVA_HOME}/include/</compilerStartOption>
+            <compilerStartOption>-I ${JAVA_HOME}/include/linux/</compilerStartOption>
+          </compilerStartOptions>
+          <compilerEndOptions>
+            <compilerEndOption>-fPIC</compilerEndOption>
+          </compilerEndOptions>
+          <linkerStartOptions>
+            <linkerStartOption>-I ${JAVA_HOME}/include/</linkerStartOption>
+            <linkerStartOption>-I ${JAVA_HOME}/include/linux/</linkerStartOption>
+            <linkerStartOption>-I ${JAVA_HOME}/include/lib/</linkerStartOption>
+          </linkerStartOptions>
+          <linkerEndOptions>
+            <linkerEndOption>-shared</linkerEndOption>
+            <linkerEndOption>-fPIC</linkerEndOption>
+            <linkerEndOption>-lcrypto</linkerEndOption>	    
+          </linkerEndOptions>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
