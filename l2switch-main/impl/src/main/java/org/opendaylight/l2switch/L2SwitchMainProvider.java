@@ -34,6 +34,7 @@ import org.opendaylight.l2switch.flow.middlebox.AlertReceiver;
 import org.opendaylight.l2switch.flow.json.DevPolicy;
 import org.opendaylight.yangtools.yang.common.Uint8;
 import org.opendaylight.yangtools.yang.common.Uint16;
+import org.opendaylight.l2switch.NativeStuff;
 
 public class L2SwitchMainProvider {
     private static final Logger LOG = LoggerFactory.getLogger(L2SwitchMainProvider.class);
@@ -127,6 +128,11 @@ public class L2SwitchMainProvider {
 	    mboxAlertServer.startServer();
 		    
         }
+
+	// Setup maxStateDB
+	NativeStuff cfunc = new NativeStuff();
+	cfunc.initState(findMaxStates(policy), policy.parsed.n-1);
+	
 	System.out.println("\nReady");
         LOG.info("L2SwitchMain initialized.");
     }
@@ -163,6 +169,16 @@ public class L2SwitchMainProvider {
 	mboxAlertServer.setPolicy(policy.parsed.devices);
 	mboxAlertServer.setPolicyMap(policyMap);
 	mboxAlertServer.setFlowWriter(flowWriter);
+    }
+
+    private int[] findMaxStates(PolicyParser policy) {
+	int i=0;
+	int max = policy.parsed.n;
+	int[] maxStates = new int[max];
+	for(i=0; i<max; i++) {
+	    maxStates[i]=policy.parsed.devices[i].states.length-1;
+	}
+	return maxStates;
     }
 }
 
