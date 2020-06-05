@@ -6,10 +6,6 @@ public class NativeStuff {
 	System.loadLibrary("NativeFuncs");
     }
 
-    public native void helloNative();
-
-    public native int add(int in_a, int in_b);
-
     public native String rev(String javaString, int len);
 
     public native String decrypt(byte[] javaBytes, int len);

@@ -29,7 +29,6 @@
             <source>
               <directory>${basedir}/src/main/c/</directory>
               <fileNames>
-                <fileName>jniExampleNative.c</fileName>
                 <fileName>jniPktOps.c</fileName>
                 <fileName>jniStates.c</fileName>
               </fileNames>

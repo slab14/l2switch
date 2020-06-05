@@ -15,7 +15,6 @@ JNIEXPORT void JNICALL Java_org_opendaylight_l2switch_NativeStuff_initState(JNIE
     for(i=0; i<numStates; i++) {
       maxStateDB[i]=c_array[i];
     }
-    
     (*env)->ReleaseIntArrayElements(env, maxArray, c_array, 0);
     set=true;
   }
@@ -33,7 +32,7 @@ bool canTransition(int IDnum){
 }
 
 JNIEXPORT void JNICALL Java_org_opendaylight_l2switch_NativeStuff_transitionState(JNIEnv *env, jobject obj, jint IDnum) {
-  if(canTransition(IDnum)) {
+  if(canTransition(IDnum)) 
     stateDB[IDnum]++;
 }
-
+  
