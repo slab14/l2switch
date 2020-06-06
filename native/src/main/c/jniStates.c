@@ -9,7 +9,7 @@
 #include "include/uhcall.h"
 #include "include/uhstateDB.h"
 
-__attribute__((aligned(4096))) __attribute__((section(".data"))) uhstatedb_param_t uhcp;
+__attribute__((aligned(4096))) __attribute__((section(".data"))) uhstatedb_param_t uhcp_state;
 
 void init(void *bufptr) {
   uhstatedb_param_t *ptr_uhcp = (uhstatedb_param_t *)bufptr;
@@ -19,9 +19,9 @@ void init(void *bufptr) {
 JNIEXPORT void JNICALL Java_org_opendaylight_l2switch_NativeStuff_initState(JNIEnv *env, jobject obj, jintArray maxArray, jint numStates) {
   jint *c_array;
   c_array = (*env)->GetIntArrayElements(env, maxArray, NULL);
-  memcpy(&uhcp.maxArray, c_array, numStates);
-  uhcp.vaddr = (uint32_t)&uhcp;
-  init((void *)&uhcp);
+  memcpy(&uhcp_state.maxArray, c_array, numStates);
+  uhcp_state.vaddr = (uint32_t)&uhcp_state;
+  init((void *)&uhcp_state);
   (*env)->ReleaseIntArrayElements(env, maxArray, c_array, 0);
 }
 
@@ -32,10 +32,10 @@ void get(void *bufptr) {
 
 JNIEXPORT jint JNICALL Java_org_opendaylight_l2switch_NativeStuff_getState(JNIEnv *env, jobject obj, jint IDnum) {
   jint out;
-  uhcp.deviceID = IDnum;
-  uhcp.vaddr = (uint32_t)&uhcp;
-  get((void *)&uhcp);
-  out = uhcp.stateVal;
+  uhcp_state.deviceID = IDnum;
+  uhcp_state.vaddr = (uint32_t)&uhcp_state;
+  get((void *)&uhcp_state);
+  out = uhcp_state.stateVal;
   return out;
 }
 
@@ -45,8 +45,8 @@ void next(void *bufptr) {
 }
 
 JNIEXPORT void JNICALL Java_org_opendaylight_l2switch_NativeStuff_transitionState(JNIEnv *env, jobject obj, jint IDnum) {
-  uhcp.deviceID = IDnum;
-  uhcp.vaddr = (uint32_t)&uhcp;
-  next((void *)&uhcp);
+  uhcp_state.deviceID = IDnum;
+  uhcp_state.vaddr = (uint32_t)&uhcp_state;
+  next((void *)&uhcp_state);
 }
   

@@ -12,7 +12,7 @@
 #include "include/uhcall.h"
 #include "include/uagent.h"
 
-__attribute__((aligned(4096))) __attribute__((section(".data"))) uagent_param_t uhcp;
+__attribute__((aligned(4096))) __attribute__((section(".data"))) uagent_param_t uhcp_pkt;
 
 void hypDecrypt(void *bufptr) {
   uagent_param_t *ptr_uhcp = (uagent_param_t *)bufptr;
@@ -24,14 +24,14 @@ JNIEXPORT jstring JNICALL Java_org_opendaylight_l2switch_NativeStuff_decrypt(JNI
   if(len>0){
     jbyte *jbuffPtr = (*env)->GetByteArrayElements(env, javaIn, NULL);
     
-    memcpy(&uhcp.pkt_data, jbuffPtr, len);
-    uhcp.pkt_size=len;
-    uhcp.vaddr = (uint32_t)&uhcp;
-    uhcp.op=2;
-    hypDecrpyt((void *) &uhcp);
+    memcpy(&uhcp_pkt.pkt_data, jbuffPtr, len);
+    uhcp_pkt.pkt_size=len;
+    uhcp_pkt.vaddr = (uint32_t)&uhcp_pkt;
+    uhcp_pkt.op=2;
+    hypDecrpyt((void *) &uhcp_pkt);
     
     char outBuff[len];
-    memcpy(outBuff, &uhcp.pkt_data, len);
+    memcpy(outBuff, &uhcp_pkt.pkt_data, len);
     result = (*env)->NewStringUTF(env, outBuff);
     (*env)->ReleaseByteArrayElements(env, javaIn, jbuffPtr, JNI_ABORT);
   }
