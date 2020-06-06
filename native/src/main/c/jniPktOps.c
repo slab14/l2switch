@@ -2,14 +2,13 @@
 #include <stdlib.h>
 #include <jni.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdio.h> 
 #include <sys/types.h>
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "include/uhcall.h"
 #include "include/uagent.h"
 
