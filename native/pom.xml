@@ -37,19 +37,23 @@
           <compilerStartOptions>
             <compilerStartOption>-I ${JAVA_HOME}/include/</compilerStartOption>
             <compilerStartOption>-I ${JAVA_HOME}/include/linux/</compilerStartOption>
+	    <compilerStartOption>-I ${basedir}/src/main/c/include/</compilerStartOption>
           </compilerStartOptions>
           <compilerEndOptions>
             <compilerEndOption>-fPIC</compilerEndOption>
           </compilerEndOptions>
           <linkerStartOptions>
+	  <!--
             <linkerStartOption>-I ${JAVA_HOME}/include/</linkerStartOption>
             <linkerStartOption>-I ${JAVA_HOME}/include/linux/</linkerStartOption>
             <linkerStartOption>-I ${JAVA_HOME}/include/lib/</linkerStartOption>
+	    -->
+            <linkerStartOption>-shared</linkerStartOption>
           </linkerStartOptions>
           <linkerEndOptions>
-            <linkerEndOption>-shared</linkerEndOption>
             <linkerEndOption>-fPIC</linkerEndOption>
-            <linkerEndOption>-lcrypto</linkerEndOption>	    
+            <linkerEndOption>-lcrypto</linkerEndOption>
+	    <linkerEndOption>-ldl ${basedir}/src/main/c/lib/libuhcall.a</linkerEndOption>
           </linkerEndOptions>
 	</configuration>
       </plugin>
