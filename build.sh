@@ -5,7 +5,8 @@ setupJava(){
     export PATH=$PATH:$JAVA_HOME/bin/
     export M2_HOME=/usr/share/maven/
     export M2=$M2_HOME
-    export MAVEN_OPTS='-Xmx1048m -XX:MaxPermSize=512m -Xms256m'
+    export MAVEN_OPTS='-Xmx1048m -Xms256m'
+    # XX:MaxPermSize=512m no longer supportd since v8.0
     export PATH=$M2:$PATH
 }
 
