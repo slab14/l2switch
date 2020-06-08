@@ -58,6 +58,10 @@ import org.slf4j.LoggerFactory;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 import org.opendaylight.yangtools.yang.common.Uint8;
 import org.opendaylight.yangtools.yang.common.Uint16;
+import org.opendaylight.l2switch.flow.ovs.VSwitch;
+import org.opendaylight.l2switch.flow.ovs.FlowRule;
+import org.opendaylight.l2switch.flow.ovs.NewFlows;
+//import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev200603.NewOpendaylightActionTypesData;
 
 
 /**
@@ -233,6 +237,19 @@ public class FlowWriterServiceImpl implements FlowWriterService {
         addMacFlow(sourceMac, destNodeConnectorRef, sourceNodeConnectorRef);	
     }    
 
+    public void addBidirectionalFlowsNewActions(VSwitch vswitch, FlowRule rule, String action1, String action2) {
+	//write flow for action 1
+	writeFlow(vswitch, rule, action1);
+	//write flow for action 2
+	rule.switchDir();
+	writeFlow(vswitch, rule, action2);
+    }
+
+    public void writeFlow(VSwitch vswitch, FlowRule rule, String action) {
+	NewFlows writer = new NewFlows(vswitch);
+	writer.writeNewFlow(rule, action);
+    }
+    
     /**
      * @param nodeConnectorRef
      * @return
@@ -293,12 +310,22 @@ public class FlowWriterServiceImpl implements FlowWriterService {
                         .setOutputAction(new OutputActionBuilder() //
                                 .setMaxLength(0xffff) //
                                 .setOutputNodeConnector(destPortUri) //
-                                .build()) //
+				 .build()) //
                         .build()) //
                 .build();
-
+	/*
+        //NewActionsData signVerAction = new ActionBuilder() //
+        //        .setOrder(0)
+        //        .setAction(new SignActionCaseBuilder() //
+        //                .setSignAction(new SignActionBuilder() //
+	//		       .build()) //
+        //                .build())
+	//        .build();
+	*/
+	
         // Create an Apply Action
-        ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(outputToControllerAction))
+	// ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(signVerAction, outputToControllerAction))
+	ApplyActions applyActions = new ApplyActionsBuilder().setAction(ImmutableList.of(outputToControllerAction))	    
                 .build();
 
         // Wrap our Apply Action in an Instruction

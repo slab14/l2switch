@@ -10,6 +10,7 @@ package org.opendaylight.l2switch.flow.chain;
 
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
+import org.opendaylight.l2switch.NativeStuff;
 
 public class PolicyStatus {
     //    public MacAddress destMac;
@@ -19,11 +20,12 @@ public class PolicyStatus {
     public String curState;
     public boolean canTransition;
     public int devNum;
-    private int stateNum;
+    //private int stateNum;
     private int maxStates;
     private NodeConnectorRef ncr;
     private NodeConnectorRef inNCR;
-    private NodeConnectorRef outNCR;    
+    private NodeConnectorRef outNCR;
+    private NativeStuff cfunc = new NativeStuff();
 
     public PolicyStatus(String destMac, String[] states, int devNum) {
 	this.destMac=destMac;
@@ -31,13 +33,14 @@ public class PolicyStatus {
 	this.devNum=devNum;
 	this.maxStates=this.states.length -1;
 	this.setup=false;
-	this.stateNum=0;
-	curState=states[stateNum];
 	if (this.maxStates>0){
 	    this.canTransition=true;
 	}else{
 	    this.canTransition=false;
 	}
+	//this.stateNum=0;
+	//curState=states[stateNum];
+	curState=states[0];
     }
 
     public void updateSetup(boolean newSetupVal){
@@ -55,21 +58,28 @@ public class PolicyStatus {
     public void transitionState() {
 	if (this.canTransition) {
 	    this.canTransition=false;
+	    cfunc.transitionState(devNum);
+	    /*
 	    if (this.maxStates > this.stateNum) {	    
 		this.stateNum++;
 	    }
-	    if (this.stateNum>=this.maxStates) {
+	    */
+	    int stateVal=getStateNum();
+	    if (stateVal<this.maxStates) {
+		/*
 		this.stateNum=this.maxStates;
 	    } else {
+		*/
 		this.canTransition=true;
 	    }
-	    this.curState=this.states[this.stateNum];
+	    this.curState=this.states[stateVal];
 	    this.setup=false;
 	}
     }
 
     public int getStateNum(){
-	return this.stateNum;
+	//return this.stateNum;
+	return cfunc.getState(devNum);
     }
 
     public void setNCR(NodeConnectorRef ncr) {
