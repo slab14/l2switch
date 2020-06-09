@@ -126,11 +126,11 @@ public class AlertHandler extends Thread {
 		    // Alert Msg Analysis
 		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
 		    if(analyzer.analyze()) {
-			//get old container names
+			//get old container names & images
 			String[] oldContNames=getContNames(policyID, srcMac);
+			String[] oldContImages=getContImages(policyID, srcMac);
 			//transition to next state
 			this.policyMap.get(srcMac).transitionState();
-			// perform actions
 			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
 								 this.ovsPort, this.OFversion,
 								 this.ovsBridge_remotePort,
@@ -140,23 +140,30 @@ public class AlertHandler extends Thread {
 								 this.policyMap.get(srcMac).getNCR(),
 								 this.policyMap.get(srcMac).getInNCR(),
 								 this.policyMap.get(srcMac).getOutNCR());
-			NewFlows updates = scWorker.setupNextChain();
-			//remove old containers (and ovs-ports and OF routes)
-			DockerCalls docker = new DockerCalls();
-			String ovsBridge = docker.remoteFindBridge(this.dataplaneIP,
+			
+			if(isNewImage(oldContImages, policyID, srcMac)) {
+			    // perform actions
+			    NewFlows updates = scWorker.setupNextChain();
+			    //remove old containers (and ovs-ports and OF routes)
+			    DockerCalls docker = new DockerCalls();
+			    String ovsBridge = docker.remoteFindBridge(this.dataplaneIP,
 								   this.ovsPort);
-			for (String name: oldContNames){
-			    docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort,
-							   name, ovsBridge, this.ovsPort,
-							   this.ovsBridge_remotePort,
-							   this.OFversion);
-			}
-			//Write routing rules
-			ActionSet actions = new ActionSet("signkernel", "verifykernel");
-			for(RuleDescriptor rule:updates.rules){
-			    //this.flowWriter.writeFlows(rule);
-			    this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
-			    actions.switchActionOrder();
+			    for (String name: oldContNames){
+				docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort,
+							       name, ovsBridge, this.ovsPort,
+							       this.ovsBridge_remotePort,
+							       this.OFversion);
+			    }
+			    //Write routing rules
+			    ActionSet actions = new ActionSet("signkernel", "verifykernel");
+			    for(RuleDescriptor rule:updates.rules){
+				//this.flowWriter.writeFlows(rule);
+				this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+				actions.switchActionOrder();
+			    }
+			} else {
+			    // same image, update and restart. keep ports & routing rules.
+			    scWorker.updateRunningChain();
 			}
 			this.policyMap.get(srcMac).updateSetup(true);
 		    }
@@ -211,7 +218,27 @@ public class AlertHandler extends Thread {
 	}
 	return out;
     }
-	
+
+    private String[] getContImages(String policyID, String key) {
+	int IDnum=Integer.parseInt(policyID);
+	String[] images = this.devPolicy[IDnum].getProtections()[this.policyMap.get(key).getStateNum()].getImages();
+	return images;
+    }
+
+    private boolean isNewImage(String[] oldImages, String policyID, String key) {
+	boolean out=true;
+	int IDnum=Integer.parseInt(policyID);
+	int i=0;
+	String[] newImages = this.devPolicy[IDnum].getProtections()[this.policyMap.get(key).getStateNum()].getImages();
+	if (oldImages.length == newImages.length) {
+	    for (i=0; i<newImages.length; i++) {
+		if (!oldImages[i].equals(newImages[i]))
+		    return out;
+	    }
+	    out=false;
+	}
+	return out;
+    }
 
     private String processMsg(String rxMsg) {
 	StringBuilder out = new StringBuilder(rxMsg);
