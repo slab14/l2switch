@@ -28,7 +28,7 @@ JNIEXPORT jstring JNICALL Java_org_opendaylight_l2switch_NativeStuff_decrypt(JNI
     uhcp_pkt.pkt_size=len;
     uhcp_pkt.vaddr = (uint32_t)&uhcp_pkt;
     uhcp_pkt.op=2;
-    hypDecrpyt((void *) &uhcp_pkt);
+    hypDecrypt((void *) &uhcp_pkt);
     
     char outBuff[len];
     memcpy(outBuff, &uhcp_pkt.pkt_data, len);
