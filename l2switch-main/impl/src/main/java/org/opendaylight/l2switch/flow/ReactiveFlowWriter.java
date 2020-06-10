@@ -98,6 +98,23 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         return (firstByte & 1) == 1;
     }
 
+    private boolean ignoreThisMac(MacAddress macToCheck, PolicyStatus policyStat) {
+        if (macToCheck == null) {
+            return true;
+        }
+        String[] octets = macToCheck.getValue().split(":");
+        short firstByte = Short.parseShort(octets[0], 16);
+
+        if ((firstByte & 1) == 1) {
+	    if (policyStat.destMac.equals("*")) {
+		return false;
+	    }
+	    return true;
+	}
+	return false;
+    }
+
+    
     @Override
     public void onArpPacketReceived(ArpPacketReceived packetReceived) {
         if (packetReceived == null || packetReceived.getPacketChain() == null) {
@@ -119,10 +136,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
             return;
         }
         MacAddress destMac = ethernetPacket.getDestinationMac();
-        if (!ignoreThisMac(destMac)) {
-	    NodeConnectorRef destNodeConnector=inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
-	    if(destNodeConnector != null){
-		String srcMac = ethernetPacket.getSourceMac().getValue();
+	NodeConnectorRef destNodeConnector=inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
+	if(destNodeConnector != null){
+	    String srcMac = ethernetPacket.getSourceMac().getValue();
+	
+	    if (!ignoreThisMac(destMac, policyMap.get(srcMac))) {
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
 		    System.out.println("Got Mac source from policy file: "+srcMac);
 		    int devNum = policyMap.get(srcMac).devNum;
