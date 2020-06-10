@@ -131,8 +131,12 @@ public class ServiceChain {
 	this.containerCalls.createContainer_bind(contName, contImage, this.devNum, hostFS, contFS);
     }
 
-    public void attachArchiveToPassThroughCont(String contName, String archiveFile, String contPath) {
+    public void attachArchiveToCont(String contName, String archiveFile, String contPath) {
 	this.containerCalls.attachArchive(contName, archiveFile, contPath);
+    }
+
+    private void restartContProcess(String contName) {
+	this.containerCalls.restartContProcess(contName);
     }
 
     public NodeConnectorRef[] startCreatedPassThroughCont(String contName, String[] ifaces) {
@@ -242,7 +246,7 @@ public class ServiceChain {
 			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
 		    for(int j=0; j<protectDetails.imageOpts[i].archives.length; j++) {
-			attachArchiveToPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
+			attachArchiveToCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
 		    }
 		    contNCRs=startCreatedPassThroughCont(protectDetails.imageOpts[i].contName, ifaces);
 		}
@@ -343,7 +347,7 @@ public class ServiceChain {
 			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
 		    for(int j=0; j<protectDetails.imageOpts[i].archives.length; j++) {
-			attachArchiveToPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
+			attachArchiveToCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
 		    }
 		    contNCRs=startCreatedPassThroughCont(protectDetails.imageOpts[i].contName, ifaces);
 		}
@@ -395,6 +399,23 @@ public class ServiceChain {
 	newRules.add(lastRule);
 	NewFlows updates=new NewFlows(newRules);
 	return updates;
+    }
+
+    public void updateRunningChain() {
+	int chainLength = getChainLength();
+	String[] chainLinks = getChain();
+	for (int i=0; i<chainLength; i++) {
+	    if(chainLinks[i].equals("P")){
+		if(protectDetails.imageOpts[i].archives.length>0) {
+		    for(int j=0; j<protectDetails.imageOpts[i].archives.length; j++) {
+			System.out.println("Loading new files");
+			attachArchiveToCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
+		    }
+		    // execute command to kill process and restart it.
+		    restartContProcess(protectDetails.imageOpts[i].contName);
+		}
+	    }
+	}
     }
 
 }
