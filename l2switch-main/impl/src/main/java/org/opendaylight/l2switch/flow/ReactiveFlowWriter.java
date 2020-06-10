@@ -105,8 +105,6 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         String[] octets = macToCheck.getValue().split(":");
         short firstByte = Short.parseShort(octets[0], 16);
 
-	System.out.println("policy dst = "+policyStat.destMac);
-
         if ((firstByte & 1) == 1) {
 	    if (policyStat.destMac.equals("*")) {
 		return false;
