@@ -112,6 +112,8 @@ public class AlertHandler extends Thread {
 		    //System.out.println(alert);
 		}
 	    }
+	    String srcMac=findKey(Integer.parseInt(policyID));
+	    System.out.println("Current state: "+this.policyMap.get(srcMac).getStateNum());
 
             // Close our connection
             in.close();
@@ -122,7 +124,7 @@ public class AlertHandler extends Thread {
 	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (checkForTransitions(policyID) && !alert.equals("")) {
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
-		    String srcMac=findKey(Integer.parseInt(policyID));
+		    //String srcMac=findKey(Integer.parseInt(policyID));
 		    // Alert Msg Analysis
 		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
 		    if(analyzer.analyze()) {
@@ -131,6 +133,7 @@ public class AlertHandler extends Thread {
 			String[] oldContImages=getContImages(policyID, srcMac);
 			//transition to next state
 			this.policyMap.get(srcMac).transitionState();
+			System.out.println("State after transition is: "+this.policyMap.get(srcMac).getCurState());
 			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
 								 this.ovsPort, this.OFversion,
 								 this.ovsBridge_remotePort,
