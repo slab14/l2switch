@@ -20,11 +20,11 @@ JNIEXPORT void JNICALL Java_org_opendaylight_l2switch_NativeStuff_initState(JNIE
   jint *c_array;
   c_array = (*env)->GetIntArrayElements(env, maxArray, NULL);
   int i=0;
-  memcpy(&uhcp_state.maxArray, c_array, (numStates+1));
+  memcpy(&uhcp_state.maxArray, c_array, numStates*sizeof(int));
   uhcp_state.vaddr = (uint32_t)&uhcp_state;
-  uhcp_state.numStates=(numStates+1);
+  uhcp_state.numStates=numStates;
   init((void *)&uhcp_state);
-  (*env)->ReleaseIntArrayElements(env, maxArray, c_array, 0);
+  (*env)->ReleaseIntArrayElements(env, maxArray, c_array, JNI_ABORT);
 }
 
 void get(void *bufptr) {

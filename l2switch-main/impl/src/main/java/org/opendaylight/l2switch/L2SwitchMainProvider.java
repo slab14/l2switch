@@ -131,13 +131,10 @@ public class L2SwitchMainProvider {
 
 	// Setup maxStateDB
 	NativeStuff cfunc = new NativeStuff();
-	for(int state:findMaxStates(policy)) {
-	    System.out.println("[state init] max sates" + state);
-	}
 	cfunc.initState(findMaxStates(policy), policy.parsed.n);
 
 	//test states ability to transition
-	testStates(policy.parsed.n);
+	//testStates(policy.parsed.n);
 	
 	System.out.println("\nReady");
         LOG.info("L2SwitchMain initialized.");
