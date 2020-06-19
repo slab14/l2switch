@@ -16,6 +16,7 @@ public class PolicyStatus {
     //    public MacAddress destMac;
     public String destMac;
     public boolean setup;
+    public boolean verified;    
     public String[] states;
     public String curState;
     public boolean canTransition;
@@ -33,6 +34,7 @@ public class PolicyStatus {
 	this.devNum=devNum;
 	this.maxStates=this.states.length -1;
 	this.setup=false;
+	this.verified=false;	
 	if (this.maxStates>0){
 	    this.canTransition=true;
 	}else{
@@ -47,6 +49,14 @@ public class PolicyStatus {
 	this.setup=newSetupVal;
     }
 
+    public boolean getVerifiedStatus() {
+	return this.verified;
+    }
+
+    public void setVerifiedStatus(boolean newStatus) {
+	this.verified=newStatus;
+    }
+    
     public String getCurState(){
 	return this.curState;
     }

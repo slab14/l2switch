@@ -80,5 +80,9 @@ module l2switch-config {
 	     type string;
 	     default "9696";
 	}
+	leaf quote-port {
+	     type string;
+	     default "38687";	     
+	}	
     }
 }

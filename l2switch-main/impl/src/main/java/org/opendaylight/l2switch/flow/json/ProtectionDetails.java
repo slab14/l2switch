@@ -14,12 +14,14 @@ public class ProtectionDetails {
     public String state;
     public String chain;
     public String[] images;
+    public String[] sha1;    
     public ContOpts[] imageOpts;
 
-    public ProtectionDetails(String state, String chain, String[] images, ContOpts[] imageOpts) {
+    public ProtectionDetails(String state, String chain, String[] images, String[] sha1, ContOpts[] imageOpts) {
 	this.state=state;
 	this.chain=chain;
 	this.images=images;
+	this.sha1=sha1;	
 	this.imageOpts=imageOpts;
     }
 
@@ -33,6 +35,10 @@ public class ProtectionDetails {
 
     public String[] getImages(){
 	return this.images;
+    }
+
+    public String[] getSha1(){
+	return this.sha1;
     }
 
     public ContOpts[] getImageOpts() {

@@ -114,7 +114,6 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     }    
 
     
-
     @Override
     public void onArpPacketReceived(ArpPacketReceived packetReceived) {
         if (packetReceived == null || packetReceived.getPacketChain() == null) {
