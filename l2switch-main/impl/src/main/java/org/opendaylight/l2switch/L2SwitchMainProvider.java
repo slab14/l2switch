@@ -31,6 +31,7 @@ import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.l2switch.flow.middlebox.AlertReceiver;
+import org.opendaylight.l2switch.flow.middlebox.QuoteReceiver;
 import org.opendaylight.l2switch.flow.json.DevPolicy;
 import org.opendaylight.yangtools.yang.common.Uint8;
 import org.opendaylight.yangtools.yang.common.Uint16;
@@ -50,10 +51,12 @@ public class L2SwitchMainProvider {
     private String ovsPort;//="6677";
     private String remote_ovs_port;//="6634";
     private String OFversion;//="13";
-    private String alertPort; //"6969"
+    private String alertPort; //"9696"
+    private String quotePort; //"38687"    
     private PolicyParser policy;
     private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
     private AlertReceiver mboxAlertServer = new AlertReceiver();
+    private QuoteReceiver mboxQuoteServer = new QuoteReceiver();    
 
     
     public L2SwitchMainProvider(final DataBroker dataBroker,
@@ -69,6 +72,7 @@ public class L2SwitchMainProvider {
 	this.remote_ovs_port=config.getRemoteOvsPort();
 	this.OFversion=config.getOFversion();
 	this.alertPort=config.getAlertPort();
+	this.quotePort=config.getQuotePort();	
     }
 
     public void init() {
@@ -126,7 +130,10 @@ public class L2SwitchMainProvider {
 	    mboxAlertServer.setPort(Integer.parseInt(this.alertPort));
 	    setupAlertReceiver(reactiveFlowWriter);
 	    mboxAlertServer.startServer();
-		    
+
+	    mboxQuoteServer.setPort(Integer.parseInt(this.quotePort));
+	    setupQuoteReceiver();	    
+	    mboxQuoteServer.startServer();
         }
 
 	// Setup maxStateDB
@@ -171,6 +178,11 @@ public class L2SwitchMainProvider {
 	mboxAlertServer.setFlowWriter(flowWriter);
     }
 
+    private void setupQuoteReceiver(){
+	mboxQuoteServer.setPolicy(policy.parsed.devices);
+	mboxQuoteServer.setPolicyMap(policyMap);
+    }
+    
     private int[] findMaxStates(PolicyParser policy) {
 	int i=0;
 	int max = policy.parsed.n;
