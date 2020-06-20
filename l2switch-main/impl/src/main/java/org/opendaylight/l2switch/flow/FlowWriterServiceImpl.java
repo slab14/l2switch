@@ -220,7 +220,7 @@ public class FlowWriterServiceImpl implements FlowWriterService {
     }
 
     @Override
-    public void addBidirectionalMacFlows(MacAddress sourceMac,
+    public void addBidirectionalMacFlows(MacAddress sourceMac, //nmap
 					 NodeConnectorRef sourceNodeConnectorRef,
 					 NodeConnectorRef destNodeConnectorRef) {
         Preconditions.checkNotNull(sourceMac, "Source mac address should not be null.");

@@ -43,16 +43,22 @@ public class Containers {
     
     public static final InstanceIdentifier<Nodes> NODES_IID = InstanceIdentifier.builder(Nodes.class).build();	
 
+    /* // when passed explicitly
     public void startContainer(String dataplaneIP, String dockerPort, String container_name, String containerImage) {
 	docker.remoteStartContainer(dataplaneIP, dockerPort, container_name, containerImage);
     }
+    */
 
     public void startContainer(String container_name, String containerImage) {
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
     }    
 
-    public void startContainer(String container_name, String containerImage, String devNum) {
-	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    public void startContainer(String container_name, String containerImage, String devNum) { //nmap
+    docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    }
+
+    public void startContainer(String container_name, String containerImage, String devNum, String iot_IP) { //nmap
+	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum, iot_IP);
     }
 
     public void startContainer_wCmd(String container_name, String containerImage, String containerCmd) {

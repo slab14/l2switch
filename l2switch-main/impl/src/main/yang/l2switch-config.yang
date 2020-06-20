@@ -54,7 +54,7 @@ module l2switch-config {
         }
 	leaf policy-file {
 	     type string;
-	     default "/users/slab/IoT_Sec_Gateway/policies/cloudlab-NewPolicy20.json";
+	     default "/users/brytul/IoT_Sec_Gateway/policies/nmap.json";
 	}
 	leaf dataplane-IP {
 	     type string;

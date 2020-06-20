@@ -43,11 +43,12 @@ public class ServiceChain {
     private NodeConnectorRef inNCR;
     private NodeConnectorRef outNCR;
     private String devNum;
+    private String iot_IP;
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion, String[] routes, NodeConnectorRef ncr,
 			String ovsBridge_remotePort, DevPolicy devPolicy, String devNum,
-			NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
+			NodeConnectorRef inNCR, NodeConnectorRef outNCR, String iot_IP) {
 	this.remoteIP = dataplaneIP;
 	this.remoteDockerPort=dockerPort;
 	this.remoteOvsPort=ovsPort;
@@ -62,6 +63,7 @@ public class ServiceChain {
 	this.devNum=devNum;
 	this.inNCR=inNCR;
 	this.outNCR=outNCR;
+	this.iot_IP=iot_IP; //nmap
     }
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
@@ -155,8 +157,8 @@ public class ServiceChain {
 	return ncrs;
     }
     
-    public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip) {
-	this.containerCalls.startContainer(contName, contImage, this.devNum);
+    public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip, String iot_IP) { //nmap
+	this.containerCalls.startContainer(contName, contImage, this.devNum, iot_IP);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
 	for(int i=0; i<ifaces.length; i++){
@@ -254,12 +256,12 @@ public class ServiceChain {
 		    nodes.add(newNode);
 		}
 	    }
-	    else if(chainLinks[i].equals("A")){
+	    else if(chainLinks[i].equals("A")){ //addressable proxy
 		groups.remove(groups.size()-1);
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
 		if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip);
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
 		} else {
 		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		}
@@ -276,6 +278,9 @@ public class ServiceChain {
 		groups.add(newGroupB);
 		macMap.put(groupCnt, i);
 		groupCnt++;
+	    }
+	    else if(chainLinks[i].equals("X")){ //addressable scanner
+
 	    }
 	}
 	macMap.put(groupCnt,chainLength);
@@ -360,7 +365,7 @@ public class ServiceChain {
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
 		if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip);
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
 		} else {
 		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		}

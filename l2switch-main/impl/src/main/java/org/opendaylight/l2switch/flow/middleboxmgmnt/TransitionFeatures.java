@@ -18,7 +18,7 @@ public class TransitionFeatures {
     }
 
     public TransitionFeatures(String policyEntry) {
-	String[] transitionItems = policyEntry.split(":");
+	String[] transitionItems = policyEntry.split(":", 2); // in case the Transition has another ":", in the <regex> portion.  We limit the # of splits
 	this.mbox = transitionItems[0];
 	this.key = transitionItems[1];
     }

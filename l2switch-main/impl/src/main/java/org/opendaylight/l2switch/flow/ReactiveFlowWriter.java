@@ -139,24 +139,27 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	NodeConnectorRef destNodeConnector=inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
 	if(destNodeConnector != null){
 	    String srcMac = ethernetPacket.getSourceMac().getValue();
-	
+        String iot_IP = arpPacket.getSourceProtocolAddress();
+	    
 	    if (!ignoreThisMac(destMac, policyMap.get(srcMac))) {
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
 		    System.out.println("Got Mac source from policy file: "+srcMac);
+            System.out.println("IoT IP from ARP packet: " + iot_IP);
 		    int devNum = policyMap.get(srcMac).devNum;
 		    NodeConnectorRef inNCR=rawPacket.getIngress();
 		    policyMap.get(srcMac).setNCR(rawPacket.getIngress());
 		    policyMap.get(srcMac).setInNCR(inNCR);
 		    policyMap.get(srcMac).setOutNCR(destNodeConnector);
+            policyMap.get(srcMac).setIOT(iot_IP);
 		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
 		    String[] routes={sourceRange, destRange};
-		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector);
+		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector, iot_IP);
 		    NewFlows updates = scWorker.setupChain();
 		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
-			//writeFlows(rule);
-			writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			writeFlows(rule); //Use for A type containers for now
+			//writeNewActionFlows(rule, actions.getAction1(), actions.getAction2()); //currently does NOT support A type containers
 			actions.switchActionOrder();
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
@@ -191,9 +194,9 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         }
     }
 
-    public void writeFlows(RuleDescriptor rule){
+    public void writeFlows(RuleDescriptor rule){ //nmap
 	if(rule.outMac.equals("*")){
-	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR);
+	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR); //nmap
 	} else {
 	    flowWriterService.addBidirectionalMacToMacFlows(new MacAddress(rule.inMac), rule.inNCR, new MacAddress(rule.outMac), rule.outNCR);
 	}

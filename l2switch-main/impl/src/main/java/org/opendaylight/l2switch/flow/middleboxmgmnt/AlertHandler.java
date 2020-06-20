@@ -84,9 +84,11 @@ public class AlertHandler extends Thread {
 	    int encrLen;
 	    int bytesRead=0;
 
+
             // Read lines from client until the client closes the connection
 	    bytesRead = in.read(inLen,0,4);
 	    if (bytesRead==4) {
+	    	//System.out.println("Init fine2");
 		//System.out.println(Arrays.toString(inLen));
 		//encrLen=ByteBuffer.wrap(inLen).getInt();
 		encrLen = ((inLen[0] & 0xFF) << 0) | ((inLen[1] & 0xFF) << 8) | ((inLen[2] & 0xFF) << 16 ) | ((inLen[3] & 0xFF) << 24 );
@@ -95,6 +97,7 @@ public class AlertHandler extends Thread {
 		bytesRead=0;
 		bytesRead = in.read(msg);
 		if (bytesRead == encrLen) {
+			//System.out.println("Init fine7");
 		    //Perform actions based upon received message
 		    //System.out.println("Got Data: "+ Arrays.toString(msg));
 		    NativeStuff cfunc = new NativeStuff();
@@ -108,8 +111,8 @@ public class AlertHandler extends Thread {
 			alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
 		    }
 	    
-		    //System.out.println(policyID);
-		    //System.out.println(alert);
+		    /*System.out.println(policyID);
+		    System.out.println(alert);*/
 		}
 	    }
 
@@ -118,12 +121,12 @@ public class AlertHandler extends Thread {
             //out.close();
             socket.close();
 
-
 	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (checkForTransitions(policyID) && !alert.equals("")) {
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
 		    String srcMac=findKey(Integer.parseInt(policyID));
 		    // Alert Msg Analysis
+
 		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
 		    if(analyzer.analyze()) {
 			//get old container names & images
@@ -171,6 +174,7 @@ public class AlertHandler extends Thread {
 		}
 	    }
         } catch( Exception e ) {
+
             e.printStackTrace();
         }
     }
