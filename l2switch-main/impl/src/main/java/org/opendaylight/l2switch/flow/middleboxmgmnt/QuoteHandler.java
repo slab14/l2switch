@@ -91,7 +91,7 @@ public class QuoteHandler extends Thread {
 	    if (!sha1.equals("")){
 		String srcMac=findKey(Integer.parseInt(policyID));
 		String[] policySha1s=getContImagesSha1(policyID, srcMac);
-		boolean found = false
+		boolean found = false;
 		for(String hash : policySha1s) {
 		    if(hash.equals(sha1)){
 			found = true;
