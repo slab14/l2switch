@@ -54,4 +54,6 @@ public interface FlowWriterService {
 
     public void addBidirectionalFlowsNewActions(VSwitch vswitch,FlowRule matchAction,
 						String action1 ,String action2);
+
+    public void addBidirectionalFlowsNewActions(VSwitch vswitch,FlowRule matchAction);
 }

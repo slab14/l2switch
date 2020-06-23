@@ -44,6 +44,7 @@ public class ServiceChain {
     private NodeConnectorRef outNCR;
     private String devNum;
     private String iot_IP;
+    private String srcMac;
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion, String[] routes, NodeConnectorRef ncr,
@@ -63,8 +64,34 @@ public class ServiceChain {
 	this.devNum=devNum;
 	this.inNCR=inNCR;
 	this.outNCR=outNCR;
-	this.iot_IP=iot_IP; //nmap
+	this.iot_IP=iot_IP; //for A type containers to track IoT IP (nmap cont)
     }
+
+    public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
+			String OFversion, String ovsBridge_remotePort,
+			DevPolicy devPolicy, String devNum, String state, NodeConnectorRef ncr,
+			NodeConnectorRef inNCR, NodeConnectorRef outNCR, String srcMac) {
+	this.remoteIP = dataplaneIP;
+	this.remoteDockerPort=dockerPort;
+	this.remoteOvsPort=ovsPort;
+	this.OpenFlowVersion=OFversion;
+	this.containerCalls=new Containers(dataplaneIP, dockerPort, ovsPort, OFversion);
+	this.ovsBridge_remotePort=ovsBridge_remotePort;
+	this.devPolicy=devPolicy;
+	int i=0;
+	for (i=0; i<devPolicy.states.length; i++){
+	    if (state.equals(devPolicy.states[i])) {
+		break;
+	    }
+	}
+	this.protectDetails=devPolicy.getProtections()[i];
+	this.curState=devPolicy.getStates()[i];
+	this.devNum=devNum;
+	this.nodeStr=this.containerCalls.getNodeString(ncr);
+	this.inNCR=inNCR;
+	this.outNCR=outNCR;
+	this.srcMac = srcMac;
+    } // adds srcMac for cookie conversion    
 
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion, String ovsBridge_remotePort,
@@ -89,7 +116,7 @@ public class ServiceChain {
 	this.nodeStr=this.containerCalls.getNodeString(ncr);
 	this.inNCR=inNCR;
 	this.outNCR=outNCR;
-    }        
+    } // original       
 
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces) {
 	this.containerCalls.startContainer(contName, contImage, this.devNum);
@@ -262,7 +289,7 @@ public class ServiceChain {
 		String[] ifaces={"eth1"};
 		if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
 		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
-		} else {
+		} else { // this doesnt have IOT_IP!
 		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		}
 		for(NodeConnectorRef newNode:contNCRs){

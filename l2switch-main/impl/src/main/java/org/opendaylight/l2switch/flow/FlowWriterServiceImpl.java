@@ -245,9 +245,22 @@ public class FlowWriterServiceImpl implements FlowWriterService {
 	writeFlow(vswitch, rule, action2);
     }
 
+    public void addBidirectionalFlowsNewActions(VSwitch vswitch, FlowRule rule) {
+    //write flow for action 1
+    writeFlow(vswitch, rule);
+    //write flow for action 2
+    rule.switchDir();
+    writeFlow(vswitch, rule);
+    }
+
     public void writeFlow(VSwitch vswitch, FlowRule rule, String action) {
 	NewFlows writer = new NewFlows(vswitch);
 	writer.writeNewFlow(rule, action);
+    }
+
+    public void writeFlow(VSwitch vswitch, FlowRule rule) {
+    NewFlows writer = new NewFlows(vswitch);
+    writer.writeNewFlow(rule);
     }
     
     /**

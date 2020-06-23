@@ -127,8 +127,17 @@ public class AlertHandler extends Thread {
 		    String srcMac=findKey(Integer.parseInt(policyID));
 		    // Alert Msg Analysis
 
-		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
+		    //MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
+		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)], this.policyMap, srcMac);
+
 		    if(analyzer.analyze()) {
+		    System.out.println("next state!");
+		    int timer = 60;
+		    while (timer!=0){
+		    	System.out.println(timer);
+		    	Thread.sleep(1000);
+		    	timer--;
+		    }
 			//get old container names & images
 			String[] oldContNames=getContNames(policyID, srcMac);
 			String[] oldContImages=getContImages(policyID, srcMac);
@@ -160,8 +169,14 @@ public class AlertHandler extends Thread {
 			    //Write routing rules
 			    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 			    for(RuleDescriptor rule:updates.rules){
-				//this.flowWriter.writeFlows(rule);
-				this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			    	/*System.out.println("inNCR: "+rule.inNCR);
+			    	System.out.println("inMac: "+rule.inMac);
+			    	System.out.println("outNCR: "+rule.outNCR);
+			    	System.out.println("outMac: "+rule.outMac);
+			    	System.out.println("---------");*/
+
+				this.flowWriter.writeFlows(rule);
+				//this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
 				actions.switchActionOrder();
 			    }
 			} else {

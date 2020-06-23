@@ -86,16 +86,7 @@ public class NmapParser extends DefaultHandler {
     }
 
     @Override
-    public void endElement(String s, String s1, String element) throws SAXException {
-
-        /*if (element.equalsIgnoreCase("nmaprun")){
-            Iterator itr = openPorts.iterator();
-            while(itr.hasNext()){
-                System.out.println(itr.next());
-            }
-        }*/
-
-    }
+    public void endElement(String s, String s1, String element) throws SAXException {}
 
     @Override
     public void characters(char[] ac, int i, int j) throws SAXException {}

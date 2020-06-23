@@ -158,8 +158,14 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    NewFlows updates = scWorker.setupChain();
 		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
-			writeFlows(rule); //Use for A type containers for now
+                System.out.println("inNCR: "+rule.inNCR);
+                System.out.println("inMac: "+rule.inMac);
+                System.out.println("outNCR: "+rule.outNCR);
+                System.out.println("outMac: "+rule.outMac);
+                System.out.println("---------");
+			//writeFlows(rule); //Use for A type containers for now
 			//writeNewActionFlows(rule, actions.getAction1(), actions.getAction2()); //currently does NOT support A type containers
+            writeNewActionFlows(rule);
 			actions.switchActionOrder();
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
@@ -194,7 +200,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
         }
     }
 
-    public void writeFlows(RuleDescriptor rule){ //nmap
+    public void writeFlows(RuleDescriptor rule){ //nmap [now we use line writeNewActionFlows(rule)]
 	if(rule.outMac.equals("*")){
 	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR); //nmap
 	} else {
@@ -213,7 +219,20 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	    //matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");	    
 	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);	    
 	}
-    }    
+    }   
+
+    public void writeNewActionFlows(RuleDescriptor rule){ // this allows us to use NewFlows.java for A/P type conts without an actionset
+    FlowRule matchAction;
+    if(rule.outMac.equals("*")){
+        //TODO : conver NCR to String of OF port #
+        matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+        flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction);
+    } else {
+        matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);      
+        //matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");       
+        flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction);      
+    }
+    } 
 
     
     private boolean inMap(HashMap<String, ArrayList<String>> m1, String testKey, String testVal) {

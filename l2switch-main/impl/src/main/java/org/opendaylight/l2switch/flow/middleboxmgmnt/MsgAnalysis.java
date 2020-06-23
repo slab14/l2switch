@@ -10,12 +10,18 @@ package org.opendaylight.l2switch.flow.middlebox;
 
 import org.opendaylight.l2switch.flow.middlebox.TransitionFeatures;
 import org.opendaylight.l2switch.flow.middlebox.NmapParser;
+import org.opendaylight.l2switch.flow.chain.PolicyStatus;
+import org.opendaylight.l2switch.flow.json.DevPolicy;
+import org.opendaylight.l2switch.flow.json.ProtectionDetails;
+
 
 
 import java.util.Iterator; 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+
 
 public class MsgAnalysis {
     private String msg;
@@ -33,6 +39,14 @@ public class MsgAnalysis {
 	System.out.println("This is the TransitionEntry: " + policyEntry);
 	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
 	this.feature = inputFeatures;
+    }
+
+    public MsgAnalysis(String msg, DevPolicy policy, HashMap<String, PolicyStatus> policyMap, String srcMac){
+    	this.msg = msg;
+    	String policyEntry = policy.getTransition()[policyMap.get(srcMac).getStateNum()];
+    	System.out.println("This is the TransitionEntry: " + policyEntry);
+    	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
+    	this.feature = inputFeatures;
     }
 
     public String getMsg(){
@@ -81,7 +95,7 @@ public class MsgAnalysis {
     private boolean processNmapMsg(String transitionKey) {
     // the log file is written to twice by nmap which means we need to save the first part of the alert (msg_part1)
 	    boolean out = false;
-	    List<String> offendingPorts = new ArrayList<>();;
+	    List<String> offendingPorts = new ArrayList<>();
 	    System.out.println("processNmapMsg()...");
     	System.out.println("String starts with: " + msg.substring(0,5));
     	System.out.println("Ends with: " + msg.substring(msg.length() - 5));
@@ -113,10 +127,7 @@ public class MsgAnalysis {
 	        System.out.println(itr.next());
 	    }*/
 	    if(!offendingPorts.isEmpty()){
-	    	Iterator it = offendingPorts.iterator();
-	    	while(it.hasNext()){
-	    		System.out.println(it.next());
-	    	}
+	    	out = true; 
 	    }
      
     return out;
