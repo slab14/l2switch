@@ -163,9 +163,9 @@ public class ReactiveFlowWriter implements ArpPacketListener {
                 System.out.println("outNCR: "+rule.outNCR);
                 System.out.println("outMac: "+rule.outMac);
                 System.out.println("---------");
-			//writeFlows(rule); //Use for A type containers for now
+			//writeFlows(rule); //Legacy
 			//writeNewActionFlows(rule, actions.getAction1(), actions.getAction2()); //currently does NOT support A type containers
-            writeNewActionFlows(rule);
+            writeNewActionFlows(rule);  //anything not snort_base as of now
 			actions.switchActionOrder();
 		    }
 		    policyMap.get(srcMac).updateSetup(true);

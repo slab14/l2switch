@@ -59,7 +59,7 @@ public class NmapParser extends DefaultHandler {
             System.out.println("ParserConfig error");
         } catch (SAXException e) {
             System.out.println("SAXException : xml not well formed");
-            System.out.println("string: ------------------------------ \n" + nmap_string);
+            //System.out.println("string: ------------------------------ \n" + nmap_string);
             System.out.println("The error message: ------------------------------ \n" + e.getMessage());
         } catch (IOException e) {
             System.out.println("IO error");

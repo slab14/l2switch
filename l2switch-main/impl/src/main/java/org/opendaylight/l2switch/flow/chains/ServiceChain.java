@@ -12,6 +12,7 @@ import org.opendaylight.l2switch.flow.docker.DockerCalls;
 //import java.util.regex.Pattern;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnector;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.Nodes;
@@ -307,11 +308,47 @@ public class ServiceChain {
 		groupCnt++;
 	    }
 	    else if(chainLinks[i].equals("X")){ //addressable scanner
+	    	groups.remove(groups.size()-1);
+			//assumes that all accessible middleboxes will utilize only 1 interface
+			String[] ifaces={"eth1"};
+			if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
+			} else { // this doesnt have IOT_IP!
+			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
+			}
 
+			//for every ContNCR, we need a NCR node for it
+			for(NodeConnectorRef newNode:contNCRs){
+			    nodes.add(newNode);
+			    // Intentionally adding 2x to match number of outputs from passthrough containers
+			    nodes.add(newNode);
+			    /*String[] findOFport = newNode.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
+			    System.out.println("NewNode: " + findOFport[findOFport.length-1]);		    */
+			}
+
+			enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
+			contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
+			MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
+			MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
+			groups.add(newGroupA);
+			groups.add(newGroupB);
+			macMap.put(groupCnt, i);
+			groupCnt++;
 	    }
 	}
+
 	macMap.put(groupCnt,chainLength);
-	nodes.add(outNCR);
+	if(chainLength==1 && chainLinks[0].equals("X")){
+		System.out.println("X cont detected - adding inNCR to nodes");
+		nodes.add(inNCR);
+	}else{
+		nodes.add(outNCR);
+	}
+	for (NodeConnectorRef a_node:nodes){
+		String[] findOFport = a_node.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
+		System.out.println("A node: " +findOFport[findOFport.length-1]);
+
+	}
 	groupCnt=0;
 	String ruleInMac;
 	String ruleOutMac;
@@ -409,10 +446,46 @@ public class ServiceChain {
 		groups.add(newGroupB);
 		macMap.put(groupCnt, i);
 		groupCnt++;
+	    }else if(chainLinks[i].equals("X")){ //addressable scanner
+	    	groups.remove(groups.size()-1);
+			//assumes that all accessible middleboxes will utilize only 1 interface
+			String[] ifaces={"eth1"};
+			if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
+			} else { // this doesnt have IOT_IP!
+			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
+			}
+
+			//for every ContNCR, we need a NCR node for it
+			for(NodeConnectorRef newNode:contNCRs){
+			    nodes.add(newNode);
+			    // Intentionally adding 2x to match number of outputs from passthrough containers
+			    nodes.add(newNode);
+			    //System.out.println("NewNode: " + newNode);		    
+			}
+
+			enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
+			contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
+			MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
+			MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
+			groups.add(newGroupA);
+			groups.add(newGroupB);
+			macMap.put(groupCnt, i);
+			groupCnt++;
 	    }
 	}
 	macMap.put(groupCnt,chainLength);
-	nodes.add(outNCR);
+	if(chainLength==1 && chainLinks[0].equals("X")){
+		System.out.println("X cont detected - adding inNCR to nodes");
+		nodes.add(inNCR);
+	}else{
+		nodes.add(outNCR);
+	}
+	for (NodeConnectorRef a_node:nodes){
+		String[] findOFport = a_node.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
+		System.out.println("A node: " +findOFport[findOFport.length-1]);
+
+	}
 	groupCnt=0;
 	String ruleInMac;
 	String ruleOutMac;

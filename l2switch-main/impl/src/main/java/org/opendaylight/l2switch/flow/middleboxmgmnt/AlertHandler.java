@@ -132,7 +132,7 @@ public class AlertHandler extends Thread {
 
 		    if(analyzer.analyze()) {
 		    System.out.println("next state!");
-		    int timer = 60;
+		    int timer = 5;
 		    while (timer!=0){
 		    	System.out.println(timer);
 		    	Thread.sleep(1000);
@@ -175,8 +175,9 @@ public class AlertHandler extends Thread {
 			    	System.out.println("outMac: "+rule.outMac);
 			    	System.out.println("---------");*/
 
-				this.flowWriter.writeFlows(rule);
-				//this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+				//this.flowWriter.writeFlows(rule);
+				this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+				//this.flowWriter.writeNewActionFlows(rule);
 				actions.switchActionOrder();
 			    }
 			} else {
