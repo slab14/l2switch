@@ -138,7 +138,7 @@ public class DockerCalls {
 	cmd=String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/start", ip, docker_port, cont_name);
 	String[] newCmd2={"/bin/sh", "-c", cmd};
 	output=obj.exeCmd(newCmd2);
-	System.out.println("New A-Type Container Started "+cont_name);
+	System.out.println("New A/X-Type Container Started "+cont_name);
     }
 
     public void remoteStartContainer_wCmd(String ip, String docker_port, String cont_name, String container_image, String cont_cmd) {

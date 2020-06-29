@@ -127,17 +127,10 @@ public class AlertHandler extends Thread {
 		    String srcMac=findKey(Integer.parseInt(policyID));
 		    // Alert Msg Analysis
 
-		    //MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
 		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)], this.policyMap, srcMac);
 
 		    if(analyzer.analyze()) {
-		    System.out.println("next state!");
-		    int timer = 5;
-		    while (timer!=0){
-		    	System.out.println(timer);
-		    	Thread.sleep(1000);
-		    	timer--;
-		    }
+		    
 			//get old container names & images
 			String[] oldContNames=getContNames(policyID, srcMac);
 			String[] oldContImages=getContImages(policyID, srcMac);

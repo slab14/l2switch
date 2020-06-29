@@ -58,9 +58,8 @@ public class NmapParser extends DefaultHandler {
         } catch (ParserConfigurationException e) {
             System.out.println("ParserConfig error");
         } catch (SAXException e) {
-            System.out.println("SAXException : xml not well formed");
-            //System.out.println("string: ------------------------------ \n" + nmap_string);
-            System.out.println("The error message: ------------------------------ \n" + e.getMessage());
+            System.out.println("SAXException : " + e.getMessage());
+            
         } catch (IOException e) {
             System.out.println("IO error");
         }
@@ -92,25 +91,4 @@ public class NmapParser extends DefaultHandler {
     public void characters(char[] ac, int i, int j) throws SAXException {}
 
    
-
-    /*public static void main(String[] args) { 
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(new File("nmap.xml")));
-            String line;
-            StringBuilder sb = new StringBuilder();
-
-            while((line=br.readLine())!= null){
-                sb.append(line.trim());
-            }
-
-            new NmapParser(sb.toString());
-
-        }catch(FileNotFoundException e){
-            System.out.println("No file: " +  e);
-        }catch(IOException e){
-            System.out.println("malformed IO: " + e);
-        }
-
-    }*/
 }

@@ -49,7 +49,6 @@ public class NewFlows {
 	    opts="-O Openflow13";
 	}
 	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl %s add-flow tcp:%s:%s '%s'", opts, this.vswitch.getIP(), this.vswitch.getPort(), matchAction);
-	System.out.println("Made it: "+cmd);
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	ExecShellCmd obj = new ExecShellCmd();
 	obj.exeCmd(newCmd);

@@ -71,32 +71,6 @@ public class ServiceChain {
     public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
 			String OFversion, String ovsBridge_remotePort,
 			DevPolicy devPolicy, String devNum, String state, NodeConnectorRef ncr,
-			NodeConnectorRef inNCR, NodeConnectorRef outNCR, String srcMac) {
-	this.remoteIP = dataplaneIP;
-	this.remoteDockerPort=dockerPort;
-	this.remoteOvsPort=ovsPort;
-	this.OpenFlowVersion=OFversion;
-	this.containerCalls=new Containers(dataplaneIP, dockerPort, ovsPort, OFversion);
-	this.ovsBridge_remotePort=ovsBridge_remotePort;
-	this.devPolicy=devPolicy;
-	int i=0;
-	for (i=0; i<devPolicy.states.length; i++){
-	    if (state.equals(devPolicy.states[i])) {
-		break;
-	    }
-	}
-	this.protectDetails=devPolicy.getProtections()[i];
-	this.curState=devPolicy.getStates()[i];
-	this.devNum=devNum;
-	this.nodeStr=this.containerCalls.getNodeString(ncr);
-	this.inNCR=inNCR;
-	this.outNCR=outNCR;
-	this.srcMac = srcMac;
-    } // adds srcMac for cookie conversion    
-
-    public ServiceChain(String dataplaneIP, String dockerPort, String ovsPort,
-			String OFversion, String ovsBridge_remotePort,
-			DevPolicy devPolicy, String devNum, String state, NodeConnectorRef ncr,
 			NodeConnectorRef inNCR, NodeConnectorRef outNCR) {
 	this.remoteIP = dataplaneIP;
 	this.remoteDockerPort=dockerPort;
@@ -185,7 +159,7 @@ public class ServiceChain {
 	return ncrs;
     }
     
-    public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip, String iot_IP) { //nmap
+    public NodeConnectorRef[] startAccessibleCont_getNCR(String contName, String contImage, String[] ifaces, String ip, String iot_IP) { 
 	this.containerCalls.startContainer(contName, contImage, this.devNum, iot_IP);
 	String[] OFports = new String[ifaces.length];
 	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
@@ -284,7 +258,7 @@ public class ServiceChain {
 		    nodes.add(newNode);
 		}
 	    }
-	    else if(chainLinks[i].equals("A")){ //addressable proxy
+	    else if(chainLinks[i].equals("A") || chainLinks[i].equals("X")){ //addressable proxy
 		groups.remove(groups.size()-1);
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
@@ -307,48 +281,16 @@ public class ServiceChain {
 		macMap.put(groupCnt, i);
 		groupCnt++;
 	    }
-	    else if(chainLinks[i].equals("X")){ //addressable scanner
-	    	groups.remove(groups.size()-1);
-			//assumes that all accessible middleboxes will utilize only 1 interface
-			String[] ifaces={"eth1"};
-			if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
-			} else { // this doesnt have IOT_IP!
-			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
-			}
-
-			//for every ContNCR, we need a NCR node for it
-			for(NodeConnectorRef newNode:contNCRs){
-			    nodes.add(newNode);
-			    // Intentionally adding 2x to match number of outputs from passthrough containers
-			    nodes.add(newNode);
-			    /*String[] findOFport = newNode.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
-			    System.out.println("NewNode: " + findOFport[findOFport.length-1]);		    */
-			}
-
-			enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
-			contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
-			MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
-			MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
-			groups.add(newGroupA);
-			groups.add(newGroupB);
-			macMap.put(groupCnt, i);
-			groupCnt++;
-	    }
 	}
 
 	macMap.put(groupCnt,chainLength);
 	if(chainLength==1 && chainLinks[0].equals("X")){
-		System.out.println("X cont detected - adding inNCR to nodes");
+		// the cont has only 1 real interface to connect to
 		nodes.add(inNCR);
 	}else{
 		nodes.add(outNCR);
 	}
-	for (NodeConnectorRef a_node:nodes){
-		String[] findOFport = a_node.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
-		System.out.println("A node: " +findOFport[findOFport.length-1]);
-
-	}
+	
 	groupCnt=0;
 	String ruleInMac;
 	String ruleOutMac;
@@ -424,7 +366,7 @@ public class ServiceChain {
 		    nodes.add(newNode);
 		}
 	    }
-	    else if(chainLinks[i].equals("A")){
+	    else if(chainLinks[i].equals("A") || chainLinks[i].equals("X")){
 		groups.remove(groups.size()-1);
 		//assumes that all accessible middleboxes will utilize only 1 interface
 		String[] ifaces={"eth1"};
@@ -446,46 +388,16 @@ public class ServiceChain {
 		groups.add(newGroupB);
 		macMap.put(groupCnt, i);
 		groupCnt++;
-	    }else if(chainLinks[i].equals("X")){ //addressable scanner
-	    	groups.remove(groups.size()-1);
-			//assumes that all accessible middleboxes will utilize only 1 interface
-			String[] ifaces={"eth1"};
-			if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
-			} else { // this doesnt have IOT_IP!
-			    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
-			}
-
-			//for every ContNCR, we need a NCR node for it
-			for(NodeConnectorRef newNode:contNCRs){
-			    nodes.add(newNode);
-			    // Intentionally adding 2x to match number of outputs from passthrough containers
-			    nodes.add(newNode);
-			    //System.out.println("NewNode: " + newNode);		    
-			}
-
-			enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
-			contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
-			MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
-			MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
-			groups.add(newGroupA);
-			groups.add(newGroupB);
-			macMap.put(groupCnt, i);
-			groupCnt++;
 	    }
 	}
 	macMap.put(groupCnt,chainLength);
 	if(chainLength==1 && chainLinks[0].equals("X")){
-		System.out.println("X cont detected - adding inNCR to nodes");
+		
 		nodes.add(inNCR);
 	}else{
 		nodes.add(outNCR);
 	}
-	for (NodeConnectorRef a_node:nodes){
-		String[] findOFport = a_node.getValue().firstKeyOf(NodeConnector.class).getId().getValue().split(":");
-		System.out.println("A node: " +findOFport[findOFport.length-1]);
-
-	}
+	
 	groupCnt=0;
 	String ruleInMac;
 	String ruleOutMac;

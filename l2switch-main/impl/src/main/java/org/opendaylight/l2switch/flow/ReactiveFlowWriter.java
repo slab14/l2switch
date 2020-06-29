@@ -158,11 +158,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    NewFlows updates = scWorker.setupChain();
 		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
-                System.out.println("inNCR: "+rule.inNCR);
-                System.out.println("inMac: "+rule.inMac);
-                System.out.println("outNCR: "+rule.outNCR);
-                System.out.println("outMac: "+rule.outMac);
-                System.out.println("---------");
+                
 			//writeFlows(rule); //Legacy
 			//writeNewActionFlows(rule, actions.getAction1(), actions.getAction2()); //currently does NOT support A type containers
             writeNewActionFlows(rule);  //anything not snort_base as of now
@@ -186,27 +182,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
      * @param destMac
      *            The destination MacAddress of the packet.
      */
-    public void writeFlows(NodeConnectorRef ingress, MacAddress srcMac, MacAddress destMac) {
-        NodeConnectorRef destNodeConnector = inventoryReader
-                .getNodeConnector(ingress.getValue().firstIdentifierOf(Node.class), destMac);
-        if (destNodeConnector != null) {
-            flowWriterService.addBidirectionalMacToMacFlows(srcMac, ingress, destMac, destNodeConnector);
-        }
-    }
-
-    public void writeFlows(NodeConnectorRef ingress, MacAddress srcMac, NodeConnectorRef egress, MacAddress destMac) {
-        if (egress != null) {
-            flowWriterService.addBidirectionalMacToMacFlows(srcMac, ingress, destMac, egress);
-        }
-    }
-
-    public void writeFlows(RuleDescriptor rule){ //nmap [now we use line writeNewActionFlows(rule)]
-	if(rule.outMac.equals("*")){
-	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR); //nmap
-	} else {
-	    flowWriterService.addBidirectionalMacToMacFlows(new MacAddress(rule.inMac), rule.inNCR, new MacAddress(rule.outMac), rule.outNCR);
-	}
-    }    
+    
 
     public void writeNewActionFlows(RuleDescriptor rule, String action1, String action2){
 	FlowRule matchAction;

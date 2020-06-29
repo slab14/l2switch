@@ -13,7 +13,19 @@ import org.opendaylight.l2switch.flow.middlebox.NmapParser;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.l2switch.flow.json.DevPolicy;
 import org.opendaylight.l2switch.flow.json.ProtectionDetails;
-
+import org.opendaylight.l2switch.flow.json.ContOpts;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import org.opendaylight.l2switch.flow.docker.utils.ExecShellCmd;
 
 
 import java.util.Iterator; 
@@ -27,6 +39,9 @@ public class MsgAnalysis {
     private String msg;
     private TransitionFeatures feature;
     private NmapParser nmapParser;
+    private String srcMac;
+    private HashMap<String, PolicyStatus> policyMap;
+    private DevPolicy policy;
 
     public MsgAnalysis(String msg, TransitionFeatures feature) {
 	this.msg = msg;
@@ -36,15 +51,18 @@ public class MsgAnalysis {
 
     public MsgAnalysis(String msg, String policyEntry) {
 	this.msg = msg;
-	System.out.println("This is the TransitionEntry: " + policyEntry);
+	//System.out.println("This is the TransitionEntry: " + policyEntry);
 	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
 	this.feature = inputFeatures;
     }
 
     public MsgAnalysis(String msg, DevPolicy policy, HashMap<String, PolicyStatus> policyMap, String srcMac){
     	this.msg = msg;
+    	this.policyMap = policyMap;
+    	this.srcMac = srcMac;
+    	this.policy = policy;
     	String policyEntry = policy.getTransition()[policyMap.get(srcMac).getStateNum()];
-    	System.out.println("This is the TransitionEntry: " + policyEntry);
+    	//System.out.println("This is the TransitionEntry: " + policyEntry);
     	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
     	this.feature = inputFeatures;
     }
@@ -70,6 +88,46 @@ public class MsgAnalysis {
 	this.feature = inputFeatures;
     }
 
+    private void buildTar(String tarpath, List<String> offendingPorts){
+    	File f = new File(tarpath);
+    	File old = new File(tarpath+".old");
+    	if(f.exists()){
+    		f.renameTo(old);
+    		//if there user has a another tar file with the same name, '.old' it to avoid conflict
+    		//there is no logic to compare the tars
+    	}
+    	
+		try{
+			Iterator itr = offendingPorts.iterator();
+			FileWriter writer = new FileWriter(f.getParent()+"/local.rules", false);
+			while(itr.hasNext()){
+				String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:1000002; rev:2;) \n", itr.next().toString());
+				System.out.println(snortRule);		
+    			writer.write(snortRule);
+
+    		}
+
+    		writer.close();
+    		OutputStream tar_output = new FileOutputStream(f);
+            ArchiveOutputStream my_tar_ball = new ArchiveStreamFactory().createArchiveOutputStream(ArchiveStreamFactory.TAR, tar_output);
+            File tar_input_file= new File(f.getParent()+"/local.rules");
+            TarArchiveEntry tar_file = new TarArchiveEntry("local.rules");
+            tar_file.setSize(tar_input_file.length());
+            my_tar_ball.putArchiveEntry(tar_file);
+            IOUtils.copy(new FileInputStream(tar_input_file), my_tar_ball);
+            my_tar_ball.closeArchiveEntry();            
+            my_tar_ball.finish(); 
+            tar_output.close();
+
+		}catch(IOException e){
+			System.out.println("Something went wrong while reading the tarpath: " + tarpath);
+			System.out.println(e.getMessage());
+		}catch(ArchiveException ae){
+			System.out.println("Archive exception");
+			System.out.println(ae.getMessage());
+		}    	
+    }
+
     public boolean analyze() {
 	boolean trigger = false;
 	if (feature.getMbox().equals("snort")) {
@@ -77,7 +135,7 @@ public class MsgAnalysis {
 	}
 	if (feature.getMbox().equals("nmap")) {
 		trigger = processNmapMsg(feature.getKey());
-		// ----snort tarring, cleanup
+		
 	}
 	return trigger;
     }
@@ -96,9 +154,7 @@ public class MsgAnalysis {
     // the log file is written to twice by nmap which means we need to save the first part of the alert (msg_part1)
 	    boolean out = false;
 	    List<String> offendingPorts = new ArrayList<>();
-	    System.out.println("processNmapMsg()...");
-    	System.out.println("String starts with: " + msg.substring(0,5));
-    	System.out.println("Ends with: " + msg.substring(msg.length() - 5));
+	    
 		nmapParser = new NmapParser(msg);
 		if (transitionKey.substring(0, transitionKey.indexOf("_")).equals("openports")) { //open ports list in <regex>
 			
@@ -110,10 +166,9 @@ public class MsgAnalysis {
 			System.out.println("");
 			List<String> openPorts = nmapParser.getOpenPorts(); 
 			for (String port : openPorts){
-				if(allowedPorts.contains(port.toString())){
-					System.out.println("This port is allowed: " + port.toString());
+				if(allowedPorts.contains(port.toString())){				
+					
 				}else{
-					System.out.println("This port not allowed: " + port.toString());
 					offendingPorts.add(port);
 				}
 			}
@@ -121,12 +176,16 @@ public class MsgAnalysis {
 		}else if (transitionKey.substring(0, transitionKey.indexOf("_")).equals("CVE")){
 			// future impl to include NSE scripts which check for CVEs
 		}
-		/*Iterator itr = nmapParser.getOpenPorts().iterator();
-		List openPorts = nmapParser.getOpenPorts(); 
-	    while(itr.hasNext()){
-	        System.out.println(itr.next());
-	    }*/
+		
 	    if(!offendingPorts.isEmpty()){
+	    	if(policyMap.get(srcMac).getCanTransition()){
+	    		//System.out.println("Current policy state index: " + policyMap.get(srcMac).getStateNum());
+	    		int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
+	    		String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
+	    		buildTar(tarpath, offendingPorts);
+	    	}else{
+	    		System.out.println("Error - expecting a state after nmap but no transition in JSON. \n Please check your JSON.");
+	    	}
 	    	out = true; 
 	    }
      
