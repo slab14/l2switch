@@ -27,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import org.opendaylight.l2switch.flow.docker.utils.ExecShellCmd;
 
+import java.sql.Timestamp;
 
 import java.util.Iterator; 
 import java.util.List;
@@ -89,9 +90,11 @@ public class MsgAnalysis {
     }
 
     private void buildTar(String tarpath, List<String> offendingPorts){
+    	Timestamp ts = new Timestamp(System.currentTimeMillis());
     	File f = new File(tarpath);
-    	File old = new File(tarpath+".old");
+    	File old = new File(tarpath+"."+ts.getTime());
     	if(f.exists()){
+    		
     		f.renameTo(old);
     		//if there user has a another tar file with the same name, '.old' it to avoid conflict
     		//there is no logic to compare the tars
