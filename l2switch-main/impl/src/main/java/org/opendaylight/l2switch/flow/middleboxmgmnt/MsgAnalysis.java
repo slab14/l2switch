@@ -156,46 +156,7 @@ public class MsgAnalysis {
     			System.out.println("problem extracting or problem writing: " + ioe.getMessage());
     		}
     	}
-
-    	/*Timestamp ts = new Timestamp(System.currentTimeMillis());
-    	File f = new File(tarpath);
-    	File old = new File(tarpath+"."+ts.getTime());
-    	if(f.exists()){
-    		
-    		f.renameTo(old);
-    		//if there user has a another tar file with the same name, '.old' it to avoid conflict
-    		//there is no logic to compare the tars
-    	}
     	
-		try{
-			Iterator itr = offendingPorts.iterator();
-			FileWriter writer = new FileWriter(f.getParent()+"/local.rules", false);
-			while(itr.hasNext()){
-				String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:2000002; rev:3;) \n", itr.next().toString());
-				System.out.println(snortRule);		
-    			writer.write(snortRule);
-
-    		}
-
-    		writer.close();
-    		OutputStream tar_output = new FileOutputStream(f);
-            ArchiveOutputStream my_tar_ball = new ArchiveStreamFactory().createArchiveOutputStream(ArchiveStreamFactory.TAR, tar_output);
-            File tar_input_file= new File(f.getParent()+"/local.rules");
-            TarArchiveEntry tar_file = new TarArchiveEntry("local.rules");
-            tar_file.setSize(tar_input_file.length());
-            my_tar_ball.putArchiveEntry(tar_file);
-            IOUtils.copy(new FileInputStream(tar_input_file), my_tar_ball);
-            my_tar_ball.closeArchiveEntry();            
-            my_tar_ball.finish(); 
-            tar_output.close();
-
-		}catch(IOException e){
-			System.out.println("Something went wrong while reading the tarpath: " + tarpath);
-			System.out.println(e.getMessage());
-		}catch(ArchiveException ae){
-			System.out.println("Archive exception");
-			System.out.println(ae.getMessage());
-		}    	*/
     }
 
     public boolean analyze() {
