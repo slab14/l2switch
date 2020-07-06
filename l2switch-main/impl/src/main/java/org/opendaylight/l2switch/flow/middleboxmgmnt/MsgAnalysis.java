@@ -19,6 +19,7 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
+import org.rauschig.jarchivelib.*;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.lang.Thread;
 
 
 public class MsgAnalysis {
@@ -90,7 +92,72 @@ public class MsgAnalysis {
     }
 
     private void buildTar(String tarpath, List<String> offendingPorts){
-    	Timestamp ts = new Timestamp(System.currentTimeMillis());
+
+    	File f = new File(tarpath); // the tar
+    	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
+    	File rules = new File(f.getParent() + "/local.rules");
+    	if(f.exists()){
+    		try{
+    			Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    		archiver.extract(f, dest);	    		
+	    		if (rules.exists()){	    			
+	    			Iterator itr = offendingPorts.iterator();
+	    			FileWriter writer = new FileWriter(rules, true);
+	    			String notify = "#----Appended by NMAP middlebox----\n";
+	    			int sid = 0;
+	    			writer.write(notify);
+	    			while(itr.hasNext()){
+						String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
+						System.out.println(snortRule);		
+		    			writer.write(snortRule);
+		    			sid+=1;
+
+		    		}
+		    		writer.close();		
+		    		    		
+	    		}
+	    		
+	    		Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    		File old = new File(tarpath+"."+ts.getTime());
+	    		if(f.exists()){
+	    			f.renameTo(old);
+	    		}
+
+	    		archiver.create(f.getName(), new File(f.getParent()), rules);    		
+
+	    		rules.delete(); // delete the extracted local.rules	    		
+	    		
+    		}catch(IOException ioe){
+    			System.out.println("problem extracting or problem writing: " + ioe.getMessage());
+    		}
+    		
+    		
+    	}else{
+    		// we need to create a tar (for the demos, we assume it already exists)
+    		try{
+	    		Iterator itr = offendingPorts.iterator();
+				FileWriter writer = new FileWriter(rules, false);
+				String notify = "#----Appended by NMAP middlebox----\n";
+				int sid = 0;
+				writer.write(notify);
+				while(itr.hasNext()){
+					String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
+					System.out.println(snortRule);		
+	    			writer.write(snortRule);
+	    			sid+=1;
+
+	    		}
+		    	writer.close();		
+	    		Archiver archiver = ArchiverFactory.createArchiver("tar");
+		    	archiver.create(f.getName(), new File(f.getParent()), rules);	    		
+	    		rules.delete(); // delete the extracted local.rules	    		
+	    		
+	    	}catch(IOException ioe){
+    			System.out.println("problem extracting or problem writing: " + ioe.getMessage());
+    		}
+    	}
+
+    	/*Timestamp ts = new Timestamp(System.currentTimeMillis());
     	File f = new File(tarpath);
     	File old = new File(tarpath+"."+ts.getTime());
     	if(f.exists()){
@@ -104,7 +171,7 @@ public class MsgAnalysis {
 			Iterator itr = offendingPorts.iterator();
 			FileWriter writer = new FileWriter(f.getParent()+"/local.rules", false);
 			while(itr.hasNext()){
-				String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:1000002; rev:2;) \n", itr.next().toString());
+				String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:2000002; rev:3;) \n", itr.next().toString());
 				System.out.println(snortRule);		
     			writer.write(snortRule);
 
@@ -128,7 +195,7 @@ public class MsgAnalysis {
 		}catch(ArchiveException ae){
 			System.out.println("Archive exception");
 			System.out.println(ae.getMessage());
-		}    	
+		}    	*/
     }
 
     public boolean analyze() {

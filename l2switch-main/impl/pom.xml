@@ -13,9 +13,9 @@
 
   <dependencies>    
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-compress</artifactId>
-      <version>1.19</version>
+      <groupId>org.rauschig</groupId>
+      <artifactId>jarchivelib</artifactId>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.openflowplugin.model</groupId>
