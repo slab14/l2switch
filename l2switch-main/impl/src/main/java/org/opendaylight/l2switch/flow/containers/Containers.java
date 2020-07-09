@@ -49,9 +49,9 @@ public class Containers {
     }
     */
 
-    public void startContainer(String container_name, String containerImage) {
+    /*public void startContainer(String container_name, String containerImage) {
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
-    }    
+    }    */
 
     public void startContainer(String container_name, String containerImage, String devNum) { //nmap
     docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
@@ -77,12 +77,12 @@ public class Containers {
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd, hostPath, contPath);
     }        
 
-    public void createContainer(String container_name, String containerImage) {
+    /*public void createContainer(String container_name, String containerImage) {
 	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
-    }
+    }*/
 
-    public void createContainer(String container_name, String containerImage, String devNum) {
-	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    public void createContainer(String container_name, String containerImage, String devNum, String iot_IP) {
+	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum, iot_IP);
     }    
 
     public void createContainer_bind_wCmd(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
@@ -94,9 +94,9 @@ public class Containers {
     }
 
     
-    public void createContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
+    /*public void createContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
 	docker.remoteCreateContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, hostPath, contPath);
-    }    
+    }    */
 
     public void attachArchive(String cont_name, String archiveFile, String contPath) {
 	docker.remoteAttatchArchive(this.remoteIP, this.remoteDockerPort, cont_name, archiveFile, contPath);
@@ -243,10 +243,10 @@ public class Containers {
 	addPortOnContainer(dataplaneIP, dockerPort, ovsPort, ovsBridge, containerName, cont_iface, contIP);
     }
 
-    public void addDirectContainer(String containerName, String containerImage, String cont_iface, String contIP) {
+    /*public void addDirectContainer(String containerName, String containerImage, String cont_iface, String contIP) {
 	startContainer(containerName, containerImage);
 	addPortOnContainer(containerName, cont_iface, contIP);
-    }    
+    }    */
 
     public void addDirectContainerRouting(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion, String in_port){
 	String newOutPort = getContOFPortNum(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, cont_iface, OFversion);

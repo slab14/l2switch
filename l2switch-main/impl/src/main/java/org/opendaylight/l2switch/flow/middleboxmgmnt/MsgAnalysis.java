@@ -65,7 +65,7 @@ public class MsgAnalysis {
     	this.srcMac = srcMac;
     	this.policy = policy;
     	String policyEntry = policy.getTransition()[policyMap.get(srcMac).getStateNum()];
-    	//System.out.println("This is the TransitionEntry: " + policyEntry);
+    	System.out.println("This is the TransitionEntry: " + policyEntry);
     	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
     	this.feature = inputFeatures;
     }
@@ -89,6 +89,32 @@ public class MsgAnalysis {
     public void setFeatures(String policyEntry) {
 	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
 	this.feature = inputFeatures;
+    }
+
+
+    private void buildTar(String tarpath, String msg){
+
+    	File f = new File(tarpath); // the tar (rules_radio.tar)
+    	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
+    	File rules = new File(f.getParent() + "/local.rules");    	
+
+    	if(f.exists()){
+    		// if a rules_radio.tar already exists, there will almost certainly be conflict, so we old it
+    		Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    	File old = new File(tarpath+"."+ts.getTime());
+	    	f.renameTo(old);
+	    }
+
+    	try{
+			FileWriter writer = new FileWriter(rules, false);
+			writer.write(msg);
+			writer.close();
+			Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    	archiver.create(f.getName(), dest, rules);	    		
+    		rules.delete(); // delete created local.rules file	
+		}catch(IOException ioe){
+			System.out.println("IOException: " + ioe.getMessage());
+		}
     }
 
     private void buildTar(String tarpath, List<String> offendingPorts){
@@ -168,9 +194,21 @@ public class MsgAnalysis {
 		trigger = processNmapMsg(feature.getKey());
 		
 	}
+	if (feature.getMbox().equals("radio")) {
+		trigger = processRadioMsg(feature.getKey());
+	}	
 	return trigger;
     }
 
+    private boolean processRadioMsg(String transitionkey) {
+    	boolean out = true;
+    	int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
+    	String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
+    	buildTar(tarpath, msg);
+    	return out;
+    }
+
+    
     private boolean processSnortMsg(String transitionKey) {
 	boolean out = false;
 	String[] snortAlertParts = msg.split(",");

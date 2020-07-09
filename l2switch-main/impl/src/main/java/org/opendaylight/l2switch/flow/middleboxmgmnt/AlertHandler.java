@@ -99,7 +99,7 @@ public class AlertHandler extends Thread {
 		if (bytesRead == encrLen) {
 			//System.out.println("Init fine7");
 		    //Perform actions based upon received message
-		    //System.out.println("Got Data: "+ Arrays.toString(msg));
+		    
 		    NativeStuff cfunc = new NativeStuff();
 		    //String processedLine = processMsg(line);
 		    String processedLine = cfunc.decrypt(msg, encrLen);
@@ -113,6 +113,7 @@ public class AlertHandler extends Thread {
 	    
 		    /*System.out.println(policyID);
 		    System.out.println(alert);*/
+		    
 		}
 	    }
 

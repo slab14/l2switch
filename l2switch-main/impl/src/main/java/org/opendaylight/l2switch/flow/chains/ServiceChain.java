@@ -111,8 +111,26 @@ public class ServiceChain {
 	return ncrs;
     }
 
-    public void createPassThroughCont(String contName, String contImage) {
-	this.containerCalls.createContainer(contName, contImage, this.devNum);
+    public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces, String iot_IP) {
+	this.containerCalls.startContainer(contName, contImage, this.devNum, iot_IP);
+	String[] OFports = new String[ifaces.length];
+	NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
+	for(int i=0; i<ifaces.length; i++){
+	    OFports[i]=this.containerCalls.addPortOnContainer_get(contName,
+								  ifaces[i],
+								  this.ovsBridge_remotePort);
+	    ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
+	    this.containerCalls.disableContGRO(contName, ifaces[i]);
+	    //for(String route:this.routes) {
+	    //	this.containerCalls.addRouteinCont(contName, ifaces[i], route);
+	    //}
+	}
+	this.containerCalls.setDefaultRouteinCont(contName, "eth0");
+	return ncrs;
+    }
+
+    public void createPassThroughCont(String contName, String contImage, String iot_IP) {
+	this.containerCalls.createContainer(contName, contImage, this.devNum, iot_IP);
     }    
 
     public NodeConnectorRef[] startPassThroughCont_getNCR(String contName, String contImage, String[] ifaces, String hostFS, String contFS) {
@@ -239,13 +257,13 @@ public class ServiceChain {
 		String[] ifaces={"eth1", "eth2"};
 		if(protectDetails.imageOpts[i].archives.length==0) {
 		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces);
+			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, iot_IP);
 		    } else {
 			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
 		}else{
 		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i]);
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], iot_IP);
 		    } else {
 			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
@@ -353,7 +371,7 @@ public class ServiceChain {
 		    }
 		}else{
 		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i]);
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], iot_IP);
 		    } else {
 			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
