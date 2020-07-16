@@ -12,6 +12,10 @@ module l2switch-config {
     }
 
     container l2switch-config {
+        leaf pkt-signing {
+            type boolean;
+            default true;
+        }
         leaf is-learning-only-mode {
             type boolean;
             default false;

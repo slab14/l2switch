@@ -54,8 +54,8 @@ public class L2SwitchMainProvider {
     private PolicyParser policy;
     private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
     private AlertReceiver mboxAlertServer = new AlertReceiver();
+    private boolean pkt_signing = false;
 
-    
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationService notificationPublishService,
             final SalFlowService salFlowService, final L2switchConfig config) {
@@ -98,6 +98,7 @@ public class L2SwitchMainProvider {
         // Write initial flows
         if (mainConfig.isIsInstallDropallFlow()) {
             LOG.info("L2Switch will install a dropall flow on each switch");
+            
             InitialFlowWriter initialFlowWriter = new InitialFlowWriter(salFlowService);
             initialFlowWriter.setFlowTableId(Uint16.valueOf(mainConfig.getDropallFlowTableId()).shortValue());
             initialFlowWriter.setFlowPriority(mainConfig.getDropallFlowPriority().intValue());
@@ -106,20 +107,29 @@ public class L2SwitchMainProvider {
             topoNodeListherReg = initialFlowWriter.registerAsDataChangeListener(dataService);
         }
         else {
-            LOG.info("Dropall flows will not be installed");
+            LOG.info("Dropall flows will not be installed");             
         }
 
         if (mainConfig.isIsLearningOnlyMode()) {
-            LOG.info("L2Switch is in Learning Only Mode");
+            LOG.info("L2Switch is in Learning Only Mode");            
         }
         else {
             // Setup reactive flow writer
             LOG.info("L2Switch will react to network traffic and install flows");
+            System.out.println("L2Switch will react to network traffic and install flows");
+            //check if pkt_signing is enabled in config
+            if(mainConfig.isPktSigning()){
+                LOG.info("YANG leaf: pkt_signing - enabled");                
+                pkt_signing = true;
+
+            }else{
+                LOG.info("WARNING - pkt_signing is off which may affect container connectivity!");                
+            }
             ReactiveFlowWriter reactiveFlowWriter = new ReactiveFlowWriter(inventoryReader,
 									   flowWriterService,
 									   dataplaneIP, dockerPort,
 									   ovsPort, remote_ovs_port,
-									   OFversion, policy, policyMap);
+									   OFversion, policy, policyMap, pkt_signing);
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
 
 	    // Start up listening socket to receive middlebox alters
@@ -134,7 +144,7 @@ public class L2SwitchMainProvider {
 	cfunc.initState(findMaxStates(policy), policy.parsed.n);
 	
 	System.out.println("\nReady");
-        LOG.info("L2SwitchMain initialized.");
+        LOG.info("L2SwitchMain initialized.");        
     }
 
     public void close() {

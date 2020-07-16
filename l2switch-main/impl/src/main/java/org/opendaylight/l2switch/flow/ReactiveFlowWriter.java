@@ -48,6 +48,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private boolean doOnce=true;
     private HashMap<String, PolicyStatus> policyMap;
     private VSwitch vswitch;
+    private boolean pkt_signing;
 
     public ReactiveFlowWriter(InventoryReader inventoryReader,
 			      FlowWriterService flowWriterService) {
@@ -60,7 +61,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 			      String dataplaneIP, String dockerPort,
 			      String ovsPort, String remoteOVSPort,
 			      String OFversion, PolicyParser policy,
-			      HashMap<String, PolicyStatus> policyMap) {
+			      HashMap<String, PolicyStatus> policyMap,
+                  boolean pkt_signing) {
         this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
 	this.dataplaneIP=dataplaneIP;
@@ -71,6 +73,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	this.policy=policy;
 	this.policyMap=policyMap;
 	this.vswitch=new VSwitch(dataplaneIP, remoteOVSPort, OFversion);
+    this.pkt_signing = pkt_signing;
     }    
 
     /**
@@ -160,8 +163,14 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    for(RuleDescriptor rule:updates.rules){
                 
 			//writeFlows(rule); //Legacy
-			//writeNewActionFlows(rule, actions.getAction1(), actions.getAction2()); //currently does NOT support A type containers
-            writeNewActionFlows(rule);  //anything not snort_base as of now
+
+            //This check if we are signing packets with addHash/checkHash
+            if (check_pkt_signing()){
+                writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+            }else{
+                writeNewActionFlows(rule);
+            }
+		    
 			actions.switchActionOrder();
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
@@ -171,19 +180,22 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     }
 
 
+    
+    
     /**
-     * Invokes flow writer service to write bidirectional mac-mac flows on a
-     * switch.
-     *
-     * @param ingress
-     *            The NodeConnector where the payload came from.
-     * @param srcMac
-     *            The source MacAddress of the packet.
-     * @param destMac
-     *            The destination MacAddress of the packet.
+     * @return boolean of pkt_signing leaf in YANG config
      */
     
+    public boolean check_pkt_signing(){
+        return pkt_signing;
+    }
 
+   
+    /**
+     * @param rule rule created by servicechain
+     * @param action1 signkernel
+     * @param action2 verifykernel
+     */
     public void writeNewActionFlows(RuleDescriptor rule, String action1, String action2){
 	FlowRule matchAction;
 	if(rule.outMac.equals("*")){
@@ -197,7 +209,11 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	}
     }   
 
-    public void writeNewActionFlows(RuleDescriptor rule){ // this allows us to use NewFlows.java for A/P type conts without an actionset
+    /**
+     * @param rule rule created by servicechain
+     */
+
+    public void writeNewActionFlows(RuleDescriptor rule){ // this allows us to use NewFlows.java for A/P type conts without an actionset TODO: allow actionset for a/x types
     FlowRule matchAction;
     if(rule.outMac.equals("*")){
         //TODO : conver NCR to String of OF port #

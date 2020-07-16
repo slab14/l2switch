@@ -170,7 +170,12 @@ public class AlertHandler extends Thread {
 			    	System.out.println("---------");*/
 
 				//this.flowWriter.writeFlows(rule);
-				this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			    if (this.flowWriter.check_pkt_signing()){			    	
+			    	this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			    }else{
+			    	this.flowWriter.writeNewActionFlows(rule);
+			    }
+				
 				//this.flowWriter.writeNewActionFlows(rule);
 				actions.switchActionOrder();
 			    }
