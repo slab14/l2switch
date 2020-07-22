@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
 import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
@@ -27,7 +28,9 @@ import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.openflowplugin.api.OFConstants;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.FloodActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.output.action._case.OutputActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.Action;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.ActionBuilder;
@@ -62,6 +65,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.N
 import org.opendaylight.yang.gen.v1.urn.opendaylight.l2.types.rev130827.EtherType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.ethernet.match.fields.EthernetTypeBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.EthernetMatchBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.ethernet.match.fields.EthernetDestinationBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.KnownEtherType;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
@@ -84,7 +88,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
     private boolean isHybridMode;
 
     private final AtomicLong flowIdInc = new AtomicLong();
-    private final AtomicLong flowCookieInc = new AtomicLong(0x2b00000000000000L);
+    private final AtomicLong flowCookieInc = new AtomicLong(0x2c00000000000000L);
 
 
     public InitialFlowWriter(SalFlowService salFlowService) {
@@ -109,6 +113,14 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
 
     public void setIsHybridMode(boolean isHybridMode) {
         this.isHybridMode = isHybridMode;
+    }
+
+    public void incrementFlowPriority(){
+        this.flowPriority += 1;
+    }
+
+    public void decrementFlowPriority(){
+        this.flowPriority += 1;
     }
 
     public ListenerRegistration<InitialFlowWriter> registerAsDataChangeListener(DataBroker dataBroker) {
@@ -206,16 +218,34 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
 
             // use its own hash code for id.
             arpFlow.setId(new FlowId(Long.toString(arpFlow.hashCode())));
+
+            /*EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder();
+            EthernetDestinationBuilder ethernetDestinationBuilder = new EthernetDestinationBuilder();            
+            ethernetDestinationBuilder.setAddress(new MacAddress("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$"));
+            ethernetMatchBuilder.setEthernetDestination(ethernetDestinationBuilder.build());*/
+
             EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder()
                     .setEthernetType(new EthernetTypeBuilder()
                             .setType(new EtherType(Long.valueOf(KnownEtherType.Arp.getIntValue()))).build());
+
+            /*EthernetDestinationBuilder ethernetDestinationBuilder = new EthernetDestinationBuilder();            
+            ethernetDestinationBuilder.setAddress(new MacAddress("ff:ff:ff:ff:ff:ff"));
+            ethernetMatchBuilder.setEthernetDestination(ethernetDestinationBuilder.build());*/
+            
 
             Match match = new MatchBuilder()
                     .setEthernetMatch(ethernetMatchBuilder.build())
                     .build();
 
+
+
             List<Action> actions = new ArrayList<>();
-            actions.add(getSendToControllerAction());
+            /*if(this.flowPriority == 102){*/
+                /*actions.add(getFloodAction());*/
+            /*}else if(this.flowPriority == 101){*/
+                actions.add(getSendToControllerAction());
+           /* }*/
+            
             if (isHybridMode) {
                 actions.add(getNormalAction());
             }
@@ -261,6 +291,13 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                     .build();
             return sendToController;
         }
+
+        /*private Action getFloodAction() {
+            Action flood = new ActionBuilder()
+                    .setOrder(0)
+                    .setAction(new FloodActionCaseBuilder().build)
+                    .build();
+        }*/
 
         private Action getNormalAction() {
             Action normal = new ActionBuilder()
