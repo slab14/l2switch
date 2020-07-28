@@ -130,8 +130,9 @@ public class Containers {
 	docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort);
     }
 
-    public String addPortOnContainer_get(String container_name, String cont_iface, String ovsBridge_remotePort) {
+    public String addPortOnContainer_get(String container_name, String cont_iface, String ovsBridge_remotePort) { 
 	String OFport=docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort, ovsBridge_remotePort, this.OpenFlowVersion);
+    System.out.println("RemoteOVSBridge: " + this.remoteOvsBridge);
 	return OFport;
     }        
 
@@ -148,12 +149,12 @@ public class Containers {
 	return OFport;
     }    
     
-    public String getContOFPortNum(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion) {
+    public String getContOFPortNum(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion) { 
 	String contOFPort=docker.remoteFindContOfPort(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, cont_iface, OFversion);
 	return contOFPort;
     }
 
-    public String getContOFPortNum(String ovsBridge_remotePort, String container_name, String cont_iface) {
+    public String getContOFPortNum(String ovsBridge_remotePort, String container_name, String cont_iface) { //cont_iface = eth1/eth2/...
 	String contOFPort=docker.remoteFindContOfPort(this.remoteIP, this.remoteOvsPort, ovsBridge_remotePort, container_name, cont_iface, this.OpenFlowVersion);
 	return contOFPort;
     }    
@@ -223,7 +224,7 @@ public class Containers {
 	InstanceIdentifier<NodeConnector> contNodeConIId = NODES_IID.child(Node.class, new NodeKey(contNodeId)).child(NodeConnector.class, new NodeConnectorKey(contNodeConnId));
 	NodeConnectorRef contNodeConnectorRef = new NodeConnectorRef(contNodeConIId);
 	return contNodeConnectorRef;
-    }    
+    }   
 
     public void updateDefaultRoutes(String dataplaneIP, String ovsBridge_remotePort, String in_port, String newOutPort, String OFversion) {
 	docker.remoteUpdateDefaultRoute(dataplaneIP, ovsBridge_remotePort, in_port, newOutPort, OFversion);

@@ -30,7 +30,8 @@ import org.opendaylight.openflowplugin.api.OFConstants;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.FloodActionCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.FloodAllActionCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.flood.all.action._case.FloodAllActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.output.action._case.OutputActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.Action;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.ActionBuilder;
@@ -58,6 +59,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instru
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.apply.actions._case.ApplyActionsBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.list.Instruction;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.list.InstructionBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.list.InstructionKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeRef;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.Nodes;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node;
@@ -120,7 +122,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
     }
 
     public void decrementFlowPriority(){
-        this.flowPriority += 1;
+        this.flowPriority -= 1;
     }
 
     public ListenerRegistration<InitialFlowWriter> registerAsDataChangeListener(DataBroker dataBroker) {
@@ -173,6 +175,8 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                     InstanceIdentifier<Node> invNodeId = (InstanceIdentifier<Node>)nodeId;
                     if (invNodeId.firstKeyOf(Node.class).getId().getValue().contains("openflow:")) {
                         addInitialFlows(invNodeId);
+                        decrementFlowPriority();
+                        addInitialFlows(invNodeId);
                     }
                 }
             }
@@ -219,18 +223,16 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
             // use its own hash code for id.
             arpFlow.setId(new FlowId(Long.toString(arpFlow.hashCode())));
 
-            /*EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder();
-            EthernetDestinationBuilder ethernetDestinationBuilder = new EthernetDestinationBuilder();            
-            ethernetDestinationBuilder.setAddress(new MacAddress("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$"));
-            ethernetMatchBuilder.setEthernetDestination(ethernetDestinationBuilder.build());*/
-
             EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder()
                     .setEthernetType(new EthernetTypeBuilder()
                             .setType(new EtherType(Long.valueOf(KnownEtherType.Arp.getIntValue()))).build());
 
-            /*EthernetDestinationBuilder ethernetDestinationBuilder = new EthernetDestinationBuilder();            
-            ethernetDestinationBuilder.setAddress(new MacAddress("ff:ff:ff:ff:ff:ff"));
-            ethernetMatchBuilder.setEthernetDestination(ethernetDestinationBuilder.build());*/
+            if(flowPriority == 102){     // for the flow that matches arp type AND ARP broadcast MAC           
+                EthernetDestinationBuilder ethernetDestinationBuilder = new EthernetDestinationBuilder();            
+                ethernetDestinationBuilder.setAddress(new MacAddress("ff:ff:ff:ff:ff:ff"));
+                ethernetMatchBuilder.setEthernetDestination(ethernetDestinationBuilder.build());
+            }
+            
             
 
             Match match = new MatchBuilder()
@@ -238,13 +240,12 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                     .build();
 
 
-
             List<Action> actions = new ArrayList<>();
-            /*if(this.flowPriority == 102){*/
-                /*actions.add(getFloodAction());*/
-            /*}else if(this.flowPriority == 101){*/
+            if(flowPriority == 102){ // flood action
+                actions.add(getFloodAction());
+            }else if(flowPriority == 101){ // send to controller (for the flow that just matches arp type)
                 actions.add(getSendToControllerAction());
-           /* }*/
+            }
             
             if (isHybridMode) {
                 actions.add(getNormalAction());
@@ -269,6 +270,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                     .setInstructions(new InstructionsBuilder() //
                             .setInstruction(ImmutableList.of(applyActionsInstruction)) //
                             .build()) //
+                    /*.setInstructions(createAppyActionInstruction15().build()) //*/
                     .setPriority(priority) //
                     .setBufferId(OFConstants.OFP_NO_BUFFER) //
                     .setHardTimeout(flowHardTimeout) //
@@ -277,7 +279,7 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
                     .setFlags(new FlowModFlags(false, false, false, false, false));
 
             return arpFlow.build();
-        }
+        }   
 
         private Action getSendToControllerAction() {
             Action sendToController = new ActionBuilder()
@@ -292,13 +294,19 @@ public class InitialFlowWriter implements DataTreeChangeListener<Node> {
             return sendToController;
         }
 
-        /*private Action getFloodAction() {
+        private Action getFloodAction() {
             Action flood = new ActionBuilder()
-                    .setOrder(0)
-                    .setAction(new FloodActionCaseBuilder().build)
+                    .setOrder(0).withKey(new ActionKey(0))
+                    .setAction(new OutputActionCaseBuilder()
+                            .setOutputAction(new OutputActionBuilder()
+                                    .setMaxLength(0xffff)
+                                    .setOutputNodeConnector(new Uri(OutputPortValues.FLOOD.toString()))
+                                    .build())
+                            .build())
                     .build();
-        }*/
-
+            return flood;
+        }
+        
         private Action getNormalAction() {
             Action normal = new ActionBuilder()
                     .setOrder(0).withKey(new ActionKey(0))

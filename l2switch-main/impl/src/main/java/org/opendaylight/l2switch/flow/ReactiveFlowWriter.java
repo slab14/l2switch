@@ -49,6 +49,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private HashMap<String, PolicyStatus> policyMap;
     private VSwitch vswitch;
     private boolean pkt_signing;
+    private boolean prestart;
 
     public ReactiveFlowWriter(InventoryReader inventoryReader,
 			      FlowWriterService flowWriterService) {
@@ -62,7 +63,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 			      String ovsPort, String remoteOVSPort,
 			      String OFversion, PolicyParser policy,
 			      HashMap<String, PolicyStatus> policyMap,
-                  boolean pkt_signing) {
+                  boolean pkt_signing, boolean prestart) {
         this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
 	this.dataplaneIP=dataplaneIP;
@@ -74,6 +75,7 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	this.policyMap=policyMap;
 	this.vswitch=new VSwitch(dataplaneIP, remoteOVSPort, OFversion);
     this.pkt_signing = pkt_signing;
+    this.prestart = prestart;
     }    
 
     /**
@@ -157,7 +159,12 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
 		    String[] routes={sourceRange, destRange};
+            System.out.println("Routes: " + routes[0] + ":" + routes[1]);
+            System.out.println("rawPacket.ingress:" +  rawPacket.getIngress().getValue());
+            System.out.println("inNCR (which is the rawPacket.getIngress):" + inNCR);
+            System.out.println("outNCR: " + destNodeConnector);
 		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector, iot_IP);
+            // routes, rawPacket.getIngress(), inNCR, destNodeConnector cannot be gathered during prestart
 		    NewFlows updates = scWorker.setupChain();
 		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
