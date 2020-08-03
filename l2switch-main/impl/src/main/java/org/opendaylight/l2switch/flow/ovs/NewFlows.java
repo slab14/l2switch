@@ -27,9 +27,24 @@ public class NewFlows {
     }
     
     public void writeNewFlow(FlowRule rule, String action) {
+    	
 	String cmd = "";
 	String opts = "";
 	String matchAction = String.format("priority=%s in_port=%s,dl_%s=%s  actions=%s,output:%s", rule.getPriority(), rule.getMatchPort(), rule.getLoc(), rule.getMatchMAC(), action, rule.getActionPort());
+	if(this.vswitch.getOFver().equals("13")){
+	    opts="-O Openflow13";
+	}
+	cmd = String.format("/usr/bin/sudo /usr/bin/ovs-ofctl %s add-flow tcp:%s:%s '%s'", opts, this.vswitch.getIP(), this.vswitch.getPort(), matchAction);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	ExecShellCmd obj = new ExecShellCmd();
+	obj.exeCmd(newCmd);
+    }
+
+    public void writeNewFlow(FlowRule rule) {
+
+	String cmd = "";
+	String opts = "";
+	String matchAction = String.format("priority=%s in_port=%s,dl_%s=%s actions=output:%s", rule.getPriority(), rule.getMatchPort(), rule.getLoc(), rule.getMatchMAC(), rule.getActionPort());
 	if(this.vswitch.getOFver().equals("13")){
 	    opts="-O Openflow13";
 	}

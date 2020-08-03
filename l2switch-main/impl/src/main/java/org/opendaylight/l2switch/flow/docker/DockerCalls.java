@@ -121,14 +121,24 @@ public class DockerCalls {
 	System.out.println("New Container Started "+name);
     }
 
-    public void remoteStartContainer(String ip, String docker_port, String cont_name, String container_image, String devNum) {
+    public void remoteStartContainer(String ip, String docker_port, String cont_name, String container_image, String devNum) { //nmap
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Env\": [\"PROTECTION_ID=%s\"], \"HostConfig\": {\"AutoRemove\": true, \"CapAdd\": [\"NET_ADMIN\"], \"Privileged\": true}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, devNum);
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	String output=obj.exeCmd(newCmd);
 	cmd=String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/start", ip, docker_port, cont_name);
 	String[] newCmd2={"/bin/sh", "-c", cmd};
 	output=obj.exeCmd(newCmd2);
-	System.out.println("New Container Started "+cont_name);
+	System.out.println("New P-Type Container Started "+cont_name);
+    }
+
+    public void remoteStartContainer(String ip, String docker_port, String cont_name, String container_image, String devNum, String iot_IP) { //nmap
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Env\": [\"PROTECTION_ID=%s\", \"iot_IP=%s\"], \"HostConfig\": {\"AutoRemove\": true, \"CapAdd\": [\"NET_ADMIN\"], \"Privileged\": true}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, devNum, iot_IP);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	String output=obj.exeCmd(newCmd);
+	cmd=String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/start", ip, docker_port, cont_name);
+	String[] newCmd2={"/bin/sh", "-c", cmd};
+	output=obj.exeCmd(newCmd2);
+	System.out.println("New A/X-Type Container Started "+cont_name);
     }
 
     public void remoteStartContainer_wCmd(String ip, String docker_port, String cont_name, String container_image, String cont_cmd) {
@@ -151,17 +161,23 @@ public class DockerCalls {
 	System.out.println("New Container Started "+cont_name);
     }
 
-    public void remoteCreateContainer(String ip, String docker_port, String cont_name, String container_image) {
+    /*public void remoteCreateContainer(String ip, String docker_port, String cont_name, String container_image) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"HostConfig\": {\"AutoRemove\": true}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image);
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	String output=obj.exeCmd(newCmd);
-    }
+    }*/
 
     public void remoteCreateContainer(String ip, String docker_port, String cont_name, String container_image, String devNum) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Env\": [\"PROTECTION_ID=%s\"], \"HostConfig\": {\"AutoRemove\": true, \"CapAdd\": [\"NET_ADMIN\"], \"Privileged\": true}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, devNum);
 	String[] newCmd = {"/bin/sh", "-c", cmd};
 	String output=obj.exeCmd(newCmd);
-    }        
+    }   
+
+    public void remoteCreateContainer(String ip, String docker_port, String cont_name, String container_image, String devNum, String iot_IP) {
+	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Env\": [\"PROTECTION_ID=%s\", \"iot_IP=%s\"], \"HostConfig\": {\"AutoRemove\": true, \"CapAdd\": [\"NET_ADMIN\"], \"Privileged\": true}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, devNum, iot_IP);
+	String[] newCmd = {"/bin/sh", "-c", cmd};
+	String output=obj.exeCmd(newCmd);
+    }     
 
     public void remoteStartContainer(String ip, String docker_port, String cont_name, String container_image, String cont_cmd, String hostPath, String contPath) {
 	String cmd = String.format("/usr/bin/curl -s -X POST -H \"Content-Type: application/json\" http://%s:%s/v1.37/containers/create?name=%s -d \'{\"Image\": \"%s\", \"Cmd\": [\"%s\"], \"HostConfig\": {\"AutoRemove\": true, \"Binds\": [\"%s:%s\"]}, \"Tty\": true}\'", ip, docker_port, cont_name, container_image, cont_cmd, hostPath, contPath);
@@ -289,6 +305,7 @@ public class DockerCalls {
 	String output = obj.exeCmd(cmd);
 	System.out.println("Added interface "+iface+" to container "+name);
 	String OFPort = remoteFindContOfPort(ip, ovs_port, bridge_remote_port, name, iface, OF_version);
+	System.out.println("Ok");
 	return OFPort;	
     }    
     

@@ -48,6 +48,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     private boolean doOnce=true;
     private HashMap<String, PolicyStatus> policyMap;
     private VSwitch vswitch;
+    private boolean pkt_signing;
+    private boolean prestart;
 
     public ReactiveFlowWriter(InventoryReader inventoryReader,
 			      FlowWriterService flowWriterService) {
@@ -60,7 +62,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 			      String dataplaneIP, String dockerPort,
 			      String ovsPort, String remoteOVSPort,
 			      String OFversion, PolicyParser policy,
-			      HashMap<String, PolicyStatus> policyMap) {
+			      HashMap<String, PolicyStatus> policyMap,
+                  boolean pkt_signing, boolean prestart) {
         this.inventoryReader = inventoryReader;
         this.flowWriterService = flowWriterService;
 	this.dataplaneIP=dataplaneIP;
@@ -71,6 +74,8 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	this.policy=policy;
 	this.policyMap=policyMap;
 	this.vswitch=new VSwitch(dataplaneIP, remoteOVSPort, OFversion);
+    this.pkt_signing = pkt_signing;
+    this.prestart = prestart;
     }    
 
     /**
@@ -139,24 +144,40 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	NodeConnectorRef destNodeConnector=inventoryReader.getNodeConnector(rawPacket.getIngress().getValue().firstIdentifierOf(Node.class), ethernetPacket.getDestinationMac());
 	if(destNodeConnector != null){
 	    String srcMac = ethernetPacket.getSourceMac().getValue();
-	
+        String iot_IP = arpPacket.getSourceProtocolAddress();
+	    
 	    if (!ignoreThisMac(destMac, policyMap.get(srcMac))) {
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
 		    System.out.println("Got Mac source from policy file: "+srcMac);
+            System.out.println("IoT IP from ARP packet: " + iot_IP);
 		    int devNum = policyMap.get(srcMac).devNum;
 		    NodeConnectorRef inNCR=rawPacket.getIngress();
 		    policyMap.get(srcMac).setNCR(rawPacket.getIngress());
 		    policyMap.get(srcMac).setInNCR(inNCR);
 		    policyMap.get(srcMac).setOutNCR(destNodeConnector);
+            policyMap.get(srcMac).setIOT(iot_IP);
 		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
 		    String[] routes={sourceRange, destRange};
-		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector);
+            System.out.println("Routes: " + routes[0] + ":" + routes[1]);
+            System.out.println("rawPacket.ingress:" +  rawPacket.getIngress().getValue());
+            System.out.println("inNCR (which is the rawPacket.getIngress):" + inNCR);
+            System.out.println("outNCR: " + destNodeConnector);
+		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector, iot_IP);
+            // routes, rawPacket.getIngress(), inNCR, destNodeConnector cannot be gathered during prestart
 		    NewFlows updates = scWorker.setupChain();
 		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
-			//writeFlows(rule);
-			writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+                
+			//writeFlows(rule); //Legacy
+
+            //This check if we are signing packets with addHash/checkHash
+            if (check_pkt_signing()){
+                writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+            }else{
+                writeNewActionFlows(rule);
+            }
+		    
 			actions.switchActionOrder();
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
@@ -166,39 +187,22 @@ public class ReactiveFlowWriter implements ArpPacketListener {
     }
 
 
+    
+    
     /**
-     * Invokes flow writer service to write bidirectional mac-mac flows on a
-     * switch.
-     *
-     * @param ingress
-     *            The NodeConnector where the payload came from.
-     * @param srcMac
-     *            The source MacAddress of the packet.
-     * @param destMac
-     *            The destination MacAddress of the packet.
+     * @return boolean of pkt_signing leaf in YANG config
      */
-    public void writeFlows(NodeConnectorRef ingress, MacAddress srcMac, MacAddress destMac) {
-        NodeConnectorRef destNodeConnector = inventoryReader
-                .getNodeConnector(ingress.getValue().firstIdentifierOf(Node.class), destMac);
-        if (destNodeConnector != null) {
-            flowWriterService.addBidirectionalMacToMacFlows(srcMac, ingress, destMac, destNodeConnector);
-        }
+    
+    public boolean check_pkt_signing(){
+        return pkt_signing;
     }
 
-    public void writeFlows(NodeConnectorRef ingress, MacAddress srcMac, NodeConnectorRef egress, MacAddress destMac) {
-        if (egress != null) {
-            flowWriterService.addBidirectionalMacToMacFlows(srcMac, ingress, destMac, egress);
-        }
-    }
-
-    public void writeFlows(RuleDescriptor rule){
-	if(rule.outMac.equals("*")){
-	    flowWriterService.addBidirectionalMacFlows(new MacAddress(rule.inMac), rule.inNCR, rule.outNCR);
-	} else {
-	    flowWriterService.addBidirectionalMacToMacFlows(new MacAddress(rule.inMac), rule.inNCR, new MacAddress(rule.outMac), rule.outNCR);
-	}
-    }    
-
+   
+    /**
+     * @param rule rule created by servicechain
+     * @param action1 signkernel
+     * @param action2 verifykernel
+     */
     public void writeNewActionFlows(RuleDescriptor rule, String action1, String action2){
 	FlowRule matchAction;
 	if(rule.outMac.equals("*")){
@@ -210,7 +214,24 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	    //matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");	    
 	    flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction, action1, action2);	    
 	}
-    }    
+    }   
+
+    /**
+     * @param rule rule created by servicechain
+     */
+
+    public void writeNewActionFlows(RuleDescriptor rule){ // this allows us to use NewFlows.java for A/P type conts without an actionset TODO: allow actionset for a/x types
+    FlowRule matchAction;
+    if(rule.outMac.equals("*")){
+        //TODO : conver NCR to String of OF port #
+        matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);
+        flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction);
+    } else {
+        matchAction = new FlowRule("100", rule.inNCR, rule.inMac, "src", rule.outNCR);      
+        //matchAction = new FlowRule("100", "1", rule.inMac, "src", "2");       
+        flowWriterService.addBidirectionalFlowsNewActions(vswitch, matchAction);      
+    }
+    } 
 
     
     private boolean inMap(HashMap<String, ArrayList<String>> m1, String testKey, String testVal) {

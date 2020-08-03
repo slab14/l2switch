@@ -12,6 +12,14 @@ module l2switch-config {
     }
 
     container l2switch-config {
+        leaf pre-start {
+            type boolean;
+            default false;
+        }
+        leaf pkt-signing {
+            type boolean;
+            default true;
+        }
         leaf is-learning-only-mode {
             type boolean;
             default false;
@@ -54,7 +62,7 @@ module l2switch-config {
         }
 	leaf policy-file {
 	     type string;
-	     default "/users/slab/IoT_Sec_Gateway/policies/cloudlab-NewPolicy20.json";
+	     default "/etc/sec_gate/policies/prestartTest.json";
 	}
 	leaf dataplane-IP {
 	     type string;

@@ -19,7 +19,7 @@ module arp-handler-config {
         }
         leaf arp-flow-priority {
             type uint16;
-            default 1;
+            default 102;
         }
         leaf arp-flow-hard-timeout {
             type uint16;

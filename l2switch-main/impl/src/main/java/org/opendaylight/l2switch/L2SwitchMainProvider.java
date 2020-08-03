@@ -15,16 +15,17 @@ import org.opendaylight.l2switch.flow.ReactiveFlowWriter;
 import org.opendaylight.l2switch.inventory.InventoryReader;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.service.rev130819.SalFlowService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.l2switch.l2switch.config.rev140528.L2switchConfig;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
 import org.opendaylight.yangtools.concepts.Registration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.opendaylight.l2switch.flow.docker.DockerCalls;
 import java.util.Scanner;
 import org.opendaylight.l2switch.flow.json.PolicyParser;
 import org.opendaylight.l2switch.flow.json.GetFile;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.opendaylight.l2switch.flow.chain.ServiceChain;
 import org.opendaylight.l2switch.flow.chain.PolicyMapBuilder;
 import java.util.HashMap;
 import org.opendaylight.l2switch.flow.chain.MacGroup;
@@ -54,8 +55,9 @@ public class L2SwitchMainProvider {
     private PolicyParser policy;
     private HashMap<String, PolicyStatus> policyMap = new HashMap<String, PolicyStatus>();
     private AlertReceiver mboxAlertServer = new AlertReceiver();
+    private boolean pkt_signing = false;
+    private boolean prestart = false;
 
-    
     public L2SwitchMainProvider(final DataBroker dataBroker,
             final NotificationService notificationPublishService,
             final SalFlowService salFlowService, final L2switchConfig config) {
@@ -84,6 +86,9 @@ public class L2SwitchMainProvider {
 	policy=new PolicyParser(jsonString);
 	PolicyMapBuilder mapBuilder = new PolicyMapBuilder(policy);
 	policyMap=mapBuilder.build();
+    //System.out.println("number of devices: " + policy.parsed.getN());
+    //System.out.println("cont: " + policy.parsed.devices[0].getProtections()[0].images[0]);
+    
 	
         // Setup FlowWrtierService
         FlowWriterServiceImpl flowWriterService = new FlowWriterServiceImpl(salFlowService);
@@ -98,6 +103,7 @@ public class L2SwitchMainProvider {
         // Write initial flows
         if (mainConfig.isIsInstallDropallFlow()) {
             LOG.info("L2Switch will install a dropall flow on each switch");
+            
             InitialFlowWriter initialFlowWriter = new InitialFlowWriter(salFlowService);
             initialFlowWriter.setFlowTableId(Uint16.valueOf(mainConfig.getDropallFlowTableId()).shortValue());
             initialFlowWriter.setFlowPriority(mainConfig.getDropallFlowPriority().intValue());
@@ -106,20 +112,37 @@ public class L2SwitchMainProvider {
             topoNodeListherReg = initialFlowWriter.registerAsDataChangeListener(dataService);
         }
         else {
-            LOG.info("Dropall flows will not be installed");
+            LOG.info("Dropall flows will not be installed");             
         }
 
         if (mainConfig.isIsLearningOnlyMode()) {
-            LOG.info("L2Switch is in Learning Only Mode");
+            LOG.info("L2Switch is in Learning Only Mode");            
         }
         else {
             // Setup reactive flow writer
             LOG.info("L2Switch will react to network traffic and install flows");
+            System.out.println("L2Switch will react to network traffic and install flows");
+            //check if pkt_signing is enabled in config
+            if(mainConfig.isPktSigning()){
+                LOG.info("YANG leaf: pkt_signing - enabled");                
+                pkt_signing = true;
+
+            }else{
+                LOG.info("WARNING - pkt_signing is off which may affect container connectivity!");                
+            }
+            
+            if(prestart){
+                prestartOption();
+
+            }
+
             ReactiveFlowWriter reactiveFlowWriter = new ReactiveFlowWriter(inventoryReader,
-									   flowWriterService,
-									   dataplaneIP, dockerPort,
-									   ovsPort, remote_ovs_port,
-									   OFversion, policy, policyMap);
+                                   flowWriterService,
+                                   dataplaneIP, dockerPort,
+                                   ovsPort, remote_ovs_port,
+                                   OFversion, policy, policyMap, pkt_signing, prestart);
+            
+            
             reactFlowWriterReg = notificationService.registerNotificationListener(reactiveFlowWriter);
 
 	    // Start up listening socket to receive middlebox alters
@@ -134,7 +157,31 @@ public class L2SwitchMainProvider {
 	cfunc.initState(findMaxStates(policy), policy.parsed.n);
 	
 	System.out.println("\nReady");
-        LOG.info("L2SwitchMain initialized.");
+        LOG.info("L2SwitchMain initialized.");        
+    }
+
+
+    //NEEDED to build back out the FULL contNCR: ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, contOFPorts[i]);
+
+    public void prestartOption(){
+        HashMap<String, NodeConnectorRef[]> srcMac2contNCR = new HashMap<String, NodeConnectorRef[]>();
+        String placeholder_IP = "0.0.0.0";
+        NodeConnectorRef[] contNCRs;
+
+        for (int i = 0; i < policy.parsed.getN(); i++){
+            String contImageName = policy.parsed.devices[i].getProtections()[0].images[0];
+            String contName = policy.parsed.devices[i].getProtections()[0].getImageOpts()[0].contName;            
+            String contType = policy.parsed.devices[i].getProtections()[0].getChain().split("-")[0];
+            System.out.println("Image: " + contImageName + " ContName: " + contName + " contType: " + contType);
+            //contNCRs = policy.parsed.devices[i].getProtections()[0].getChain
+            ServiceChain scWorker = new ServiceChain(dataplaneIP, dockerPort, ovsPort, OFversion, remote_ovs_port, policy.parsed.devices[i], String.valueOf(i), placeholder_IP); 
+            srcMac2contNCR.put(policy.parsed.devices[i].inMAC, scWorker.pre_start());
+        }
+
+        // Print keys and values
+        for (String i : srcMac2contNCR.keySet()) {
+          System.out.println("key: " + i + " value: " + srcMac2contNCR.get(i));
+        }
     }
 
     public void close() {

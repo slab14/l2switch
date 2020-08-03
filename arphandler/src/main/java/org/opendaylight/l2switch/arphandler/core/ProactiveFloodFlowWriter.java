@@ -93,7 +93,7 @@ public class ProactiveFloodFlowWriter implements DataTreeChangeListener<StpStatu
     private int flowIdleTimeout;
     private int flowHardTimeout;
     private final AtomicLong flowIdInc = new AtomicLong();
-    private final AtomicLong flowCookieInc = new AtomicLong(0x2b00000000000000L);
+    private final AtomicLong flowCookieInc = new AtomicLong(0x2d00000000000000L);
 
     public ProactiveFloodFlowWriter(DataBroker dataBroker, SalFlowService salFlowService) {
         this.dataBroker = dataBroker;

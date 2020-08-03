@@ -20,6 +20,7 @@ public class PolicyStatus {
     public String curState;
     public boolean canTransition;
     public int devNum;
+    public String iot_IP;
     //private int stateNum;
     private int maxStates;
     private NodeConnectorRef ncr;
@@ -75,6 +76,14 @@ public class PolicyStatus {
 	    this.curState=this.states[stateVal];
 	    this.setup=false;
 	}
+    }
+
+    public String getIOT(){
+    	return this.iot_IP;
+    }
+
+    public void setIOT(String iot_IP){
+    	this.iot_IP = iot_IP;
     }
 
     public int getStateNum(){

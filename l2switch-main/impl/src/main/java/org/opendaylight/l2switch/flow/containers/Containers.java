@@ -43,16 +43,22 @@ public class Containers {
     
     public static final InstanceIdentifier<Nodes> NODES_IID = InstanceIdentifier.builder(Nodes.class).build();	
 
+    /* // when passed explicitly
     public void startContainer(String dataplaneIP, String dockerPort, String container_name, String containerImage) {
 	docker.remoteStartContainer(dataplaneIP, dockerPort, container_name, containerImage);
     }
+    */
 
-    public void startContainer(String container_name, String containerImage) {
+    /*public void startContainer(String container_name, String containerImage) {
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
-    }    
+    }    */
 
-    public void startContainer(String container_name, String containerImage, String devNum) {
-	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    public void startContainer(String container_name, String containerImage, String devNum) { //nmap
+    docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    }
+
+    public void startContainer(String container_name, String containerImage, String devNum, String iot_IP) { //nmap
+	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum, iot_IP);
     }
 
     public void startContainer_wCmd(String container_name, String containerImage, String containerCmd) {
@@ -71,12 +77,12 @@ public class Containers {
 	docker.remoteStartContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, containerCmd, hostPath, contPath);
     }        
 
-    public void createContainer(String container_name, String containerImage) {
+    /*public void createContainer(String container_name, String containerImage) {
 	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage);
-    }
+    }*/
 
-    public void createContainer(String container_name, String containerImage, String devNum) {
-	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum);
+    public void createContainer(String container_name, String containerImage, String devNum, String iot_IP) {
+	docker.remoteCreateContainer(this.remoteIP, this.remoteDockerPort, container_name, containerImage, devNum, iot_IP);
     }    
 
     public void createContainer_bind_wCmd(String container_name, String containerImage, String containerCmd, String hostPath, String contPath) {
@@ -88,9 +94,9 @@ public class Containers {
     }
 
     
-    public void createContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
+    /*public void createContainer_bind(String container_name, String containerImage, String hostPath, String contPath) {
 	docker.remoteCreateContainer_bind(this.remoteIP, this.remoteDockerPort, container_name, containerImage, hostPath, contPath);
-    }    
+    }    */
 
     public void attachArchive(String cont_name, String archiveFile, String contPath) {
 	docker.remoteAttatchArchive(this.remoteIP, this.remoteDockerPort, cont_name, archiveFile, contPath);
@@ -124,8 +130,9 @@ public class Containers {
 	docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort);
     }
 
-    public String addPortOnContainer_get(String container_name, String cont_iface, String ovsBridge_remotePort) {
+    public String addPortOnContainer_get(String container_name, String cont_iface, String ovsBridge_remotePort) { 
 	String OFport=docker.remoteAddContainerPort(this.remoteOvsBridge, container_name, cont_iface, this.remoteIP, this.remoteOvsPort, this.remoteDockerPort, ovsBridge_remotePort, this.OpenFlowVersion);
+    System.out.println("RemoteOVSBridge: " + this.remoteOvsBridge);
 	return OFport;
     }        
 
@@ -142,12 +149,12 @@ public class Containers {
 	return OFport;
     }    
     
-    public String getContOFPortNum(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion) {
+    public String getContOFPortNum(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion) { 
 	String contOFPort=docker.remoteFindContOfPort(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, cont_iface, OFversion);
 	return contOFPort;
     }
 
-    public String getContOFPortNum(String ovsBridge_remotePort, String container_name, String cont_iface) {
+    public String getContOFPortNum(String ovsBridge_remotePort, String container_name, String cont_iface) { //cont_iface = eth1/eth2/...
 	String contOFPort=docker.remoteFindContOfPort(this.remoteIP, this.remoteOvsPort, ovsBridge_remotePort, container_name, cont_iface, this.OpenFlowVersion);
 	return contOFPort;
     }    
@@ -217,7 +224,7 @@ public class Containers {
 	InstanceIdentifier<NodeConnector> contNodeConIId = NODES_IID.child(Node.class, new NodeKey(contNodeId)).child(NodeConnector.class, new NodeConnectorKey(contNodeConnId));
 	NodeConnectorRef contNodeConnectorRef = new NodeConnectorRef(contNodeConIId);
 	return contNodeConnectorRef;
-    }    
+    }   
 
     public void updateDefaultRoutes(String dataplaneIP, String ovsBridge_remotePort, String in_port, String newOutPort, String OFversion) {
 	docker.remoteUpdateDefaultRoute(dataplaneIP, ovsBridge_remotePort, in_port, newOutPort, OFversion);
@@ -237,10 +244,10 @@ public class Containers {
 	addPortOnContainer(dataplaneIP, dockerPort, ovsPort, ovsBridge, containerName, cont_iface, contIP);
     }
 
-    public void addDirectContainer(String containerName, String containerImage, String cont_iface, String contIP) {
+    /*public void addDirectContainer(String containerName, String containerImage, String cont_iface, String contIP) {
 	startContainer(containerName, containerImage);
 	addPortOnContainer(containerName, cont_iface, contIP);
-    }    
+    }    */
 
     public void addDirectContainerRouting(String dataplaneIP, String ovsPort, String ovsBridge_remotePort, String container_name, String cont_iface, String OFversion, String in_port){
 	String newOutPort = getContOFPortNum(dataplaneIP, ovsPort, ovsBridge_remotePort, container_name, cont_iface, OFversion);

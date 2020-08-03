@@ -11,7 +11,12 @@
   <artifactId>main-impl</artifactId>
   <packaging>bundle</packaging>
 
-  <dependencies>
+  <dependencies>    
+    <dependency>
+      <groupId>org.rauschig</groupId>
+      <artifactId>jarchivelib</artifactId>
+      <version>1.0.0</version>
+    </dependency>
     <dependency>
       <groupId>org.opendaylight.openflowplugin.model</groupId>
       <artifactId>model-flow-service</artifactId>
