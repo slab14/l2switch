@@ -137,6 +137,7 @@ public class AlertHandler extends Thread {
 			String[] oldContImages=getContImages(policyID, srcMac);
 			//transition to next state
 			this.policyMap.get(srcMac).transitionState();
+			this.policyMap.get(srcMac).updateSetup(true);
 			ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort,
 								 this.ovsPort, this.OFversion,
 								 this.ovsBridge_remotePort,
@@ -163,27 +164,17 @@ public class AlertHandler extends Thread {
 			    //Write routing rules
 			    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 			    for(RuleDescriptor rule:updates.rules){
-			    	/*System.out.println("inNCR: "+rule.inNCR);
-			    	System.out.println("inMac: "+rule.inMac);
-			    	System.out.println("outNCR: "+rule.outNCR);
-			    	System.out.println("outMac: "+rule.outMac);
-			    	System.out.println("---------");*/
-
-				//this.flowWriter.writeFlows(rule);
-			    if (this.flowWriter.check_pkt_signing()){			    	
-			    	this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
-			    }else{
-			    	this.flowWriter.writeNewActionFlows(rule);
-			    }
-				
-				//this.flowWriter.writeNewActionFlows(rule);
-				actions.switchActionOrder();
+				if (this.flowWriter.check_pkt_signing()){			    	
+				    this.flowWriter.writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+				    actions.switchActionOrder();
+				}else{
+				    this.flowWriter.writeNewActionFlows(rule);
+				}
 			    }
 			} else {
 			    // same image, update and restart. keep ports & routing rules.
 			    scWorker.updateRunningChain();
 			}
-			this.policyMap.get(srcMac).updateSetup(true);
 		    }
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), false);
 		}

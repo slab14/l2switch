@@ -185,29 +185,17 @@ public class ServiceChain {
     }
 
     public NodeConnectorRef[] startCreatedPassThroughCont(String contName, String[] ifaces) {
-    	System.out.println("1");
 		this.containerCalls.startCreatedContainer(contName);
-		System.out.println("2");
 		String[] OFports = new String[ifaces.length];
-		System.out.println("3");
 		NodeConnectorRef[] ncrs = new NodeConnectorRef[ifaces.length];	
-		System.out.println("4");
 		for(int i=0; i<ifaces.length; i++){
-			System.out.println("5 "+i);
 		    OFports[i]=this.containerCalls.addPortOnContainer_get(contName, ifaces[i], this.ovsBridge_remotePort);
-		    
-		    System.out.println("6");
-		    System.out.println(this.nodeStr);
 		    if(prestart){
 		    	//ncrs[i] = OFports[i];
 		    }else{
 		    	ncrs[i]=this.containerCalls.getContainerNodeConnectorRef(this.nodeStr, OFports[i]);
 		    }
-		    
-		    System.out.println("contNCR: " + ncrs[i].getValue());
-		    System.out.println("7");
 		    this.containerCalls.disableContGRO(contName, ifaces[i]);
-		    System.out.println("8");
 		    //for(String route:this.routes) {
 		    //	this.containerCalls.addRouteinCont(contName, ifaces[i], route);
 		    //}
@@ -276,7 +264,6 @@ public class ServiceChain {
 
     public NodeConnectorRef[] pre_start(){
     	NodeConnectorRef[] contNCRs = null;
-
     	String[] chainLinks = getChain();
     	int chainLength = getChainLength();
     	for (int i=0; i<chainLength; i++) {
@@ -303,137 +290,136 @@ public class ServiceChain {
 				}
 			
 		    }else if(chainLinks[i].equals("A") || chainLinks[i].equals("X")){ //addressable proxy
-				
-				//assumes that all accessible middleboxes will utilize only 1 interface
+				//assumes that middleboxes will utilize only 1 interface
 				String[] ifaces={"eth1"};
 				if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
 				    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
 				} else { // this doesnt have IOT_IP!
 				    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 				}				
-				
 		    }
     	}
     	return contNCRs;
     }
 
     public NewFlows setupChain() {
-		//MacAddress inMac=new MacAddress(devPolicy.inMAC);
-		String inMac= devPolicy.inMAC;
-		//MacAddress outMac=new MacAddress(devPolicy.outMAC);
-		String outMac=devPolicy.outMAC;	
-		int chainLength = getChainLength();
-		String[] chainLinks = getChain();
-		ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
-		ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
-		ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
-		HashMap<Integer, Integer> macMap = new HashMap<>();
-		int groupCnt=0;
-		MacGroup group0 = new MacGroup(inMac, outMac);
-		groups.add(group0);
-		nodes.add(inNCR);
-		MacAddress contMac;
-		NodeConnectorRef[] contNCRs;	
+	//MacAddress inMac=new MacAddress(devPolicy.inMAC);
+	String inMac= devPolicy.inMAC;
+	//MacAddress outMac=new MacAddress(devPolicy.outMAC);
+	String outMac=devPolicy.outMAC;	
+	int chainLength = getChainLength();
+	String[] chainLinks = getChain();
+	ArrayList<RuleDescriptor> newRules=new ArrayList<RuleDescriptor>();
+	ArrayList<NodeConnectorRef> nodes=new ArrayList<NodeConnectorRef>();
+	ArrayList<MacGroup> groups=new ArrayList<MacGroup>();
+	HashMap<Integer, Integer> macMap = new HashMap<>();
+	int groupCnt=0;
+	MacGroup group0 = new MacGroup(inMac, outMac);
+	groups.add(group0);
+	nodes.add(inNCR);
+	MacAddress contMac;
+	NodeConnectorRef[] contNCRs;	
 
-		for (int i=0; i<chainLength; i++) {
-		    if(chainLinks[i].equals("P")){
-			//assumes that all passthrough middleboxes will utilize 2 interfaces
-			String[] ifaces={"eth1", "eth2"};
-			if(protectDetails.imageOpts[i].archives.length==0) {
-			    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-				contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, iot_IP);
-			    } else {
-				contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
-			    }
-			}else{
-			    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-				createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], iot_IP);
-			    } else {
-				createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
-			    }
-			    for(int j=0; j<protectDetails.imageOpts[i].archives.length; j++) {
-				attachArchiveToCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar, protectDetails.imageOpts[i].archives[j].path);
-			    }
-			    contNCRs=startCreatedPassThroughCont(protectDetails.imageOpts[i].contName, ifaces);
-			}
-			for(NodeConnectorRef newNode:contNCRs){
-			    nodes.add(newNode);
-			}
+	for (int i=0; i<chainLength; i++) {
+	    if(chainLinks[i].equals("P")){
+		//assumes that all passthrough middleboxes will utilize 2 interfaces
+		String[] ifaces={"eth1", "eth2"};
+		if(protectDetails.imageOpts[i].archives.length==0) {
+		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, iot_IP);
+		    } else {
+			contNCRs=startPassThroughCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces,
+							     protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
 		    }
-		    else if(chainLinks[i].equals("A") || chainLinks[i].equals("X")){ //addressable proxy
-				groups.remove(groups.size()-1);
-				//assumes that all accessible middleboxes will utilize only 1 interface
-				String[] ifaces={"eth1"};
-				if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
-				    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, iot_IP);
-				} else { // this doesnt have IOT_IP!
-				    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i], ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
-				}
-
-
-
-
-				for(NodeConnectorRef newNode:contNCRs){
-				    nodes.add(newNode);
-				    // Intentionally adding 2x to match number of outputs from passthrough containers
-				    nodes.add(newNode);		    
-				}
-				enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
-				contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
-				MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
-				MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
-				groups.add(newGroupA);
-				groups.add(newGroupB);
-				macMap.put(groupCnt, i);
-				groupCnt++;
-		    }
-		}
-
-		macMap.put(groupCnt,chainLength);
-		if(chainLength==1 && chainLinks[0].equals("X")){
-			// the cont has only 1 real interface to connect to
-			nodes.add(inNCR);
-			nodes.add(outNCR);
-			groupCnt=0;
-			String ruleInMac;
-			String ruleOutMac;
-				for (int i=0; i<chainLength; i++) {
-				    ruleInMac = groups.get(groupCnt).inMac;
-				    ruleOutMac = groups.get(groupCnt).outMac;
-				    RuleDescriptor newRule=new RuleDescriptor(nodes.get(2*i), ruleInMac, nodes.get((2*i)+1), ruleOutMac);
-				    newRules.add(newRule);
-				    if(macMap.get(groupCnt)<=i){
-						groupCnt++;
-				    }
-				}
-			/*ruleInMac = groups.get(groupCnt).inMac;
-			ruleOutMac = groups.get(groupCnt).outMac;
-			RuleDescriptor lastRule=new RuleDescriptor(nodes.get(nodes.size()-2), ruleInMac, nodes.get(nodes.size()-1), ruleOutMac);
-			newRules.add(lastRule);*/
-			NewFlows updates=new NewFlows(newRules);
-			return updates;
 		}else{
-			nodes.add(outNCR);
-			groupCnt=0;
-			String ruleInMac;
-			String ruleOutMac;
-				for (int i=0; i<chainLength; i++) {
-				    ruleInMac = groups.get(groupCnt).inMac;
-				    ruleOutMac = groups.get(groupCnt).outMac;
-				    RuleDescriptor newRule=new RuleDescriptor(nodes.get(2*i), ruleInMac, nodes.get((2*i)+1), ruleOutMac);
-				    newRules.add(newRule);
-				    if(macMap.get(groupCnt)<=i){
-						groupCnt++;
-				    }
-				}
-			ruleInMac = groups.get(groupCnt).inMac;
-			ruleOutMac = groups.get(groupCnt).outMac;
-			RuleDescriptor lastRule=new RuleDescriptor(nodes.get(nodes.size()-2), ruleInMac, nodes.get(nodes.size()-1), ruleOutMac);
-			newRules.add(lastRule);
-			NewFlows updates=new NewFlows(newRules);
-			return updates;
+		    if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i], iot_IP);
+		    } else {
+			createPassThroughCont(protectDetails.imageOpts[i].contName, protectDetails.images[i],
+					      protectDetails.imageOpts[i].hostFS, protectDetails.imageOpts[i].contFS);
+		    }
+		    for(int j=0; j<protectDetails.imageOpts[i].archives.length; j++) {
+			attachArchiveToCont(protectDetails.imageOpts[i].contName, protectDetails.imageOpts[i].archives[j].tar,
+					    protectDetails.imageOpts[i].archives[j].path);
+		    }
+		    contNCRs=startCreatedPassThroughCont(protectDetails.imageOpts[i].contName, ifaces);
 		}
-	
+		for(NodeConnectorRef newNode:contNCRs){
+		    nodes.add(newNode);
+		}
+	    }
+	    else if(chainLinks[i].equals("A") || chainLinks[i].equals("X")){ //addressable proxy
+		groups.remove(groups.size()-1);
+		//assumes that middlebox will utilize only 1 interface
+		String[] ifaces={"eth1"};
+		if(protectDetails.imageOpts[i].hostFS.equals("") || protectDetails.imageOpts[i].contFS.equals("")){
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i],
+							  ifaces, protectDetails.imageOpts[i].ip, iot_IP);
+		} else { // this doesnt have IOT_IP!
+		    contNCRs = startAccessibleCont_getNCR(protectDetails.imageOpts[i].contName, protectDetails.images[i],
+							  ifaces, protectDetails.imageOpts[i].ip, protectDetails.imageOpts[i].hostFS,
+							  protectDetails.imageOpts[i].contFS);
+		}
+		for(NodeConnectorRef newNode:contNCRs){
+		    nodes.add(newNode);
+		    // Intentionally adding 2x to match number of outputs from passthrough containers
+		    nodes.add(newNode);		    
+		}
+		enableARPs(protectDetails.imageOpts[i].contName, ifaces, inNCR, outNCR);
+		contMac = getContMacAddress(protectDetails.imageOpts[i].contName, ifaces[0]);
+		MacGroup newGroupA = new MacGroup(inMac, contMac.getValue());
+		MacGroup newGroupB = new MacGroup(contMac.getValue(), outMac);
+		groups.add(newGroupA);
+		groups.add(newGroupB);
+		macMap.put(groupCnt, i);
+		groupCnt++;
+	    }
+	}
+
+	macMap.put(groupCnt,chainLength);
+	if(chainLength==1 && chainLinks[0].equals("X")){
+	    // the cont has only 1 real interface to connect to
+	    nodes.add(inNCR);
+	    nodes.add(outNCR);
+	    groupCnt=0;
+	    String ruleInMac;
+	    String ruleOutMac;
+	    for (int i=0; i<chainLength; i++) {
+		ruleInMac = groups.get(groupCnt).inMac;
+		ruleOutMac = groups.get(groupCnt).outMac;
+		RuleDescriptor newRule=new RuleDescriptor(nodes.get(2*i), ruleInMac, nodes.get((2*i)+1), ruleOutMac);
+		newRules.add(newRule);
+		if(macMap.get(groupCnt)<=i){
+		    groupCnt++;
+		}
+	    }
+	    /*ruleInMac = groups.get(groupCnt).inMac;
+	      ruleOutMac = groups.get(groupCnt).outMac;
+	      RuleDescriptor lastRule=new RuleDescriptor(nodes.get(nodes.size()-2), ruleInMac, nodes.get(nodes.size()-1), ruleOutMac);
+	      newRules.add(lastRule);*/
+	    NewFlows updates=new NewFlows(newRules);
+	    return updates;
+	}else{
+	    nodes.add(outNCR);
+	    groupCnt=0;
+	    String ruleInMac;
+	    String ruleOutMac;
+	    for (int i=0; i<chainLength; i++) {
+		ruleInMac = groups.get(groupCnt).inMac;
+		ruleOutMac = groups.get(groupCnt).outMac;
+		RuleDescriptor newRule=new RuleDescriptor(nodes.get(2*i), ruleInMac, nodes.get((2*i)+1), ruleOutMac);
+		newRules.add(newRule);
+		if(macMap.get(groupCnt)<=i){
+		    groupCnt++;
+		}
+	    }
+	    ruleInMac = groups.get(groupCnt).inMac;
+	    ruleOutMac = groups.get(groupCnt).outMac;
+	    RuleDescriptor lastRule=new RuleDescriptor(nodes.get(nodes.size()-2), ruleInMac, nodes.get(nodes.size()-1), ruleOutMac);
+	    newRules.add(lastRule);
+	    NewFlows updates=new NewFlows(newRules);
+	    return updates;
+	}
 	
     }
 

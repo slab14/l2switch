@@ -149,7 +149,6 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 	    if (!ignoreThisMac(destMac, policyMap.get(srcMac))) {
 		if (policyMap.containsKey(srcMac) && !policyMap.get(srcMac).setup) {
 		    System.out.println("Got Mac source from policy file: "+srcMac);
-            System.out.println("IoT IP from ARP packet: " + iot_IP);
 		    int devNum = policyMap.get(srcMac).devNum;
 		    NodeConnectorRef inNCR=rawPacket.getIngress();
 		    policyMap.get(srcMac).setNCR(rawPacket.getIngress());
@@ -159,26 +158,17 @@ public class ReactiveFlowWriter implements ArpPacketListener {
 		    String sourceRange=getCDIR(arpPacket.getSourceProtocolAddress(), "32");
 		    String destRange=getCDIR(arpPacket.getDestinationProtocolAddress(), "32");
 		    String[] routes={sourceRange, destRange};
-            System.out.println("Routes: " + routes[0] + ":" + routes[1]);
-            System.out.println("rawPacket.ingress:" +  rawPacket.getIngress().getValue());
-            System.out.println("inNCR (which is the rawPacket.getIngress):" + inNCR);
-            System.out.println("outNCR: " + destNodeConnector);
 		    ServiceChain scWorker = new ServiceChain(this.dataplaneIP, this.dockerPort, this.ovsPort, this.OFversion, routes, rawPacket.getIngress(), this.remoteOVSPort, policy.parsed.devices[devNum], String.valueOf(devNum), inNCR, destNodeConnector, iot_IP);
             // routes, rawPacket.getIngress(), inNCR, destNodeConnector cannot be gathered during prestart
 		    NewFlows updates = scWorker.setupChain();
 		    ActionSet actions = new ActionSet("signkernel", "verifykernel");
 		    for(RuleDescriptor rule:updates.rules){
-                
-			//writeFlows(rule); //Legacy
-
-            //This check if we are signing packets with addHash/checkHash
-            if (check_pkt_signing()){
-                writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
-            }else{
-                writeNewActionFlows(rule);
-            }
-		    
-			actions.switchActionOrder();
+			if (check_pkt_signing()){
+			    writeNewActionFlows(rule, actions.getAction1(), actions.getAction2());
+			    actions.switchActionOrder();			    
+			}else{
+			    writeNewActionFlows(rule);
+			}
 		    }
 		    policyMap.get(srcMac).updateSetup(true);
 		}

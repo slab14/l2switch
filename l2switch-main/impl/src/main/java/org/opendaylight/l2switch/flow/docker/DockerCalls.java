@@ -305,7 +305,6 @@ public class DockerCalls {
 	String output = obj.exeCmd(cmd);
 	System.out.println("Added interface "+iface+" to container "+name);
 	String OFPort = remoteFindContOfPort(ip, ovs_port, bridge_remote_port, name, iface, OF_version);
-	System.out.println("Ok");
 	return OFPort;	
     }    
     
