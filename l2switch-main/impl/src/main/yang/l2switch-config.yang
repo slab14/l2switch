@@ -62,7 +62,7 @@ module l2switch-config {
         }
 	leaf policy-file {
 	     type string;
-	     default "/etc/sec_gate/policies/radio.json";
+	     default "/etc/sec_gate/policies/nmap.json";
 	}
 	leaf dataplane-IP {
 	     type string;

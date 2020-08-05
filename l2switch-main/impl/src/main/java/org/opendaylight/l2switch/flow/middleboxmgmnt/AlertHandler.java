@@ -88,16 +88,13 @@ public class AlertHandler extends Thread {
             // Read lines from client until the client closes the connection
 	    bytesRead = in.read(inLen,0,4);
 	    if (bytesRead==4) {
-	    	//System.out.println("Init fine2");
 		//System.out.println(Arrays.toString(inLen));
-		//encrLen=ByteBuffer.wrap(inLen).getInt();
 		encrLen = ((inLen[0] & 0xFF) << 0) | ((inLen[1] & 0xFF) << 8) | ((inLen[2] & 0xFF) << 16 ) | ((inLen[3] & 0xFF) << 24 );
 		//System.out.println("msg rx length = "+encrLen);
 		msg = new byte[encrLen];
 		bytesRead=0;
 		bytesRead = in.read(msg);
 		if (bytesRead == encrLen) {
-			//System.out.println("Init fine7");
 		    //Perform actions based upon received message
 		    
 		    NativeStuff cfunc = new NativeStuff();
@@ -110,10 +107,10 @@ public class AlertHandler extends Thread {
 		    if (processedLine.contains("Alert:")) {
 			alert=processedLine.substring(processedLine.indexOf("Alert:")+6);
 		    }
-	    
-		    /*System.out.println(policyID);
-		    System.out.println(alert);*/
-		    
+		    /*
+		    System.out.println(policyID);
+		    System.out.println(alert);
+		    */
 		}
 	    }
 

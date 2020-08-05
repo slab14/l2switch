@@ -39,18 +39,20 @@ public class NmapParser extends DefaultHandler {
     String state;
     List<String> openPorts = new ArrayList<>();
    
-    public NmapParser(String nmap_string) {
+    public NmapParser(String nmap_string, String type) {
         this.nmap_string = nmap_string;
-        
-        parseDocument();
+
+	if (type.equals("openports"))
+	    parsePortDocument();
+	else if (type.equals("CVE"))
+	    parseCVEDocument();
     }
 
     public List getOpenPorts(){
         return openPorts;
     }
 
-    private void parseDocument() {
-      
+    private void parsePortDocument() {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         try {
             SAXParser parser = factory.newSAXParser();
@@ -65,23 +67,27 @@ public class NmapParser extends DefaultHandler {
         }
     }
 
+    private void parseCVEDocument() {
+	System.out.println("parse CVE doc");
+    }
+	    
+
     /* [startElement], [endElement], [characters] are methods to be overriden */
     
     @Override
     public void startElement(String s, String s1, String elementName, Attributes attributes) throws SAXException {
- 
-        if (elementName.equalsIgnoreCase("port")) { openPorts.add(attributes.getValue("portid")); }
-            
-        if (elementName.equalsIgnoreCase("state")) {
-            state = attributes.getValue("state");
-            if (!state.equalsIgnoreCase("open")){
-                if(!openPorts.isEmpty()){
-                    int index = openPorts.size() - 1;
-                    openPorts.remove(index);  
-                }                 
-            }
-        }
-        
+         if (elementName.equalsIgnoreCase("port")) {
+	    openPorts.add(attributes.getValue("portid"));
+	 }
+	 if (elementName.equalsIgnoreCase("state")) {
+	     state = attributes.getValue("state");
+	     if (!state.equalsIgnoreCase("open")){
+		 if(!openPorts.isEmpty()){
+		     int index = openPorts.size() - 1;
+		     openPorts.remove(index);  
+		 }                 
+	     }
+	 }
     }
 
     @Override

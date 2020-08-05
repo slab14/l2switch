@@ -10,6 +10,7 @@ package org.opendaylight.l2switch.flow.middlebox;
 
 import org.opendaylight.l2switch.flow.middlebox.TransitionFeatures;
 import org.opendaylight.l2switch.flow.middlebox.NmapParser;
+import org.opendaylight.l2switch.flow.middlebox.SnortRuleDB;
 import org.opendaylight.l2switch.flow.chain.PolicyStatus;
 import org.opendaylight.l2switch.flow.json.DevPolicy;
 import org.opendaylight.l2switch.flow.json.ProtectionDetails;
@@ -36,6 +37,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.lang.Thread;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 
 public class MsgAnalysis {
@@ -45,6 +49,7 @@ public class MsgAnalysis {
     private String srcMac;
     private HashMap<String, PolicyStatus> policyMap;
     private DevPolicy policy;
+    private SnortRuleDB rulesDB = new SnortRuleDB();
 
     public MsgAnalysis(String msg, TransitionFeatures feature) {
 	this.msg = msg;
@@ -54,7 +59,6 @@ public class MsgAnalysis {
 
     public MsgAnalysis(String msg, String policyEntry) {
 	this.msg = msg;
-	//System.out.println("This is the TransitionEntry: " + policyEntry);
 	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
 	this.feature = inputFeatures;
     }
@@ -65,7 +69,7 @@ public class MsgAnalysis {
     	this.srcMac = srcMac;
     	this.policy = policy;
     	String policyEntry = policy.getTransition()[policyMap.get(srcMac).getStateNum()];
-    	System.out.println("This is the TransitionEntry: " + policyEntry);
+    	System.out.println("Transitioning based upon: " + policyEntry);
     	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
     	this.feature = inputFeatures;
     }
@@ -92,29 +96,51 @@ public class MsgAnalysis {
     }
 
 
-    private void buildTar(String tarpath, String msg){
-
+    private void buildCVETar(String tarpath, List<String> entries){
     	File f = new File(tarpath); // the tar (rules_radio.tar)
     	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
     	File rules = new File(f.getParent() + "/local.rules");    	
-
     	if(f.exists()){
-    		// if a rules_radio.tar already exists, there will almost certainly be conflict, so we old it
-    		Timestamp ts = new Timestamp(System.currentTimeMillis());
-	    	File old = new File(tarpath+"."+ts.getTime());
-	    	f.renameTo(old);
-	    }
-
+	    // if a rules_radio.tar already exists, there will almost certainly be conflict, so we old it
+	    Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    File old = new File(tarpath+"."+ts.getTime());
+	    f.renameTo(old);
+	}
     	try{
-			FileWriter writer = new FileWriter(rules, false);
-			writer.write(msg);
-			writer.close();
-			Archiver archiver = ArchiverFactory.createArchiver("tar");
-	    	archiver.create(f.getName(), dest, rules);	    		
-    		rules.delete(); // delete created local.rules file	
-		}catch(IOException ioe){
-			System.out.println("IOException: " + ioe.getMessage());
-		}
+	    FileWriter writer = new FileWriter(rules, false);
+	    for(String entry:entries){
+		writer.write(entry);
+	    }
+	    writer.close();
+	    Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    archiver.create(f.getName(), dest, rules);	    		
+	    rules.delete(); // delete created local.rules file	
+	}catch(IOException ioe){
+	    System.out.println("IOException: " + ioe.getMessage());
+	}
+    }
+	    
+
+    private void buildTar(String tarpath, String msg){
+    	File f = new File(tarpath); // the tar (rules_radio.tar)
+    	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
+    	File rules = new File(f.getParent() + "/local.rules");    	
+    	if(f.exists()){
+	    // if a rules_radio.tar already exists, there will almost certainly be conflict, so we old it
+	    Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    File old = new File(tarpath+"."+ts.getTime());
+	    f.renameTo(old);
+	}
+    	try{
+	    FileWriter writer = new FileWriter(rules, false);
+	    writer.write(msg);
+	    writer.close();
+	    Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    archiver.create(f.getName(), dest, rules);	    		
+	    rules.delete(); // delete created local.rules file	
+	}catch(IOException ioe){
+	    System.out.println("IOException: " + ioe.getMessage());
+	}
     }
 
     private void buildTar(String tarpath, List<String> offendingPorts){
@@ -123,66 +149,55 @@ public class MsgAnalysis {
     	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
     	File rules = new File(f.getParent() + "/local.rules");
     	if(f.exists()){
-    		try{
-    			Archiver archiver = ArchiverFactory.createArchiver("tar");
-	    		archiver.extract(f, dest);	    		
-	    		if (rules.exists()){	    			
-	    			Iterator itr = offendingPorts.iterator();
-	    			FileWriter writer = new FileWriter(rules, true);
-	    			String notify = "#----Appended by NMAP middlebox----\n";
-	    			int sid = 0;
-	    			writer.write(notify);
-	    			while(itr.hasNext()){
-						String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
-						System.out.println(snortRule);		
-		    			writer.write(snortRule);
-		    			sid+=1;
-
-		    		}
-		    		writer.close();		
-		    		    		
-	    		}
-	    		
-	    		Timestamp ts = new Timestamp(System.currentTimeMillis());
-	    		File old = new File(tarpath+"."+ts.getTime());
-	    		if(f.exists()){
-	    			f.renameTo(old);
-	    		}
-
-	    		archiver.create(f.getName(), new File(f.getParent()), rules);    		
-
-	    		rules.delete(); // delete the extracted local.rules	    		
-	    		
-    		}catch(IOException ioe){
-    			System.out.println("problem extracting or problem writing: " + ioe.getMessage());
-    		}
-    		
-    		
+	    try{
+		Archiver archiver = ArchiverFactory.createArchiver("tar");
+		archiver.extract(f, dest);	    		
+		if (rules.exists()){	    			
+		    Iterator itr = offendingPorts.iterator();
+		    FileWriter writer = new FileWriter(rules, true);
+		    String notify = "#----Appended by NMAP middlebox----\n";
+		    int sid = 0;
+		    writer.write(notify);
+		    while(itr.hasNext()){
+			String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
+			System.out.println(snortRule);		
+			writer.write(snortRule);
+			sid+=1;
+		    }
+		    writer.close();		
+		}
+		Timestamp ts = new Timestamp(System.currentTimeMillis());
+		File old = new File(tarpath+"."+ts.getTime());
+		if(f.exists()){
+		    f.renameTo(old);
+		}
+		archiver.create(f.getName(), new File(f.getParent()), rules);    		
+		rules.delete(); // delete the extracted local.rules	    		
+	    }catch(IOException ioe){
+		System.out.println("problem extracting or problem writing: " + ioe.getMessage());
+	    }
     	}else{
-    		// we need to create a tar (for the demos, we assume it already exists)
-    		try{
-	    		Iterator itr = offendingPorts.iterator();
-				FileWriter writer = new FileWriter(rules, false);
-				String notify = "#----Appended by NMAP middlebox----\n";
-				int sid = 0;
-				writer.write(notify);
-				while(itr.hasNext()){
-					String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
-					System.out.println(snortRule);		
-	    			writer.write(snortRule);
-	    			sid+=1;
-
-	    		}
-		    	writer.close();		
-	    		Archiver archiver = ArchiverFactory.createArchiver("tar");
-		    	archiver.create(f.getName(), new File(f.getParent()), rules);	    		
-	    		rules.delete(); // delete the extracted local.rules	    		
-	    		
-	    	}catch(IOException ioe){
-    			System.out.println("problem extracting or problem writing: " + ioe.getMessage());
-    		}
+	    // we need to create a tar (for the demos, we assume it already exists)
+	    try{
+		Iterator itr = offendingPorts.iterator();
+		FileWriter writer = new FileWriter(rules, false);
+		String notify = "#----Appended by NMAP middlebox----\n";
+		int sid = 0;
+		writer.write(notify);
+		while(itr.hasNext()){
+		    String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
+		    System.out.println(snortRule);		
+		    writer.write(snortRule);
+		    sid+=1;
+		}
+		writer.close();		
+		Archiver archiver = ArchiverFactory.createArchiver("tar");
+		archiver.create(f.getName(), new File(f.getParent()), rules);	    		
+		rules.delete(); // delete the extracted local.rules	    		
+	    }catch(IOException ioe){
+		System.out.println("problem extracting or problem writing: " + ioe.getMessage());
+	    }
     	}
-    	
     }
 
     public boolean analyze() {
@@ -191,11 +206,11 @@ public class MsgAnalysis {
 	    trigger = processSnortMsg(feature.getKey());
 	}
 	if (feature.getMbox().equals("nmap")) {
-		trigger = processNmapMsg(feature.getKey());
+	    trigger = processNmapMsg(feature.getKey());
 		
 	}
 	if (feature.getMbox().equals("radio")) {
-		trigger = processRadioMsg(feature.getKey());
+	    trigger = processRadioMsg(feature.getKey());
 	}	
 	return trigger;
     }
@@ -220,45 +235,57 @@ public class MsgAnalysis {
     }
 
     private boolean processNmapMsg(String transitionKey) {
-    // the log file is written to twice by nmap which means we need to save the first part of the alert (msg_part1)
-	    boolean out = false;
-	    List<String> offendingPorts = new ArrayList<>();
+	// the log file is written to twice by nmap which means we need to save the first part of the alert (msg_part1)
+	boolean out = false;
+	List<String> offendingPorts = new ArrayList<>();
+	List<String> CVEs = new ArrayList<String>();
+
+	String type = transitionKey.substring(0, transitionKey.indexOf("_"));
 	    
-		nmapParser = new NmapParser(msg);
-		if (transitionKey.substring(0, transitionKey.indexOf("_")).equals("openports")) { //open ports list in <regex>
-			
-			List<String> allowedPorts = Arrays.asList(transitionKey.substring(transitionKey.indexOf("_") +1, transitionKey.length()).split(","));
-			System.out.print("Allowed ports: ");
-			for(String s:allowedPorts){
-				System.out.print("|" + s + "|");
-			}
-			System.out.println("");
-			List<String> openPorts = nmapParser.getOpenPorts(); 
-			for (String port : openPorts){
-				if(allowedPorts.contains(port.toString())){				
-					
-				}else{
-					offendingPorts.add(port);
-				}
-			}
-
-		}else if (transitionKey.substring(0, transitionKey.indexOf("_")).equals("CVE")){
-			// future impl to include NSE scripts which check for CVEs
-		}
-		
-	    if(!offendingPorts.isEmpty()){
-	    	if(policyMap.get(srcMac).getCanTransition()){
-	    		//System.out.println("Current policy state index: " + policyMap.get(srcMac).getStateNum());
-	    		int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
-	    		String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
-	    		buildTar(tarpath, offendingPorts);
-	    	}else{
-	    		System.out.println("Error - expecting a state after nmap but no transition in JSON. \n Please check your JSON.");
-	    	}
-	    	out = true; 
+	if (type.equals("openports")) { //open ports list in <regex>
+	    nmapParser = new NmapParser(msg,type);
+	    List<String> allowedPorts = Arrays.asList(transitionKey.substring(transitionKey.indexOf("_") +1, transitionKey.length()).split(","));
+	    System.out.print("Allowed ports: ");
+	    for(String s:allowedPorts){
+		System.out.print("|" + s + "|");
 	    }
-     
-    return out;
+	    System.out.println("");
+	    List<String> openPorts = nmapParser.getOpenPorts(); 
+	    for (String port : openPorts){
+		if(!allowedPorts.contains(port.toString())){				
+		    offendingPorts.add(port);
+		}
+	    }
+		
+	} else if (type.equals("CVE")){
+	    // future impl to include NSE scripts which check for CVEs
+	    Matcher m = Pattern.compile("(?=(cve))").matcher(msg.toLowerCase());
+	    while (m.find()){
+		CVEs.add(msg.substring(m.start(), m.start()+12));
+	    }
+	    if(!CVEs.isEmpty())
+		System.out.println("got cve request");
+	}
+		
+	if(policyMap.get(srcMac).getCanTransition()){
+	    out = true;
+	    int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
+	    String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
+	    if(!offendingPorts.isEmpty()){
+		buildTar(tarpath, offendingPorts);
+	    }
+	    else if(!CVEs.isEmpty()){
+		System.out.println("get snort rule, add to tar");
+		List<String>rules = new ArrayList<String>();
+		for (String CVE:CVEs){
+		    rules.add(rulesDB.getRule(CVE));
+		}
+		buildCVETar(tarpath, rules);
+	    }
+	}else{
+	    System.out.println("Error - expecting a state after nmap but no transition in JSON. \n Please check your JSON.");
+	}
+	return out;
     }
-
+    
 }
