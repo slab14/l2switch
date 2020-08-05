@@ -18,7 +18,7 @@ module l2switch-config {
         }
         leaf pkt-signing {
             type boolean;
-            default true;
+            default false;
         }
         leaf is-learning-only-mode {
             type boolean;
@@ -62,7 +62,7 @@ module l2switch-config {
         }
 	leaf policy-file {
 	     type string;
-	     default "/etc/sec_gate/policies/nmap.json";
+	     default "/etc/sec_gate/policies/radio.json";
 	}
 	leaf dataplane-IP {
 	     type string;
