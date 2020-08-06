@@ -211,10 +211,27 @@ public class MsgAnalysis {
 	}
 	if (feature.getMbox().equals("radio")) {
 	    trigger = processRadioMsg(feature.getKey());
-	}	
+	}
+	if (feature.getMbox().equals("dos")){
+	    trigger = processDosMsg(feature.getKey());
+	}
 	return trigger;
     }
 
+    private boolean processDosMsg(String transitionKey) {
+    	boolean out = true;
+	String type = transitionKey.substring(0, transitionKey.indexOf("-"));
+	int connLimit = Integer.parseInt(transitionKey.substring(transitionKey.indexOf("_")+1));
+	String[] dosMsgParts = msg.split("=");
+	int connCount = Integer.parseInt(dosMsgParts[1].replaceAll("\\D+",""));
+	if(connCount>connLimit){
+	    System.out.println("Able to start more connections that policy allows\n");
+	}
+    	int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
+    	String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
+    	return out;
+    }
+    
     private boolean processRadioMsg(String transitionkey) {
     	boolean out = true;
     	int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
