@@ -121,6 +121,32 @@ public class MsgAnalysis {
     }
 	    
 
+    private void buildIPtablesTar(String tarpath, String type, int value){
+    	File f = new File(tarpath); // the tar (rules_radio.tar)
+    	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
+    	File rules = new File(f.getParent() + "/setup_iptables.sh");
+	String msg="";
+    	if(f.exists()){
+	    // if a rules_radio.tar already exists, there will almost certainly be conflict, so we old it
+	    Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    File old = new File(tarpath+"."+ts.getTime());
+	    f.renameTo(old);
+	}
+	if(type.equals("connlimit")){
+	    msg = String.format("iptables -A FORWARD -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m connlimit --connlimit-above %d --connlimit-mask 32 --connlimit-saddr -j REJECT --reject-with tcp-reset", value);
+	}
+    	try{
+	    FileWriter writer = new FileWriter(rules, false);
+	    writer.write(msg);
+	    writer.close();
+	    Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    archiver.create(f.getName(), dest, rules);	    		
+	    rules.delete(); // delete created local.rules file	
+	}catch(IOException ioe){
+	    System.out.println("IOException: " + ioe.getMessage());
+	}
+    }
+    
     private void buildTar(String tarpath, String msg){
     	File f = new File(tarpath); // the tar (rules_radio.tar)
     	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
@@ -144,7 +170,6 @@ public class MsgAnalysis {
     }
 
     private void buildTar(String tarpath, List<String> offendingPorts){
-
     	File f = new File(tarpath); // the tar
     	File dest = new File(f.getParent()); //where to store the contents of tar (where to put local.rules)
     	File rules = new File(f.getParent() + "/local.rules");
@@ -225,10 +250,11 @@ public class MsgAnalysis {
 	String[] dosMsgParts = msg.split("=");
 	int connCount = Integer.parseInt(dosMsgParts[1].replaceAll("\\D+",""));
 	if(connCount>connLimit){
-	    System.out.println("Able to start more connections that policy allows\n");
+	    System.out.println("Able to start more connections that policy allows");	    
+	    int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
+	    String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
+	    buildIPtablesTar(tarpath, type, connLimit);
 	}
-    	int nextStateIndex = policyMap.get(srcMac).getStateNum() + 1;
-    	String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
     	return out;
     }
     
