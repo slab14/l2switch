@@ -15,17 +15,17 @@
     <dependency>
       <groupId>org.opendaylight.openflowplugin.model</groupId>
       <artifactId>model-flow-service</artifactId>
-      <version>0.11.0-SNAPSHOT</version>
+      <version>0.11.0</version>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.controller.model</groupId>
       <artifactId>model-topology</artifactId>
-      <version>2.0.1</version>
+      <version>2.0.3</version>
       </dependency>
     <dependency>
       <groupId>org.opendaylight.yangtools</groupId>
       <artifactId>yang-common</artifactId>
-      <version>5.0.2</version>
+      <version>5.0.5</version>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.l2switch.packethandler</groupId>
@@ -70,7 +70,7 @@
     <dependency>
       <groupId>org.opendaylight.openflowplugin</groupId>
       <artifactId>openflowplugin-api</artifactId>
-      <version>0.11.0-SNAPSHOT</version>
+      <version>0.11.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
@@ -80,12 +80,12 @@
     <dependency>
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>mdsal-binding-api</artifactId>
-      <version>6.0.1</version>
+      <version>6.0.4</version>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>yang-binding</artifactId>
-      <version>6.0.1</version>
+      <version>6.0.4</version>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.mdsal.model</groupId>
@@ -95,7 +95,7 @@
     <dependency>
       <groupId>org.opendaylight.controller.model</groupId>
       <artifactId>model-inventory</artifactId>
-      <version>2.0.1</version>
+      <version>2.0.3</version>
     </dependency>
   </dependencies>
 
