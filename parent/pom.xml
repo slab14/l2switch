@@ -17,7 +17,7 @@
 
   <properties>
     <jung2.version>2.1.1</jung2.version>
-    <openflow.plugin.version>0.11.0-SNAPSHOT</openflow.plugin.version>
+    <openflow.plugin.version>0.11.0</openflow.plugin.version>
   </properties>
 
   <dependencyManagement>
