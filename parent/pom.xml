@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.opendaylight.mdsal</groupId>
     <artifactId>binding-parent</artifactId>
-    <version>6.0.4</version>
+    <version>6.0.7</version>
     <relativePath/>
   </parent>
 
@@ -17,7 +17,7 @@
 
   <properties>
 <!--    <jung2.version>2.0.1</jung2.version> -->
-    <openflow.plugin.version>0.11.0-SNAPSHOT</openflow.plugin.version>
+    <openflow.plugin.version>0.11.1-SNAPSHOT</openflow.plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -25,12 +25,12 @@
       <dependency>
         <groupId>org.opendaylight.controller</groupId>
 	<artifactId>controller-artifacts</artifactId>
-	<version>2.0.3</version>
+	<version>2.0.6</version>
       </dependency>
       <dependency>
         <groupId>org.opendaylight.mdsal</groupId>
         <artifactId>mdsal-artifacts</artifactId>
-        <version>6.0.4</version>
+        <version>6.0.7</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
