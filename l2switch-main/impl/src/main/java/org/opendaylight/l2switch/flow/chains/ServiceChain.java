@@ -28,6 +28,7 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.
 import org.opendaylight.l2switch.flow.chain.MacGroup;
 import org.opendaylight.l2switch.flow.docker.utils.ExecShellCmd;
 import org.opendaylight.l2switch.flow.middlebox.BuildTar;
+import org.opendaylight.l2switch.flow.middlebox.MudParser;
 
 
 public class ServiceChain {
@@ -241,6 +242,13 @@ public class ServiceChain {
 		BuildTar tarTool = new BuildTar();
 		tarTool.file2Tar(protectDetails.imageOpts[i].archives[i].tar, radio_rules_loc);
 		chainLinks[i] = "P";
+	    }
+	    if(chainLinks[i].equals("M")){
+		System.out.println("found type M");
+		MudParser MUD = new MudParser();
+		ArrayList<String> mudPorts = MUD.parse(protectDetails.addFiles[0]);
+		for(String port:mudPorts)
+		    System.out.println(port);
 	    }
 	    if(chainLinks[i].equals("P")){
 		//assumes that all passthrough middleboxes will utilize 2 interfaces
