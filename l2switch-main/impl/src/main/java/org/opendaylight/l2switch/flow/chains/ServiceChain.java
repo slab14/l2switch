@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.HashMap;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.l2switch.flow.chain.MacGroup;
+import org.opendaylight.l2switch.flow.docker.utils.ExecShellCmd;
+import org.opendaylight.l2switch.flow.middlebox.BuildTar;
+
 
 public class ServiceChain {
 
@@ -321,6 +324,15 @@ public class ServiceChain {
 	NodeConnectorRef[] contNCRs;	
 
 	for (int i=0; i<chainLength; i++) {
+	    if(chainLinks[i].equals("R")){
+		String radio_rules_loc = "/etc/sec_gate/radio/local.rules";
+		ExecShellCmd obj = new ExecShellCmd();
+		String cmd = String.format("/usr/bin/python3 /etc/sec_gate/radio/newModel2Rule.py -M %s -P %s -s %s -n 'RADIO' -R %s", protectDetails.addFiles[0], protectDetails.addFiles[1], protectDetails.addFiles[2], radio_rules_loc);
+		String output=obj.exeCmd(cmd);
+		BuildTar tarTool = new BuildTar();
+		tarTool.file2Tar(protectDetails.imageOpts[i].archives[i].tar, radio_rules_loc);
+		chainLinks[i] = "P";
+	    }
 	    if(chainLinks[i].equals("P")){
 		//assumes that all passthrough middleboxes will utilize 2 interfaces
 		String[] ifaces={"eth1", "eth2"};

@@ -13,12 +13,14 @@ import org.opendaylight.l2switch.flow.json.ContOpts;
 public class ProtectionDetails {
     public String state;
     public String chain;
+    public String[] addFiles;
     public String[] images;
     public ContOpts[] imageOpts;
 
-    public ProtectionDetails(String state, String chain, String[] images, ContOpts[] imageOpts) {
+    public ProtectionDetails(String state, String chain, String[] addFiles, String[] images, ContOpts[] imageOpts) {
 	this.state=state;
 	this.chain=chain;
+	this.addFiles=addFiles;
 	this.images=images;
 	this.imageOpts=imageOpts;
     }
@@ -31,9 +33,13 @@ public class ProtectionDetails {
 	return this.chain;
     }
 
+    public String[] getAddFiles(){
+	return this.addFiles;
+    }
+
     public String[] getImages(){
 	return this.images;
-    }
+    }    
 
     public ContOpts[] getImageOpts() {
 	return this.imageOpts;
