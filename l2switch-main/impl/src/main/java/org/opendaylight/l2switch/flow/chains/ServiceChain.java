@@ -335,11 +335,11 @@ public class ServiceChain {
 		chainLinks[i] = "P";
 	    }
 	    if(chainLinks[i].equals("M")){
-		System.out.println("found type M");
 		MudParser MUD = new MudParser();
 		ArrayList<String> mudPorts = MUD.parse(protectDetails.addFiles[0]);
-		for(String port:mudPorts)
-		    System.out.println(port);
+		BuildTar tarTool = new BuildTar();
+		tarTool.ports2Tar(protectDetails.imageOpts[i].archives[i].tar, mudPorts, "allow");
+		chainLinks[i] = "P";
 	    }
 	    if(chainLinks[i].equals("P")){
 		//assumes that all passthrough middleboxes will utilize 2 interfaces
