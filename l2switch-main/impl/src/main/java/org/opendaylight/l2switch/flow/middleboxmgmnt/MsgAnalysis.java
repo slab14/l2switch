@@ -43,6 +43,11 @@ import java.util.regex.Pattern;
 public class MsgAnalysis {
     private String msg;
     private TransitionFeatures feature;
+    private NmapParser nmapParser;
+    private String srcMac;
+    private HashMap<String, PolicyStatus> policyMap;
+    private DevPolicy policy;
+    private SnortRuleDB rulesDB = new SnortRuleDB();
 
     public MsgAnalysis(String msg, TransitionFeatures feature) {
 	this.msg = msg;
@@ -55,6 +60,16 @@ public class MsgAnalysis {
 	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
 	this.feature = inputFeatures;
     }
+
+    public MsgAnalysis(String msg, DevPolicy policy, HashMap<String,PolicyStatus> policyMap, String srcMac){
+	this.msg = msg;
+	this.policyMap = policyMap;
+	this.srcMac = srcMac;
+	this.policy = policy;
+	String policyEntry = policy.getTransition()[policyMap.get(srcMac).getStateNum()];
+	TransitionFeatures inputFeatures = new TransitionFeatures(policyEntry);
+	this.feature = inputFeatures;
+    }	
 
     public String getMsg(){
 	return msg;
@@ -173,4 +188,161 @@ public class MsgAnalysis {
 	return out;
     }
 
+
+    private boolean processNmapMsg(String transitionKey){
+	boolean out = false;
+	List<String> offendingPorts = new ArrayList<>();
+	List<String> CVEs = new ArrayList<>();
+	String type = transitionKey.substring(0,transitionKey.indexOf("_"));
+	if(type.equals("openports")){
+	    nmapParser = new NmapParser(msg,type);
+	    List<String>allowedPorts = Arrays.asList(transitionKey.substring(transitionKey.indexOf("_")+1, transitionKey.length()).split(","));
+	    List<String>openPorts = nmapParser.getOpenPorts();
+	    for(String port:openPorts){
+		if(!allowedPorts.contains(port.toString()))
+		    offendingPorts.add(port);
+	    }
+	}else if(type.equals("CVE")){
+	    Matcher m = Pattern.compile("(?=(cve))").matcher(msg.toLowerCase());
+	    while(m.find())
+		CVEs.add(msg.substring(m.start(), m.start()+12));
+	}
+
+	if(policyMap.get(srcMac).getCanTransition()){
+	    out = true;
+	    int nextStateIndex = policyMap.get(srcMac).getStateNum()+1;
+	    String tarpath = policy.getProtections()[nextStateIndex].getImageOpts()[0].getArchives()[0].getTar();
+	    if(!offendingPorts.isEmpty())
+		buildTar(tarpath, offendingPorts);
+	    else if(!CVEs.isEmpty()){
+		List<String>rules = new ArrayList<String>();
+		for(String CVE:CVEs)
+		    rules.add(rulesDB.getRule(CVE));
+		buildCVETar(tarpath, rules);
+	    }
+	}else
+	    System.out.println("Error - expecting a state after nmap, but no transition.");
+	return out;
+    }
+    
+
+    private void buildCVETar(String tarpath, List<String> entries){
+	File f = new File(tarpath);
+	File dest = new File(f.getParent());
+	File rules = new File(f.getParent()+"/local.rules");
+	if(f.exists()){
+	    Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    File old = new File(tarpath+"."+ts.getTime());
+	    f.renameTo(old);
+	}
+	try {
+	    FileWriter writer = new FileWriter(rules, false);
+	    for(String entry:entries)
+		writer.write(entry);
+	    writer.close();
+	    Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    archiver.create(f.getName(), dest, rules);
+	    rules.delete();
+	}catch(IOException e) {
+	    System.out.println("IOException: "+e.getMessage());
+	}
+    }
+
+
+    private void buildIPtablesTar(String tarpath, String type, int value){
+	File f = new File(tarpath);
+	File dest = new File(f.getParent());
+	File rules = new File(f.getParent()+"/setup_iptables.sh");
+	String msg="";
+	if(f.exists()){
+	    Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    File old = new File(tarpath+"."+ts.getTime());
+	    f.renameTo(old);
+	}
+	if(type.equals("connlimit"))
+	    msg = String.format("iptables -A FORWARD -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK -m connlimit --connlimit-above %d --connlimit-mask 32 --connlimit-saddr -j REJECT --reject-with tcp-reset", value);
+	try {	
+	    FileWriter writer = new FileWriter(rules, false);
+	    writer.write(msg);
+	    writer.close();
+	    Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    archiver.create(f.getName(), dest, rules);
+	    rules.delete();
+	}catch(IOException e) {
+	    System.out.println("IOException: "+e.getMessage());
+	}
+    }
+
+    private void buildTar(String tarpath, String msg){
+	File f = new File(tarpath);
+	File dest = new File(f.getParent());
+	File rules = new File(f.getParent()+"/local.rules");
+	if(f.exists()){
+	    Timestamp ts = new Timestamp(System.currentTimeMillis());
+	    File old = new File(tarpath+"."+ts.getTime());
+	    f.renameTo(old);
+	}
+	try {	
+	    FileWriter writer = new FileWriter(rules, false);
+	    writer.write(msg);
+	    writer.close();
+	    Archiver archiver = ArchiverFactory.createArchiver("tar");
+	    archiver.create(f.getName(), dest, rules);
+	    rules.delete();
+	}catch(IOException e) {
+	    System.out.println("IOException: "+e.getMessage());
+	}
+    }	
+
+
+    private void buildTar(String tarpath, List<String> offendingPorts){
+	File f = new File(tarpath);
+	File dest = new File(f.getParent());
+	File rules = new File(f.getParent()+"/local.rules");
+	String msg="";
+	if(f.exists()){    
+	    try{
+		Archiver archiver = ArchiverFactory.createArchiver("tar");
+		archiver.extract(f,dest);
+		if(rules.exists()){
+		    Iterator itr = offendingPorts.iterator();
+		    FileWriter writer = new FileWriter(rules, false);
+		    int sid = 0;
+		    while (itr.hasNext()){
+			String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
+			writer.write(snortRule);
+			sid++;
+		    }
+		    writer.close();
+		}
+		Timestamp ts = new Timestamp(System.currentTimeMillis());
+		File old = new File(tarpath+"."+ts.getTime());
+		f.renameTo(old);
+		archiver.create(f.getName(), dest, rules);
+		rules.delete();
+	    }catch(IOException e) {
+		System.out.println("IOException: "+e.getMessage());
+	    }
+	}else{
+	    try{
+		Iterator itr = offendingPorts.iterator();
+		FileWriter writer = new FileWriter(rules, false);
+		int sid = 0;
+		while (itr.hasNext()){
+		    String snortRule = String.format("drop tcp any any -> 192.1.1.0/24 %s (msg: \"TCP packet rejected\"; sid:200000%s; rev:3;) \n", itr.next().toString(), String.valueOf(sid));
+		    writer.write(snortRule);
+		    sid++;
+		}
+		writer.close();
+		Archiver archiver = ArchiverFactory.createArchiver("tar");		
+		archiver.create(f.getName(), dest, rules);
+		rules.delete();
+	    }catch(IOException e) {
+		System.out.println("IOException: "+e.getMessage());
+	    }
+	}
+    }
+
+
+    
 }
