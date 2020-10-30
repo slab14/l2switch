@@ -441,7 +441,14 @@ public class DockerCalls {
 	String cmd = String.format("/usr/bin/curl -s -X POST http://%s:%s/v1.37/containers/%s/kill", ip, docker_port, name);
 	String[] newCmd = {"/bin/bash", "-c", cmd};
 	String output=obj.exeCmd(newCmd);
-    }    
+    }
+
+
+    public void remoteRemoveContainerPorts(String ip, String docker_port, String name, String bridge, String ovs_port, String remote_bridge_port, String OF_version) {
+	remoteDeleteContFlows(ip, ovs_port, remote_bridge_port, OF_version, name);	
+	String cmd = String.format("/usr/bin/sudo /usr/bin/ovs-docker-remote del-ports %s %s %s %s %s", bridge, name, ip, ovs_port, docker_port);
+	String output=obj.exeCmd(cmd);	
+    }         
 
     
     public void removeBridges(String bridge_name) {

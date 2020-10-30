@@ -99,7 +99,6 @@ public class MsgAnalysis {
 	}
 	if (feature.getMbox().equals("nmap")) {
 	    trigger = processNmapMsg(feature.getKey());
-		
 	}
 	if (feature.getMbox().equals("radio")) {
 	    trigger = processRadioMsg(feature.getKey());
@@ -164,7 +163,7 @@ public class MsgAnalysis {
 	ExecShellCmd obj = new ExecShellCmd();
 	String radio_rules_loc = "/etc/sec_gate/radio/local.rules";
 
-	String cmd = String.format("/usr/bin/python3 /etc/sec_gate/radio/newModel2Rule.py -M %s -P %s -s %s -n 'RADIO' -R %s", policy.getProtections()[curStateIndex].getAddFiles()[0], policy.getProtections()[curStateIndex].getAddFiles()[1], policy.getProtections()[curStateIndex].getAddFiles()[2], radio_rules_loc);
+	String cmd = String.format("/usr/local/bin/python3 /etc/sec_gate/radio/newModel2Rule.py -M %s -P %s -s %s -n 'RADIO' -R %s", policy.getProtections()[curStateIndex].getAddFiles()[0], policy.getProtections()[curStateIndex].getAddFiles()[1], policy.getProtections()[curStateIndex].getAddFiles()[2], radio_rules_loc);
 	model.delete();
 	proto.delete();
 	port.delete();

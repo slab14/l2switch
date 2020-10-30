@@ -124,9 +124,8 @@ public class AlertHandler extends Thread {
 	    if (!this.processing.get(this.socket.getRemoteSocketAddress().toString()).booleanValue()) {
 		if (checkForTransitions(policyID) && !alert.equals("")) {
 		    this.processing.replace(this.socket.getRemoteSocketAddress().toString(), true);
-		    //String srcMac=findKey(Integer.parseInt(policyID));
 		    // Alert Msg Analysis
-		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)].getTransition()[policyMap.get(srcMac).getStateNum()]);
+		    MsgAnalysis analyzer = new MsgAnalysis(alert, devPolicy[Integer.parseInt(policyID)], this.policyMap, srcMac);
 		    if(analyzer.analyze()) {
 			//get old container names & images
 			String[] oldContNames=getContNames(policyID, srcMac);
@@ -150,12 +149,20 @@ public class AlertHandler extends Thread {
 			    //remove old containers (and ovs-ports and OF routes)
 			    DockerCalls docker = new DockerCalls();
 			    String ovsBridge = docker.remoteFindBridge(this.dataplaneIP,
-								   this.ovsPort);
+								       this.ovsPort);
+
 			    for (String name: oldContNames){
+				/*
+				  //hypervisor crashing when containers shutdown.
 				docker.remoteShutdownContainer(this.dataplaneIP, this.dockerPort,
 							       name, ovsBridge, this.ovsPort,
 							       this.ovsBridge_remotePort,
 							       this.OFversion);
+				*/
+				docker.remoteRemoveContainerPorts(this.dataplaneIP, this.dockerPort,
+								  name, ovsBridge, this.ovsPort,
+								  this.ovsBridge_remotePort,
+								  this.OFversion);
 			    }
 			    //Write routing rules
 			    ActionSet actions = new ActionSet("signkernel", "verifykernel");
